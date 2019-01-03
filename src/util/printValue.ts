@@ -28,6 +28,7 @@ function printSimpleValue(val: Value, quoteStrings = false) {
     return quoteStrings ? `"${val}"` : val
   }
   if (typeOf === 'function') {
+    // tslint:disable-next-line:ban-types
     return '[Function ' + ((val as Function).name || 'anonymous') + ']'
   }
   if (typeOf === 'symbol') {
