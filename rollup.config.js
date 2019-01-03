@@ -1,6 +1,6 @@
-const nodeResolve = require('rollup-plugin-node-resolve');
-const babel = require('rollup-plugin-babel');
-const filesize = require('rollup-plugin-filesize');
+const nodeResolve = require('rollup-plugin-node-resolve')
+const babel = require('rollup-plugin-babel')
+const filesize = require('rollup-plugin-filesize')
 
 const base = {
   input: './src/index.js',
@@ -24,7 +24,7 @@ const base = {
     'synchronous-promise',
     'property-expr',
   ],
-};
+}
 
 module.exports = [
   {
@@ -41,4 +41,4 @@ module.exports = [
     ],
     plugins: [...base.plugins, filesize()],
   },
-];
+]
