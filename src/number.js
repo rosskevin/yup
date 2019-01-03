@@ -1,6 +1,6 @@
 import inherits from './util/inherits'
 import MixedSchema from './mixed'
-import { number as locale } from './locale'
+import locale from './locale'
 import isAbsent from './util/isAbsent'
 
 let isNaN = value => value != +value
@@ -37,7 +37,7 @@ inherits(NumberSchema, MixedSchema, {
     return typeof value === 'number' && !isNaN(value)
   },
 
-  min(min, message = locale.min) {
+  min(min, message = locale.number.min) {
     return this.test({
       message,
       name: 'min',
@@ -49,7 +49,7 @@ inherits(NumberSchema, MixedSchema, {
     })
   },
 
-  max(max, message = locale.max) {
+  max(max, message = locale.number.max) {
     return this.test({
       message,
       name: 'max',
@@ -61,7 +61,7 @@ inherits(NumberSchema, MixedSchema, {
     })
   },
 
-  lessThan(less, message = locale.lessThan) {
+  lessThan(less, message = locale.number.lessThan) {
     return this.test({
       message,
       name: 'max',
@@ -73,7 +73,7 @@ inherits(NumberSchema, MixedSchema, {
     })
   },
 
-  moreThan(more, message = locale.moreThan) {
+  moreThan(more, message = locale.number.moreThan) {
     return this.test({
       message,
       name: 'min',
@@ -85,15 +85,15 @@ inherits(NumberSchema, MixedSchema, {
     })
   },
 
-  positive(msg = locale.positive) {
+  positive(msg = locale.number.positive) {
     return this.min(0, msg)
   },
 
-  negative(msg = locale.negative) {
+  negative(msg = locale.number.negative) {
     return this.max(0, msg)
   },
 
-  integer(message = locale.integer) {
+  integer(message = locale.number.integer) {
     return this.test({ name: 'integer', message, test: isInteger })
   },
 

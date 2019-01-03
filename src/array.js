@@ -4,8 +4,8 @@ import isSchema from './util/isSchema'
 import makePath from './util/makePath'
 import printValue from './util/printValue'
 import MixedSchema from './mixed'
-import { mixed, array as locale } from './locale'
 import runValidations, { propagateErrors } from './util/runValidations'
+import locale from './locale'
 
 let hasLength = value => !isAbsent(value) && value.length > 0
 
@@ -124,7 +124,7 @@ inherits(ArraySchema, MixedSchema, {
     return next
   },
 
-  required(message = mixed.required) {
+  required(message = locale.mixed.required) {
     var next = MixedSchema.prototype.required.call(this, message)
 
     return next.test({

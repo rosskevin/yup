@@ -1,6 +1,6 @@
 import inherits from './util/inherits'
 import MixedSchema from './mixed'
-import { mixed, string as locale } from './locale'
+import locale from './locale'
 import isAbsent from './util/isAbsent'
 
 // eslint-disable-next-line
@@ -31,13 +31,13 @@ inherits(StringSchema, MixedSchema, {
     return typeof value === 'string'
   },
 
-  required(message = mixed.required) {
+  required(message = locale.mixed.required) {
     var next = MixedSchema.prototype.required.call(this, message)
 
     return next.test({ message, name: 'required', test: hasLength })
   },
 
-  length(length, message = locale.length) {
+  length(length, message = locale.string.length) {
     return this.test({
       message,
       name: 'length',
@@ -49,7 +49,7 @@ inherits(StringSchema, MixedSchema, {
     })
   },
 
-  min(min, message = locale.min) {
+  min(min, message = locale.string.min) {
     return this.test({
       message,
       name: 'min',
@@ -61,7 +61,7 @@ inherits(StringSchema, MixedSchema, {
     })
   },
 
-  max(max, message = locale.max) {
+  max(max, message = locale.string.max) {
     return this.test({
       name: 'max',
       exclusive: true,
@@ -84,20 +84,20 @@ inherits(StringSchema, MixedSchema, {
     }
 
     return this.test({
-      message: message || locale.matches,
+      message: message || locale.string.matches,
       params: { regex },
       test: value => isAbsent(value) || (value === '' && excludeEmptyString) || regex.test(value),
     })
   },
 
-  email(message = locale.email) {
+  email(message = locale.string.email) {
     return this.matches(rEmail, {
       message,
       excludeEmptyString: true,
     })
   },
 
-  url(message = locale.url) {
+  url(message = locale.string.url) {
     return this.matches(rUrl, {
       message,
       excludeEmptyString: true,
@@ -109,7 +109,7 @@ inherits(StringSchema, MixedSchema, {
     return this.default('').transform(val => (val === null ? '' : val))
   },
 
-  trim(message = locale.trim) {
+  trim(message = locale.string.trim) {
     return this.transform(val => (val != null ? val.trim() : val)).test({
       message,
       name: 'trim',
@@ -117,7 +117,7 @@ inherits(StringSchema, MixedSchema, {
     })
   },
 
-  lowercase(message = locale.lowercase) {
+  lowercase(message = locale.string.lowercase) {
     return this.transform(value => (!isAbsent(value) ? value.toLowerCase() : value)).test({
       message,
       name: 'string_case',
@@ -126,7 +126,7 @@ inherits(StringSchema, MixedSchema, {
     })
   },
 
-  uppercase(message = locale.uppercase) {
+  uppercase(message = locale.string.uppercase) {
     return this.transform(value => (!isAbsent(value) ? value.toUpperCase() : value)).test({
       message,
       name: 'string_case',

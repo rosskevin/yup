@@ -8,7 +8,7 @@ export interface LocaleFnArgs {
 }
 export type LocaleFn = (args: LocaleFnArgs) => string
 
-export let mixed = {
+const mixed = {
   default: '${path} is invalid',
   notOneOf: '${path} must not be one of the following values: ${values}',
   notType: ({ path, type, value, originalValue }: LocaleFnArgs) => {
@@ -29,7 +29,7 @@ export let mixed = {
 }
 
 // tslint:disable-next-line:variable-name
-export const string = {
+const string = {
   email: '${path} must be a valid email',
   length: '${path} must be exactly ${length} characters',
   lowercase: '${path} must be a lowercase string',
@@ -42,7 +42,7 @@ export const string = {
 }
 
 // tslint:disable-next-line:variable-name
-export const number = {
+const number = {
   integer: '${path} must be an integer',
   lessThan: '${path} must be less than ${less}',
   max: '${path} must be less than or equal to ${max}',
@@ -53,19 +53,19 @@ export const number = {
   positive: '${path} must be a positive number',
 }
 
-export const date = {
+const date = {
   max: '${path} field must be at earlier than ${max}',
   min: '${path} field must be later than ${min}',
 }
 
 // tslint:disable-next-line:variable-name
-export const boolean = {}
+const boolean = {}
 
-export const object = {
+const object = {
   noUnknown: '${path} field cannot have keys not specified in the object shape',
 }
 
-export const array = {
+const array = {
   max: '${path} field must have less than or equal to ${max} items',
   min: '${path} field must have at least ${min} items',
 }

@@ -1,6 +1,6 @@
 import MixedSchema from './mixed'
 import inherits from './util/inherits'
-import { date as locale } from './locale'
+import locale from './locale'
 import isAbsent from './util/isAbsent'
 import Ref from './Reference'
 
@@ -34,7 +34,7 @@ inherits(DateSchema, MixedSchema, {
     return isDate(v) && !isNaN(v.getTime())
   },
 
-  min(min, message = locale.min) {
+  min(min, message = locale.date.min) {
     var limit = min
 
     if (!Ref.isRef(limit)) {
@@ -54,7 +54,7 @@ inherits(DateSchema, MixedSchema, {
     })
   },
 
-  max(max, message = locale.max) {
+  max(max, message = locale.date.max) {
     var limit = max
 
     if (!Ref.isRef(limit)) {

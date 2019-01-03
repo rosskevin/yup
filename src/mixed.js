@@ -1,7 +1,7 @@
 import has from 'lodash/has'
 import cloneDeepWith from 'lodash/cloneDeepWith'
 import toArray from 'lodash/toArray'
-import { mixed as mixedLocale } from './locale'
+import locale from './locale'
 import Condition from './Condition'
 import runValidations from './util/runValidations'
 import merge from './util/merge'
@@ -11,6 +11,7 @@ import createValidation from './util/createValidation'
 import printValue from './util/printValue'
 import Ref from './Reference'
 import { getIn } from './util/reach'
+import locale from './locale'
 
 let notEmpty = value => !isAbsent(value)
 
@@ -54,7 +55,7 @@ export default function SchemaType(options = {}) {
   this.transforms = []
 
   this.withMutation(() => {
-    this.typeError(mixedLocale.notType)
+    this.typeError(locale.mixed.notType)
   })
 
   if (has(options, 'default')) this._defaultDefault = options.default
@@ -283,7 +284,7 @@ const proto = (SchemaType.prototype = {
     return next
   },
 
-  required(message = mixedLocale.required) {
+  required(message = locale.mixed.required) {
     return this.test({ message, name: 'required', test: notEmpty })
   },
 
@@ -324,7 +325,7 @@ const proto = (SchemaType.prototype = {
       let [name, message, test] = args
       if (test == null) {
         test = message
-        message = mixedLocale.default
+        message = locale.mixed.default
       }
       opts = { name, test, message, exclusive: false }
     }
@@ -387,7 +388,7 @@ const proto = (SchemaType.prototype = {
     return next
   },
 
-  oneOf(enums, message = mixedLocale.oneOf) {
+  oneOf(enums, message = locale.mixed.oneOf) {
     var next = this.clone()
 
     enums.forEach(val => {
@@ -415,7 +416,7 @@ const proto = (SchemaType.prototype = {
     return next
   },
 
-  notOneOf(enums, message = mixedLocale.notOneOf) {
+  notOneOf(enums, message = locale.mixed.notOneOf) {
     var next = this.clone()
     enums.forEach(val => {
       next._blacklist.add(val)
