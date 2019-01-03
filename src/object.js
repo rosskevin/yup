@@ -4,9 +4,8 @@ import camelCase from 'lodash/camelCase'
 import mapKeys from 'lodash/mapKeys'
 import mapValues from 'lodash/mapValues'
 import { getter } from 'property-expr'
-
 import MixedSchema from './mixed'
-import { object as locale } from './locale.js'
+import { object as objectLocale } from './locale'
 import sortFields from './util/sortFields'
 import sortByKeyOrder from './util/sortByKeyOrder'
 import inherits from './util/inherits'
@@ -218,7 +217,7 @@ inherits(ObjectSchema, MixedSchema, {
     })
   },
 
-  noUnknown(noAllow = true, message = locale.noUnknown) {
+  noUnknown(noAllow = true, message = objectLocale.noUnknown) {
     if (typeof noAllow === 'string') {
       message = noAllow
       noAllow = true
