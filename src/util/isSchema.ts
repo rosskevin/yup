@@ -1,1 +1,1 @@
-export default obj => obj && obj.__isYupSchema__
+export default (obj: any) => obj && obj.__isYupSchema__
