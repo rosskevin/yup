@@ -6,7 +6,7 @@ export default function inherits(ctor, superCtor, spec) {
       writable: true,
       configurable: true,
     },
-  });
+  })
 
-  Object.assign(ctor.prototype, spec);
+  Object.assign(ctor.prototype, spec)
 }

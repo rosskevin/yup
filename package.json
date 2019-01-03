@@ -26,12 +26,12 @@
     "url": "https://github.com/rosskevin/yup/issues"
   },
   "homepage": "https://github.com/rosskevin/yup",
-  // "lint-staged": {
-  //   "*.{js,json,css,md}": [
-  //     "prettier --write",
-  //     "git add"
-  //   ]
-  // },
+  "lint-staged": {
+    "*.{js,json,css,md}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
   "devDependencies": {
     "@4c/rollout": "^1.1.0",
     "@babel/cli": "7.0.0",
