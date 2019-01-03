@@ -7,8 +7,9 @@ module.exports = {
   roots: ['test'],
   testRegex: '\\.js',
   testPathIgnorePatterns: ['helpers\\.js'],
-  // transform: {
-  //   // '^.+\\.(j|t)sx?$': 'ts-jest',
-  //   '^.+\\.js$': 'babel-jest',
-  // },
+  transform: {
+    '^.+\\.tsx?$': 'ts-jest',
+    // '^.+\\.(j|t)sx?$': 'ts-jest',
+    '^.+\\.js$': 'babel-jest',
+  },
 }
