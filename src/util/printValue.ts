@@ -1,4 +1,4 @@
-// tslint:disable:ban-types
+import { Value } from '../types'
 
 const toString = Object.prototype.toString
 const errorToString = Error.prototype.toString
@@ -15,7 +15,6 @@ function printNumber(val: number): string {
   return isNegativeZero ? '-0' : '' + val
 }
 
-export type Value = number | string | Function | null | boolean | Date
 function printSimpleValue(val: Value, quoteStrings = false) {
   if (val === null || val === true || val === false) {
     return '' + val
