@@ -1,1 +1,1 @@
-export default value => value == null
+export default (value: any) => value == null
