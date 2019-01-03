@@ -3,13 +3,13 @@ module.exports = {
     YUP_USE_SYNC: true,
   },
   testEnvironment: 'node',
-  setupTestFrameworkScriptFile: './test-setup.js',
+  setupTestFrameworkScriptFile: '<rootDir>/src/config/jest/setupFramework.ts',
   roots: ['test'],
   testRegex: '\\.js',
   testPathIgnorePatterns: ['helpers\\.js'],
   transform: {
-    '^.+\\.tsx?$': 'ts-jest',
-    // '^.+\\.(j|t)sx?$': 'ts-jest',
-    '^.+\\.js$': 'babel-jest',
+    // '^.+\\.tsx?$': 'ts-jest',
+    '^.+\\.(j|t)sx?$': 'ts-jest',
+    // '^.+\\.js$': 'babel-jest',
   },
 }
