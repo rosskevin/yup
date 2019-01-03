@@ -18,7 +18,6 @@ describe('Yup', function() {
 
   it('cast should respect assert option', () => {
     ;(() => string().cast(null)).should.throw()
-
     ;(() => string().cast(null, { assert: false })).should.not.throw()
   })
 

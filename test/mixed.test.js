@@ -412,7 +412,6 @@ describe('Mixed Types ', () => {
     })
 
     ;(await inst.isValid(8)).should.equal(false)
-
     ;(await inst
       .test({
         message: 'invalid',
