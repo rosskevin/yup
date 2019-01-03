@@ -9,6 +9,7 @@ describe('Date types', () => {
     var inst = date()
 
     inst.cast(new Date()).should.be.a('date')
+    inst.cast('01 Jan 1970 00:00:00 GMT').should.eql(new Date(0))
     inst.cast('jan 15 2014').should.eql(new Date(2014, 0, 15))
     inst.cast('2014-09-23T19:25:25Z').should.eql(new Date(1411500325000))
     // Leading-zero milliseconds

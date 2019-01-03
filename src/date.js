@@ -1,13 +1,15 @@
 import MixedSchema from './mixed'
 import inherits from './util/inherits'
-import isoParse from './util/isodate'
 import { date as locale } from './locale'
 import isAbsent from './util/isAbsent'
 import Ref from './Reference'
 
 let invalidDate = new Date('')
 
-let isDate = obj => Object.prototype.toString.call(obj) === '[object Date]'
+function isDate(obj) {
+  const result = Object.prototype.toString.call(obj) === '[object Date]'
+  return result
+}
 
 export default DateSchema
 
@@ -20,8 +22,9 @@ function DateSchema() {
     this.transform(function(value) {
       if (this.isType(value)) return value
 
-      value = isoParse(value)
-      return value ? new Date(value) : invalidDate
+      const ms = Date.parse(value)
+      const result = Number.isNaN(ms) === false ? new Date(ms) : invalidDate
+      return result
     })
   })
 }
