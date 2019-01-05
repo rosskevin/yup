@@ -1,16 +1,16 @@
 export default class ValidationError extends Error {
-  public static isInstance(err: any) {
+  public static isInstance(err: any): err is ValidationError {
     return err && err.name === 'ValidationError'
   }
 
   public name: string = 'ValidationError'
   public value: any
   public path: string
-  public type: string
+  public type?: string
   public errors: string[]
   public inner: ValidationError[]
 
-  constructor(errors: ValidationError[], value: any, path: string, type: string) {
+  constructor(errors: ValidationError[], value: any, path: string, type?: string) {
     super()
     this.value = value
     this.path = path

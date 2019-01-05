@@ -12,6 +12,7 @@ import printValue from './util/printValue'
 import Ref from './Reference'
 import { getIn } from './util/reach'
 import locale from './locale'
+import ValidationError from './ValidationError'
 
 let notEmpty = value => !isAbsent(value)
 
@@ -244,7 +245,7 @@ const proto = (SchemaType.prototype = {
     return this.validate(value, options)
       .then(() => true)
       .catch(err => {
-        if (err.name === 'ValidationError') return false
+        if (ValidationError.isInstance(err)) return false
         throw err
       })
   },
@@ -254,7 +255,7 @@ const proto = (SchemaType.prototype = {
       this.validateSync(value, { ...options })
       return true
     } catch (err) {
-      if (err.name === 'ValidationError') return false
+      if (ValidationError.isInstance(err)) return false
       throw err
     }
   },
