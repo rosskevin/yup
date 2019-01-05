@@ -1,4 +1,16 @@
-import { mixed, string, date, number, boolean, array, object, ref, lazy, reach } from '../src'
+import {
+  mixed,
+  string,
+  date,
+  number,
+  boolean,
+  array,
+  object,
+  ref,
+  lazy,
+  reach,
+  StringSchema,
+} from '../src'
 
 describe('Object types', () => {
   describe('casting', () => {
@@ -109,7 +121,7 @@ describe('Object types', () => {
     })
 
     it('should prevent recursive casting', async () => {
-      let castSpy = sinon.spy(string.prototype, '_cast')
+      let castSpy = sinon.spy(StringSchema.prototype, '_cast')
 
       inst = object({
         field: string(),
@@ -121,7 +133,7 @@ describe('Object types', () => {
 
       castSpy.should.have.been.calledOnce()
 
-      string.prototype._cast.restore()
+      StringSchema.prototype._cast.restore()
     })
 
     it('should respect strict for nested values', async () => {

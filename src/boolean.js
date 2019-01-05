@@ -1,11 +1,11 @@
-import MixedSchema from './MixedSchema'
+import { MixedSchema } from './MixedSchema'
 
 export function boolean() {
   if (!(this instanceof BooleanSchema)) return new BooleanSchema()
   return this
 }
 
-export default class BooleanSchema extends MixedSchema {
+export class BooleanSchema extends MixedSchema {
   constructor() {
     super({ type: 'boolean' })
 

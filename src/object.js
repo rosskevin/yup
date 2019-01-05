@@ -4,7 +4,7 @@ import camelCase from 'lodash/camelCase'
 import mapKeys from 'lodash/mapKeys'
 import mapValues from 'lodash/mapValues'
 import { getter } from './util/expression'
-import MixedSchema from './MixedSchema'
+import { MixedSchema } from './MixedSchema'
 import locale from './locale'
 import sortFields from './util/sortFields'
 import sortByKeyOrder from './util/sortByKeyOrder'
@@ -23,7 +23,7 @@ export function object(spec) {
   return this
 }
 
-export default class ObjectSchema extends MixedSchema {
+export class ObjectSchema extends MixedSchema {
   constructor(spec) {
     super({
       type: 'object',

@@ -20,7 +20,7 @@ export function mixed(/*options = {}*/) {
   }
   return this
 }
-export default class MixedSchema {
+export class MixedSchema {
   constructor(options = {}) {
     // if (!(this instanceof MixedSchema)) return new MixedSchema()
 

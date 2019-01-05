@@ -2,7 +2,7 @@ import isAbsent from './util/isAbsent'
 import isSchema from './util/isSchema'
 import makePath from './util/makePath'
 import printValue from './util/printValue'
-import MixedSchema from './MixedSchema'
+import { MixedSchema } from './MixedSchema'
 import runValidations, { propagateErrors } from './util/runValidations'
 import locale from './locale'
 
@@ -13,7 +13,7 @@ export function array(type) {
   return this
 }
 
-export default class ArraySchema extends MixedSchema {
+export class ArraySchema extends MixedSchema {
   constructor(type) {
     super({ type: 'array' })
 

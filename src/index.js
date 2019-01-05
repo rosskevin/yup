@@ -1,10 +1,3 @@
-import { mixed } from './MixedSchema'
-import { boolean } from './boolean'
-import { string } from './string'
-import { number } from './number'
-import { date } from './date'
-import { object } from './object'
-import { array } from './array'
 import Ref from './util/Ref'
 import Lazy from './Lazy'
 import ValidationError from './ValidationError'
@@ -26,20 +19,12 @@ function addMethod(schemaType, name, fn) {
   schemaType.prototype[name] = fn
 }
 
-export {
-  mixed,
-  string,
-  number,
-  bool,
-  boolean,
-  date,
-  object,
-  array,
-  ref,
-  lazy,
-  reach,
-  isSchema,
-  addMethod,
-  setLocale,
-  ValidationError,
-}
+export * from './array'
+export * from './boolean'
+export * from './date'
+export * from './MixedSchema'
+export * from './number'
+export * from './object'
+export * from './string'
+
+export { ref, lazy, reach, isSchema, addMethod, setLocale, ValidationError }

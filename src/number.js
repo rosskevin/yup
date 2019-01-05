@@ -1,4 +1,4 @@
-import MixedSchema from './MixedSchema'
+import { MixedSchema } from './MixedSchema'
 import locale from './locale'
 import isAbsent from './util/isAbsent'
 
@@ -11,7 +11,7 @@ export function number() {
   return this
 }
 
-export default class NumberSchema extends MixedSchema {
+export class NumberSchema extends MixedSchema {
   constructor() {
     super({ type: 'number' })
 

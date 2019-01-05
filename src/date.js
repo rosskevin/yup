@@ -1,4 +1,4 @@
-import MixedSchema from './MixedSchema'
+import { MixedSchema } from './MixedSchema'
 import locale from './locale'
 import isAbsent from './util/isAbsent'
 import Ref from './util/Ref'
@@ -15,7 +15,7 @@ export function date() {
   return this
 }
 
-export default class DateSchema extends MixedSchema {
+export class DateSchema extends MixedSchema {
   constructor() {
     super({ type: 'date' })
 
