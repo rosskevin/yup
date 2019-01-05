@@ -1,4 +1,4 @@
-import { array, mixed, string, number, object, ref, reach, boolean } from '../src'
+import { array, mixed, string, number, object, ref, reach, boolean, MixedSchema } from '../src'
 let noop = () => {}
 
 function ensureSync(fn) {
@@ -45,8 +45,8 @@ describe('Mixed Types ', () => {
     next.sub.should.equal(sub)
     inst.sub.should.equal(next.sub)
 
-    inst.should.be.an.instanceOf(mixed)
-    next.should.be.an.instanceOf(mixed)
+    inst.should.be.an.instanceOf(MixedSchema)
+    next.should.be.an.instanceOf(MixedSchema)
 
     return Promise.all([
       inst
