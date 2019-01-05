@@ -1,45 +1,18 @@
 import has from 'lodash/has'
 import cloneDeepWith from 'lodash/cloneDeepWith'
-import toArray from 'lodash/toArray'
 import locale from './locale'
 import Condition from './Condition'
 import runValidations from './util/runValidations'
 import merge from './util/merge'
 import isSchema from './util/isSchema'
-import isAbsent from './util/isAbsent'
 import createValidation from './util/createValidation'
 import printValue from './util/printValue'
 import Ref from './Reference'
 import getIn from './util/getIn'
 import locale from './locale'
 import ValidationError from './ValidationError'
-
-let notEmpty = value => !isAbsent(value)
-
-class RefSet {
-  constructor() {
-    this.list = new Set()
-    this.refs = new Map()
-  }
-  toArray() {
-    return toArray(this.list).concat(toArray(this.refs.values()))
-  }
-  add(value) {
-    Ref.isRef(value) ? this.refs.set(value.key, value) : this.list.add(value)
-  }
-  delete(value) {
-    Ref.isRef(value) ? this.refs.delete(value.key, value) : this.list.delete(value)
-  }
-  has(value, resolve) {
-    if (this.list.has(value)) return true
-
-    let item,
-      values = this.refs.values()
-    while (((item = values.next()), !item.done)) if (resolve(item.value) === value) return true
-
-    return false
-  }
-}
+import isNotEmpty from './util/isNotEmpty'
+import RefSet from './util/RefSet'
 
 export default function SchemaType(options = {}) {
   if (!(this instanceof SchemaType)) return new SchemaType()
@@ -286,7 +259,7 @@ const proto = (SchemaType.prototype = {
   },
 
   required(message = locale.mixed.required) {
-    return this.test({ message, name: 'required', test: notEmpty })
+    return this.test({ message, name: 'required', test: isNotEmpty })
   },
 
   notRequired() {
