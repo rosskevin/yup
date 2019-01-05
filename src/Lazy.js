@@ -1,6 +1,10 @@
 import isSchema from './util/isSchema'
 
-class Lazy {
+export function lazy(fn) {
+  return new Lazy(fn)
+}
+export class Lazy {
+  __isYupSchema__ = true
   constructor(mapFn) {
     this._resolve = (...args) => {
       let schema = mapFn(...args)
@@ -22,7 +26,3 @@ class Lazy {
     return this._resolve(value, options).validate(value, options)
   }
 }
-
-Lazy.prototype.__isYupSchema__ = true
-
-export default Lazy

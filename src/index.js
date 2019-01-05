@@ -1,13 +1,10 @@
 import Ref from './util/Ref'
-import Lazy from './Lazy'
 import ValidationError from './ValidationError'
 import reach from './util/reach'
 import isSchema from './util/isSchema'
 import setLocale from './setLocale'
 
 let ref = (key, options) => new Ref(key, options)
-
-let lazy = fn => new Lazy(fn)
 
 function addMethod(schemaType, name, fn) {
   if (!schemaType || !isSchema(schemaType.prototype))
@@ -27,4 +24,6 @@ export * from './NumberSchema'
 export * from './ObjectSchema'
 export * from './StringSchema'
 
-export { ref, lazy, reach, isSchema, addMethod, setLocale, ValidationError }
+export * from './Lazy'
+
+export { ref, reach, isSchema, addMethod, setLocale, ValidationError }
