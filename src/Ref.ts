@@ -1,7 +1,7 @@
 // tslint:disable:ban-types
 
-import { Value } from '../types'
-import { getter } from './expression'
+import { Value } from './types'
+import { getter } from './util/expression'
 
 const validateName = (d: any) => {
   if (typeof d !== 'string') {
@@ -9,11 +9,15 @@ const validateName = (d: any) => {
   }
 }
 
-export type MapFn = (value: any) => string
-export interface Options {
+export type RefMapFn = (value: any) => string
+
+export interface RefOptions {
   contextPrefix?: string
 }
 
+export function ref(key: string | Function, options: RefOptions) {
+  return new Ref(key, undefined, options)
+}
 // It is tempting to declare `Ref` very simply, but there are problems with these approaches:
 //
 // * `type Ref = Record<string, any>;` - This is essentially how it was originally declared, but
@@ -36,13 +40,13 @@ export interface Options {
  * `Ref` is an opaque type that is internal to yup. Creating a `Ref` instance is accomplished via the `ref()` factory
  * function.
  */
-export default class Ref {
+export class Ref {
   public static isRef(value: any): value is Ref {
     return !!(value && (value.__isYupRef || value instanceof Ref))
   }
 
   public key: string
-  public map: MapFn
+  public map: RefMapFn
   public prefix: string
   public isContext: boolean
   public isSelf: boolean
@@ -51,7 +55,8 @@ export default class Ref {
   public readonly __isYupRef: boolean = true
   private pathGetter: any
 
-  constructor(keyArg: string | Function, mapFn: MapFn, options: Options = {}) {
+  // FIXME mapFn and options together? keyArg only string?
+  constructor(keyArg: string | Function, mapFn: RefMapFn | undefined, options: RefOptions = {}) {
     validateName(keyArg)
     const prefix = options.contextPrefix || '$'
 

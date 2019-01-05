@@ -1,7 +1,7 @@
 import { MixedSchema } from './MixedSchema'
 import locale from './locale'
 import isAbsent from './util/isAbsent'
-import Ref from './util/Ref'
+import { Ref } from './Ref'
 
 let invalidDate = new Date('')
 

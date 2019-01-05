@@ -1,10 +1,7 @@
-import Ref from './util/Ref'
 import ValidationError from './ValidationError'
 import reach from './util/reach'
 import isSchema from './util/isSchema'
 import setLocale from './setLocale'
-
-let ref = (key, options) => new Ref(key, options)
 
 function addMethod(schemaType, name, fn) {
   if (!schemaType || !isSchema(schemaType.prototype))
@@ -25,5 +22,6 @@ export * from './ObjectSchema'
 export * from './StringSchema'
 
 export * from './Lazy'
+export * from './Ref'
 
 export { ref, reach, isSchema, addMethod, setLocale, ValidationError }

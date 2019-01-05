@@ -2,7 +2,7 @@ import has from 'lodash/has'
 import toposort from 'toposort'
 import { split } from './expression'
 import isSchema from './isSchema'
-import Ref from './Ref'
+import { Ref } from '../Ref'
 
 export default function sortFields(fields: any, excludes: any[] = []) {
   const edges: any[] = []

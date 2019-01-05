@@ -3,7 +3,7 @@ import { SynchronousPromise } from 'synchronous-promise'
 import { CreateErrorArgs, Schema, TestContext, TestOptions, ValidateOptions } from '../types'
 import ValidationError from '../ValidationError'
 import formatError from './formatError'
-import Ref from './Ref'
+import { Ref } from '../Ref'
 
 function isPromiseLike(p: any): p is PromiseLike<any> {
   return p && typeof p.then === 'function' && typeof p.catch === 'function'
