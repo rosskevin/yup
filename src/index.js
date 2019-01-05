@@ -19,12 +19,12 @@ function addMethod(schemaType, name, fn) {
   schemaType.prototype[name] = fn
 }
 
-export * from './array'
-export * from './boolean'
-export * from './date'
+export * from './ArraySchema'
+export * from './BooleanSchema'
+export * from './DateSchema'
 export * from './MixedSchema'
-export * from './number'
-export * from './object'
-export * from './string'
+export * from './NumberSchema'
+export * from './ObjectSchema'
+export * from './StringSchema'
 
 export { ref, lazy, reach, isSchema, addMethod, setLocale, ValidationError }
