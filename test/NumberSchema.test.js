@@ -1,5 +1,5 @@
 import * as TestHelpers from './helpers'
-import { number } from '../src'
+import { number, NumberSchema } from '../src'
 
 describe('Number types', function() {
   it('is newable', () => {
@@ -8,7 +8,7 @@ describe('Number types', function() {
   })
 
   it('is extensible', () => {
-    class MyNumber extends number {
+    class MyNumber extends NumberSchema {
       foo() {
         return this
       }
