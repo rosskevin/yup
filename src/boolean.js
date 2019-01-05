@@ -1,5 +1,5 @@
 import inherits from './util/inherits'
-import MixedSchema from './mixed'
+import MixedSchema from './MixedSchema'
 
 export default BooleanSchema
 

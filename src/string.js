@@ -1,5 +1,5 @@
 import inherits from './util/inherits'
-import MixedSchema from './mixed'
+import MixedSchema from './MixedSchema'
 import locale from './locale'
 import isAbsent from './util/isAbsent'
 

@@ -1,4 +1,4 @@
-import mixed from '../../mixed'
+import mixed from '../../MixedSchema'
 
 const g = global as any
 

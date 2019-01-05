@@ -1,4 +1,4 @@
-import mixed from './mixed'
+import mixed from './MixedSchema'
 import bool from './boolean'
 import string from './string'
 import number from './number'

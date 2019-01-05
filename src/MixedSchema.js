@@ -14,8 +14,8 @@ import ValidationError from './ValidationError'
 import isNotEmpty from './util/isNotEmpty'
 import RefSet from './util/RefSet'
 
-export default function SchemaType(options = {}) {
-  if (!(this instanceof SchemaType)) return new SchemaType()
+export default function MixedSchema(options = {}) {
+  if (!(this instanceof MixedSchema)) return new MixedSchema()
 
   this._deps = []
   this._conditions = []
@@ -37,10 +37,10 @@ export default function SchemaType(options = {}) {
   this._type = options.type || 'mixed'
 }
 
-const proto = (SchemaType.prototype = {
+MixedSchema.prototype = {
   __isYupSchema__: true,
 
-  constructor: SchemaType,
+  constructor: MixedSchema,
 
   clone() {
     if (this._mutate) return this
@@ -437,10 +437,10 @@ const proto = (SchemaType.prototype = {
         .filter((n, idx, list) => list.indexOf(n) === idx),
     }
   },
-})
+}
 
 for (const method of ['validate', 'validateSync'])
-  proto[`${method}At`] = function(path, value, options = {} /* ValidateOptions */) {
+  MixedSchema.prototype[`${method}At`] = function(path, value, options = {} /* ValidateOptions */) {
     const { parent, parentPath, schema } = getIn(this, path, value, options.context)
 
     return schema[method](parent && parent[parentPath], {
@@ -450,5 +450,5 @@ for (const method of ['validate', 'validateSync'])
     })
   }
 
-for (const alias of ['equals', 'is']) proto[alias] = proto.oneOf
-for (const alias of ['not', 'nope']) proto[alias] = proto.notOneOf
+for (const alias of ['equals', 'is']) MixedSchema.prototype[alias] = MixedSchema.prototype.oneOf
+for (const alias of ['not', 'nope']) MixedSchema.prototype[alias] = MixedSchema.prototype.notOneOf

@@ -3,7 +3,7 @@ import isAbsent from './util/isAbsent'
 import isSchema from './util/isSchema'
 import makePath from './util/makePath'
 import printValue from './util/printValue'
-import MixedSchema from './mixed'
+import MixedSchema from './MixedSchema'
 import runValidations, { propagateErrors } from './util/runValidations'
 import locale from './locale'
 

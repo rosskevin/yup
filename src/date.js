@@ -1,4 +1,4 @@
-import MixedSchema from './mixed'
+import MixedSchema from './MixedSchema'
 import inherits from './util/inherits'
 import locale from './locale'
 import isAbsent from './util/isAbsent'
