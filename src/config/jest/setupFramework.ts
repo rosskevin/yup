@@ -9,7 +9,6 @@ g.chai.use(require('sinon-chai'))
 g.chai.use(require('chai-as-promised'))
 g.chai.use(require('dirty-chai'))
 
-// g.expect = g.chai.expect
 g.chai.should()
 
 // WTF???
@@ -19,8 +18,8 @@ g.chai.should()
 //   (Object as any).getOwnPropertyDescriptor(Object.prototype, 'should'),
 // )
 
+// FIXME get this out of globals
 g.TestHelpers = require('../../../test/helpers')
-g.specify = g.it
 
 if (g.YUP_USE_SYNC) {
   const { validate } = mixed.prototype
