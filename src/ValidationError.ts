@@ -3,14 +3,14 @@ export default class ValidationError extends Error {
     return err && err.name === 'ValidationError'
   }
 
-  public name: string = 'ValidationError'
+  public readonly name: string = 'ValidationError'
   public value: any
   public path: string
   public type?: string
-  public errors: string[]
-  public inner: ValidationError[]
+  public errors: Array<ValidationError | string>
+  public inner: Array<ValidationError | string>
 
-  constructor(errors: ValidationError[], value: any, path: string, type?: string) {
+  constructor(errors: string | ValidationError, value: any, path: string, type?: string) {
     super()
     this.value = value
     this.path = path
@@ -19,17 +19,18 @@ export default class ValidationError extends Error {
     this.inner = []
 
     if (errors) {
-      const all: ValidationError[] = []
+      const all: Array<ValidationError | string> = []
       all.concat(errors).forEach(err => {
-        this.errors = this.errors.concat(err.errors || err)
+        this.errors = this.errors.concat((err as any).errors || err)
 
-        if (err.inner) {
+        if (ValidationError.isInstance(err)) {
           this.inner = this.inner.concat(err.inner.length ? err.inner : err)
         }
       })
     }
 
-    this.message = this.errors.length > 1 ? `${this.errors.length} errors occurred` : this.errors[0]
+    this.message =
+      this.errors.length > 1 ? `${this.errors.length} errors occurred` : (this.errors[0] as string)
 
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, ValidationError)

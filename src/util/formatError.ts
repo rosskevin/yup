@@ -1,29 +1,23 @@
+import { MessageFormatter, MessageFormatterParams } from '../types'
 import printValue from './printValue'
-
-export type MessageFormatter = (params: Params) => string
 
 const strReg = /\$\{\s*(\w+)\s*\}/g
 
 function replace(str: string): MessageFormatter {
-  const formatter: MessageFormatter = (params: Params) =>
+  const formatter: MessageFormatter = (params: MessageFormatterParams) =>
     str.replace(strReg, (_, key) => printValue(params[key]))
   return formatter
 }
 
-// not sure if this type is shared anywhere else, but the test seems to indicate an open object
-export interface Params {
-  [key: string]: any
-}
-
 export default function formatError(
   message: string | MessageFormatter,
-  paramsArg?: Params,
+  paramsArg?: MessageFormatterParams,
 ): string | MessageFormatter {
   if (typeof message === 'string') {
     message = replace(message)
   }
 
-  const formatter = (p: Params) => {
+  const formatter = (p: MessageFormatterParams) => {
     p.path = p.label || p.path || 'this'
     return typeof message === 'function' ? message(p) : message
   }
