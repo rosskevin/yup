@@ -1,16 +1,23 @@
 import mapValues from 'lodash/mapValues'
-import ValidationError from '../ValidationError'
-import Ref from '../Reference'
 import { SynchronousPromise } from 'synchronous-promise'
+import Ref from '../Reference'
+import { CreateErrorArgs, Schema, TestContext, TestOptions, ValidateOptions } from '../types'
+import ValidationError from '../ValidationError'
 import formatError from './formatError'
 
-let thenable = p => p && typeof p.then === 'function' && typeof p.catch === 'function'
+function isPromiseLike(p: any): p is PromiseLike<any> {
+  return p && typeof p.then === 'function' && typeof p.catch === 'function'
+}
 
-function runTest(testFn, ctx, value, sync) {
-  let result = testFn.call(ctx, value)
-  if (!sync) return Promise.resolve(result)
+function runTest<S>(testOptions: TestOptions, ctx: TestContext, validateArgs: ValidateArgs<S>) {
+  const { test: testFn } = testOptions
+  const { value, sync } = validateArgs
+  const result = testFn.call(ctx, value)
+  if (!sync) {
+    return Promise.resolve(result)
+  }
 
-  if (thenable(result)) {
+  if (isPromiseLike(result)) {
     throw new Error(
       `Validation test of type: "${ctx.type}" returned a Promise during a synchronous validate. ` +
         `This test will finish after the validate call has returned`,
@@ -19,70 +26,100 @@ function runTest(testFn, ctx, value, sync) {
   return SynchronousPromise.resolve(result)
 }
 
-function resolveParams(oldParams, newParams, resolve) {
+type Resolve = (r: any) => any
+
+function resolveParams(oldParams: object, newParams: object, resolve: Resolve) {
   return mapValues({ ...oldParams, ...newParams }, resolve)
 }
 
-function createErrorFactory({ value, label, resolve, originalValue, ...opts }) {
+function createErrorFactory(
+  testOptions: TestOptions,
+  validateArgs: ValidateArgs<any>,
+  resolve: Resolve,
+) {
+  // const { message, name, params } = testOptions
+  const { value, label, originalValue } = validateArgs
   return function createError({
-    path = opts.path,
-    message = opts.message,
-    type = opts.name,
+    path = validateArgs.path,
+    message = testOptions.message,
+    type = testOptions.name,
     params,
-  } = {}) {
+  }: CreateErrorArgs = {}) {
     params = {
+      label,
+      originalValue,
       path,
       value,
-      originalValue,
-      label,
-      ...resolveParams(opts.params, params, resolve),
+      ...resolveParams(testOptions.params || {}, params, resolve),
     }
 
-    return Object.assign(new ValidationError(formatError(message, params), value, path, type), {
-      params,
-    })
+    return Object.assign(
+      new ValidationError(formatError(message, params) as string, value, path, type),
+      {
+        params,
+      },
+    )
   }
 }
 
-export default function createValidation(options) {
-  let { name, message, test, params } = options
+export interface ValidateArgs<S> {
+  label: string
+  options: ValidateOptions
+  originalValue: any
+  path: string
+  schema: Schema<S>
+  sync: boolean
+  value: any
+}
 
-  function validate({ value, path, label, options, originalValue, sync, ...rest }) {
-    let parent = options.parent
-    let resolve = value => (Ref.isRef(value) ? value.getValue(parent, options.context) : value)
+export default function createValidation<S>(testOptions: TestOptions) {
+  const { name, message, test, params } = testOptions
 
-    let createError = createErrorFactory({
-      message,
-      path,
-      value,
-      originalValue,
-      params,
+  function validate(validateArgs: ValidateArgs<S>) {
+    const { value, path, label, options, originalValue, sync, ...rest } = validateArgs
+    const parent = options.parent // save here - it seems to be mutated later
+    const resolve = (r: any) => (Ref.isRef(r) ? r.getValue(parent, options.context) : r)
+
+    const createError = createErrorFactory(
+      testOptions,
+      validateArgs,
+      resolve,
+      /*{
       label,
-      resolve,
-      name,
-    })
 
-    let ctx = {
+      message,
+      name,
+      params,
+
+      originalValue,
       path,
-      parent,
-      type: name,
-      createError,
       resolve,
+      value,
+    }*/
+    )
+
+    const ctx: TestContext = {
+      createError,
       options,
+      parent,
+      path,
+      resolve,
+      type: name,
       ...rest,
     }
 
-    return runTest(test, ctx, value, sync).then(validOrError => {
-      if (ValidationError.isInstance(validOrError)) throw validOrError
-      else if (!validOrError) throw createError()
+    return runTest(testOptions, ctx, validateArgs).then(validOrError => {
+      if (ValidationError.isInstance(validOrError)) {
+        throw validOrError
+      } else if (!validOrError) {
+        throw createError()
+      }
     })
   }
 
   validate.TEST_NAME = name
   validate.TEST_FN = test
-  validate.TEST = options
+  validate.TEST = testOptions
 
   return validate
 }
-
-module.exports.createErrorFactory = createErrorFactory
