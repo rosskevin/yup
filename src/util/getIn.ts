@@ -1,34 +1,45 @@
-import { forEach } from './expression'
 import has from 'lodash/has'
+import { Schema, ValidateOptions } from '../types'
+import { forEach } from './expression'
 
-let trim = part => part.substr(0, part.length - 1).substr(1)
+function trim(part: string) {
+  return part.substr(0, part.length - 1).substr(1)
+}
 
-export function getIn(schema, path, value, context) {
-  let parent, lastPart, lastPartDebug
+export default function getIn(
+  schema: Schema<any>,
+  path: string,
+  value: any,
+  context?: ValidateOptions['context'],
+) {
+  let parent: any
+  let lastPart
+  let lastPartDebug: any
 
   // if only one "value" arg then use it for both
   context = context || value
 
-  if (!path)
+  if (!path) {
     return {
       parent,
       parentPath: path,
       schema: schema.resolve({ context, parent, value }),
     }
+  }
 
-  forEach(path, (_part, isBracket, isArray) => {
-    let part = isBracket ? trim(_part) : _part
+  forEach(path, (partArg, isBracket, isArray) => {
+    const part = isBracket ? trim(partArg) : partArg
 
     if (isArray || has(schema, '_subType')) {
       // we skipped an array: foo[].bar
-      let idx = isArray ? parseInt(part, 10) : 0
+      const idx = isArray ? parseInt(part, 10) : 0
 
       schema = schema.resolve({ context, parent, value })._subType
 
       if (value) {
         if (isArray && idx >= value.length) {
           throw new Error(
-            `Yup.reach cannot resolve an array item at index: ${_part}, in the path: ${path}. ` +
+            `Yup.reach cannot resolve an array item at index: ${partArg}, in the path: ${path}. ` +
               `because there is no value at that index. `,
           )
         }
@@ -40,18 +51,19 @@ export function getIn(schema, path, value, context) {
     if (!isArray) {
       schema = schema.resolve({ context, parent, value })
 
-      if (!has(schema, 'fields') || !has(schema.fields, part))
+      if (!has(schema, 'fields') || !has(schema.fields, part)) {
         throw new Error(
           `The schema does not contain the path: ${path}. ` +
-            `(failed at: ${lastPartDebug} which is a type: "${schema._type}") `,
+            `(failed at: ${lastPartDebug} which is a type: "${schema.type}") `,
         )
+      }
 
       schema = schema.fields[part]
 
       parent = value
       value = value && value[part]
-      lastPart = _part
-      lastPartDebug = isBracket ? '[' + _part + ']' : '.' + _part
+      lastPart = partArg
+      lastPartDebug = isBracket ? '[' + partArg + ']' : '.' + partArg
     }
   })
 
@@ -61,7 +73,3 @@ export function getIn(schema, path, value, context) {
 
   return { schema, parent, parentPath: lastPart }
 }
-
-const reach = (obj, path, value, context) => getIn(obj, path, value, context).schema
-
-export default reach

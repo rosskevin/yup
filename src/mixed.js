@@ -10,7 +10,7 @@ import isAbsent from './util/isAbsent'
 import createValidation from './util/createValidation'
 import printValue from './util/printValue'
 import Ref from './Reference'
-import { getIn } from './util/reach'
+import getIn from './util/getIn'
 import locale from './locale'
 import ValidationError from './ValidationError'
 
@@ -467,7 +467,7 @@ const proto = (SchemaType.prototype = {
 })
 
 for (const method of ['validate', 'validateSync'])
-  proto[`${method}At`] = function(path, value, options = {}) {
+  proto[`${method}At`] = function(path, value, options = {} /* ValidateOptions */) {
     const { parent, parentPath, schema } = getIn(this, path, value, options.context)
 
     return schema[method](parent && parent[parentPath], {

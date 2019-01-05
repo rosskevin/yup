@@ -1,5 +1,6 @@
 // tslint:disable:ban-types
 
+import { resolve } from 'dns'
 import ValidationError from './ValidationError'
 
 export type Value = number | string | Function | null | boolean | Date
@@ -60,6 +61,9 @@ export interface SchemaDescription {
 export type TransformFunction<T> = ((this: T, value: any, originalValue: any) => any)
 
 export interface Schema<T> {
+  fields: { [key: string]: any }
+  type: string
+  _subType: this
   clone(): this
   label(label: string): this
   meta(metadata: any): this
@@ -80,6 +84,7 @@ export interface Schema<T> {
   default(value?: any): this
   nullable(isNullable: boolean): this
   required(message?: Message): this
+  resolve(args: any): this
   notRequired(): this
   typeError(message?: Message): this
   oneOf(arrayOfValues: any[], message?: Message): this
@@ -122,7 +127,9 @@ export interface TestMessageParams {
   value: any
 }
 
-export type MessageFormatterParams = Partial<TestMessageParams>
+export interface MessageFormatterParams extends Partial<TestMessageParams> {
+  [key: string]: any // open params?
+}
 export type MessageFormatter = (params: MessageFormatterParams) => string
 export type Message = string | MessageFormatter
 

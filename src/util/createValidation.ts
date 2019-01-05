@@ -54,7 +54,7 @@ function createErrorFactory(
     }
 
     return Object.assign(
-      new ValidationError(formatError(message, params) as string, value, path, type),
+      new ValidationError(formatError(message as string, params) as string, value, path, type),
       {
         params,
       },
