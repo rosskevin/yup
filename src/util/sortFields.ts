@@ -1,6 +1,6 @@
 import has from 'lodash/has'
 import toposort from 'toposort'
-import Ref from '../Ref'
+import Ref from './Ref'
 import { split } from './expression'
 import isSchema from './isSchema'
 
