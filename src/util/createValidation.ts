@@ -1,9 +1,9 @@
 import mapValues from 'lodash/mapValues'
 import { SynchronousPromise } from 'synchronous-promise'
-import Ref from './Ref'
 import { CreateErrorArgs, Schema, TestContext, TestOptions, ValidateOptions } from '../types'
 import ValidationError from '../ValidationError'
 import formatError from './formatError'
+import Ref from './Ref'
 
 function isPromiseLike(p: any): p is PromiseLike<any> {
   return p && typeof p.then === 'function' && typeof p.catch === 'function'
