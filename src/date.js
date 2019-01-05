@@ -2,7 +2,7 @@ import MixedSchema from './mixed'
 import inherits from './util/inherits'
 import locale from './locale'
 import isAbsent from './util/isAbsent'
-import Ref from './Reference'
+import Ref from './Ref'
 
 let invalidDate = new Date('')
 

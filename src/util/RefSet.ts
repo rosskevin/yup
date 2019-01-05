@@ -1,4 +1,4 @@
-import Ref from '../Reference'
+import Ref from '../Ref'
 
 export default class RefSet {
   private set: Set<any> = new Set()

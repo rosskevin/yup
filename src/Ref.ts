@@ -36,9 +36,9 @@ export interface Options {
  * `Ref` is an opaque type that is internal to yup. Creating a `Ref` instance is accomplished via the `ref()` factory
  * function.
  */
-export default class Reference {
-  public static isRef(value: any): value is Reference {
-    return !!(value && (value.__isYupRef || value instanceof Reference))
+export default class Ref {
+  public static isRef(value: any): value is Ref {
+    return !!(value && (value.__isYupRef || value instanceof Ref))
   }
 
   public key: string
