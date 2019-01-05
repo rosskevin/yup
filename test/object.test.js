@@ -1,4 +1,4 @@
-import { mixed, string, date, number, bool, array, object, ref, lazy, reach } from '../src'
+import { mixed, string, date, number, boolean, array, object, ref, lazy, reach } from '../src'
 
 describe('Object types', () => {
   describe('casting', () => {
@@ -331,7 +331,7 @@ describe('Object types', () => {
 
   it('should handle field striping with `when`', () => {
     let inst = object().shape({
-      other: bool(),
+      other: boolean(),
       prop: mixed().when('other', {
         is: true,
         then: s => s.strip(),
@@ -618,7 +618,7 @@ describe('Object types', () => {
         .when('other', function(v) {
           if (v === 4) return this.max(6)
         }),
-      stats: object({ isBig: bool() }),
+      stats: object({ isBig: boolean() }),
       other: number()
         .min(1)
         .when('stats', { is: 5, then: number() }),
@@ -687,7 +687,7 @@ describe('Object types', () => {
 
   it('should use correct default when concating', () => {
     let inst = object({
-      other: bool(),
+      other: boolean(),
     }).default(undefined)
 
     expect(inst.concat(object()).default()).toStrictEqual(undefined)
@@ -701,9 +701,9 @@ describe('Object types', () => {
       then: number().min(5),
     })
     let inst = object({
-      other: bool(),
+      other: boolean(),
       stats: object({
-        isBig: bool(),
+        isBig: boolean(),
         count: countSchema,
       })
         .default(undefined)

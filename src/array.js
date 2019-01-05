@@ -1,4 +1,3 @@
-import inherits from './util/inherits'
 import isAbsent from './util/isAbsent'
 import isSchema from './util/isSchema'
 import makePath from './util/makePath'
@@ -9,37 +8,38 @@ import locale from './locale'
 
 let hasLength = value => !isAbsent(value) && value.length > 0
 
-export default ArraySchema
-
-function ArraySchema(type) {
+export function array(type) {
   if (!(this instanceof ArraySchema)) return new ArraySchema(type)
-
-  MixedSchema.call(this, { type: 'array' })
-
-  // `undefined` specifically means uninitialized, as opposed to
-  // "no subtype"
-  this._subType = undefined
-
-  this.withMutation(() => {
-    this.transform(function(values) {
-      if (typeof values === 'string')
-        try {
-          values = JSON.parse(values)
-        } catch (err) {
-          values = null
-        }
-
-      return this.isType(values) ? values : null
-    })
-
-    if (type) this.of(type)
-  })
+  return this
 }
 
-inherits(ArraySchema, MixedSchema, {
+export default class ArraySchema extends MixedSchema {
+  constructor(type) {
+    super({ type: 'array' })
+
+    // `undefined` specifically means uninitialized, as opposed to
+    // "no subtype"
+    this._subType = undefined
+
+    this.withMutation(() => {
+      this.transform(function(values) {
+        if (typeof values === 'string')
+          try {
+            values = JSON.parse(values)
+          } catch (err) {
+            values = null
+          }
+
+        return this.isType(values) ? values : null
+      })
+
+      if (type) this.of(type)
+    })
+  }
+
   _typeCheck(v) {
     return Array.isArray(v)
-  },
+  }
 
   _cast(_value, _opts) {
     const value = MixedSchema.prototype._cast.call(this, _value, _opts)
@@ -58,7 +58,7 @@ inherits(ArraySchema, MixedSchema, {
     })
 
     return isChanged ? castArray : value
-  },
+  }
 
   _validate(_value, options = {}) {
     let errors = []
@@ -107,7 +107,7 @@ inherits(ArraySchema, MixedSchema, {
           validations,
         })
       })
-  },
+  }
 
   of(schema) {
     var next = this.clone()
@@ -122,7 +122,7 @@ inherits(ArraySchema, MixedSchema, {
     next._subType = schema
 
     return next
-  },
+  }
 
   required(message = locale.mixed.required) {
     var next = MixedSchema.prototype.required.call(this, message)
@@ -132,7 +132,7 @@ inherits(ArraySchema, MixedSchema, {
       name: 'required',
       test: hasLength,
     })
-  },
+  }
 
   min(min, message) {
     message = message || locale.min
@@ -146,7 +146,7 @@ inherits(ArraySchema, MixedSchema, {
         return isAbsent(value) || value.length >= this.resolve(min)
       },
     })
-  },
+  }
 
   max(max, message) {
     message = message || locale.max
@@ -159,24 +159,24 @@ inherits(ArraySchema, MixedSchema, {
         return isAbsent(value) || value.length <= this.resolve(max)
       },
     })
-  },
+  }
 
   ensure() {
     return this.default(() => []).transform(val => {
       if (this.isType(val)) return val
       return val === null ? [] : [].concat(val)
     })
-  },
+  }
 
   compact(rejector) {
     let reject = !rejector ? v => !!v : (v, i, a) => !rejector(v, i, a)
 
     return this.transform(values => (values != null ? values.filter(reject) : values))
-  },
+  }
 
   describe() {
     let base = MixedSchema.prototype.describe.call(this)
     if (this._subType) base.innerType = this._subType.describe()
     return base
-  },
-})
+  }
+}

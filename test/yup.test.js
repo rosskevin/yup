@@ -1,5 +1,4 @@
 import { settled } from '../src/util/runValidations'
-
 import { object, array, string, lazy, number } from '../src'
 
 describe('Yup', function() {

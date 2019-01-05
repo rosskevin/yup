@@ -1,5 +1,4 @@
 import MixedSchema from './MixedSchema'
-import inherits from './util/inherits'
 import locale from './locale'
 import isAbsent from './util/isAbsent'
 import Ref from './util/Ref'
@@ -11,28 +10,29 @@ function isDate(obj) {
   return result
 }
 
-export default DateSchema
-
-function DateSchema() {
+export function date() {
   if (!(this instanceof DateSchema)) return new DateSchema()
-
-  MixedSchema.call(this, { type: 'date' })
-
-  this.withMutation(() => {
-    this.transform(function(value) {
-      if (this.isType(value)) return value
-
-      const ms = Date.parse(value)
-      const result = Number.isNaN(ms) === false ? new Date(ms) : invalidDate
-      return result
-    })
-  })
+  return this
 }
 
-inherits(DateSchema, MixedSchema, {
+export default class DateSchema extends MixedSchema {
+  constructor() {
+    super({ type: 'date' })
+
+    this.withMutation(() => {
+      this.transform(function(value) {
+        if (this.isType(value)) return value
+
+        const ms = Date.parse(value)
+        const result = Number.isNaN(ms) === false ? new Date(ms) : invalidDate
+        return result
+      })
+    })
+  }
+
   _typeCheck(v) {
     return isDate(v) && !isNaN(v.getTime())
-  },
+  }
 
   min(min, message = locale.date.min) {
     var limit = min
@@ -52,7 +52,7 @@ inherits(DateSchema, MixedSchema, {
         return isAbsent(value) || value >= this.resolve(limit)
       },
     })
-  },
+  }
 
   max(max, message = locale.date.max) {
     var limit = max
@@ -72,5 +72,5 @@ inherits(DateSchema, MixedSchema, {
         return isAbsent(value) || value <= this.resolve(limit)
       },
     })
-  },
-})
+  }
+}

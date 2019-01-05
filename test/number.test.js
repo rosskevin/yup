@@ -1,6 +1,5 @@
 import * as TestHelpers from './helpers'
-
-import number from '../src/number'
+import { number } from '../src'
 
 describe('Number types', function() {
   it('is newable', () => {

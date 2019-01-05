@@ -8,7 +8,6 @@ import MixedSchema from './MixedSchema'
 import locale from './locale'
 import sortFields from './util/sortFields'
 import sortByKeyOrder from './util/sortByKeyOrder'
-import inherits from './util/inherits'
 import makePath from './util/makePath'
 import runValidations, { propagateErrors } from './util/runValidations'
 
@@ -19,49 +18,52 @@ function unknown(ctx, value) {
   return Object.keys(value).filter(key => known.indexOf(key) === -1)
 }
 
-export default function ObjectSchema(spec) {
+export function object(spec) {
   if (!(this instanceof ObjectSchema)) return new ObjectSchema(spec)
-
-  MixedSchema.call(this, {
-    type: 'object',
-    default() {
-      if (!this._nodes.length) return undefined
-
-      let dft = {}
-      this._nodes.forEach(key => {
-        dft[key] = this.fields[key].default ? this.fields[key].default() : undefined
-      })
-      return dft
-    },
-  })
-
-  this.fields = Object.create(null)
-  this._nodes = []
-  this._excludedEdges = []
-
-  this.withMutation(() => {
-    this.transform(function coerce(value) {
-      if (typeof value === 'string') {
-        try {
-          value = JSON.parse(value)
-        } catch (err) {
-          value = null
-        }
-      }
-      if (this.isType(value)) return value
-      return null
-    })
-
-    if (spec) {
-      this.shape(spec)
-    }
-  })
+  return this
 }
 
-inherits(ObjectSchema, MixedSchema, {
+export default class ObjectSchema extends MixedSchema {
+  constructor(spec) {
+    super({
+      type: 'object',
+      default() {
+        if (!this._nodes.length) return undefined
+
+        let dft = {}
+        this._nodes.forEach(key => {
+          dft[key] = this.fields[key].default ? this.fields[key].default() : undefined
+        })
+        return dft
+      },
+    })
+
+    this.fields = Object.create(null)
+    this._nodes = []
+    this._excludedEdges = []
+
+    this.withMutation(() => {
+      this.transform(function coerce(value) {
+        if (typeof value === 'string') {
+          try {
+            value = JSON.parse(value)
+          } catch (err) {
+            value = null
+          }
+        }
+        if (this.isType(value)) return value
+        return null
+      })
+
+      if (spec) {
+        this.shape(spec)
+      }
+    })
+  }
+
   _typeCheck(value) {
     return isObject(value) || typeof value === 'function'
-  },
+  }
 
   _cast(_value, options = {}) {
     let value = MixedSchema.prototype._cast.call(this, _value, options)
@@ -112,7 +114,7 @@ inherits(ObjectSchema, MixedSchema, {
       if (intermediateValue[prop] !== value[prop]) isChanged = true
     })
     return isChanged ? intermediateValue : value
-  },
+  }
 
   _validate(_value, opts = {}) {
     let endEarly, recursive
@@ -171,7 +173,7 @@ inherits(ObjectSchema, MixedSchema, {
           sort: sortByKeyOrder(this.fields),
         })
       })
-  },
+  }
 
   concat(schema) {
     var next = MixedSchema.prototype.concat.call(this, schema)
@@ -179,7 +181,7 @@ inherits(ObjectSchema, MixedSchema, {
     next._nodes = sortFields(next.fields, next._excludedEdges)
 
     return next
-  },
+  }
 
   shape(schema, excludes = []) {
     let next = this.clone()
@@ -198,7 +200,7 @@ inherits(ObjectSchema, MixedSchema, {
     next._nodes = sortFields(fields, next._excludedEdges)
 
     return next
-  },
+  }
 
   from(from, to, alias) {
     let fromGetter = getter(from, true)
@@ -215,7 +217,7 @@ inherits(ObjectSchema, MixedSchema, {
 
       return newObj
     })
-  },
+  }
 
   noUnknown(noAllow = true, message = locale.object.noUnknown) {
     if (typeof noAllow === 'string') {
@@ -235,27 +237,27 @@ inherits(ObjectSchema, MixedSchema, {
     if (noAllow) next._options.stripUnknown = true
 
     return next
-  },
+  }
 
   transformKeys(fn) {
     return this.transform(obj => obj && mapKeys(obj, (_, key) => fn(key)))
-  },
+  }
 
   camelCase() {
     return this.transformKeys(camelCase)
-  },
+  }
 
   snakeCase() {
     return this.transformKeys(snakeCase)
-  },
+  }
 
   constantCase() {
     return this.transformKeys(key => snakeCase(key).toUpperCase())
-  },
+  }
 
   describe() {
     let base = MixedSchema.prototype.describe.call(this)
     base.fields = mapValues(this.fields, value => value.describe())
     return base
-  },
-})
+  }
+}

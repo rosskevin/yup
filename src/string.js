@@ -1,4 +1,3 @@
-import inherits from './util/inherits'
 import MixedSchema from './MixedSchema'
 import locale from './locale'
 import isAbsent from './util/isAbsent'
@@ -11,31 +10,34 @@ let rUrl = /^((https?|ftp):)?\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFD
 let hasLength = value => isAbsent(value) || value.length > 0
 let isTrimmed = value => isAbsent(value) || value === value.trim()
 
-export default function StringSchema() {
+export function string() {
   if (!(this instanceof StringSchema)) return new StringSchema()
-
-  MixedSchema.call(this, { type: 'string' })
-
-  this.withMutation(() => {
-    this.transform(function(value) {
-      if (this.isType(value)) return value
-      return value != null && value.toString ? value.toString() : value
-    })
-  })
+  return this
 }
 
-inherits(StringSchema, MixedSchema, {
+export default class StringSchema extends MixedSchema {
+  constructor() {
+    super({ type: 'string' })
+
+    this.withMutation(() => {
+      this.transform(function(value) {
+        if (this.isType(value)) return value
+        return value != null && value.toString ? value.toString() : value
+      })
+    })
+  }
+
   _typeCheck(value) {
     if (value instanceof String) value = value.valueOf()
 
     return typeof value === 'string'
-  },
+  }
 
   required(message = locale.mixed.required) {
     var next = MixedSchema.prototype.required.call(this, message)
 
     return next.test({ message, name: 'required', test: hasLength })
-  },
+  }
 
   length(length, message = locale.string.length) {
     return this.test({
@@ -47,7 +49,7 @@ inherits(StringSchema, MixedSchema, {
         return isAbsent(value) || value.length === this.resolve(length)
       },
     })
-  },
+  }
 
   min(min, message = locale.string.min) {
     return this.test({
@@ -59,7 +61,7 @@ inherits(StringSchema, MixedSchema, {
         return isAbsent(value) || value.length >= this.resolve(min)
       },
     })
-  },
+  }
 
   max(max, message = locale.string.max) {
     return this.test({
@@ -71,7 +73,7 @@ inherits(StringSchema, MixedSchema, {
         return isAbsent(value) || value.length <= this.resolve(max)
       },
     })
-  },
+  }
 
   matches(regex, options) {
     let excludeEmptyString = false
@@ -88,26 +90,26 @@ inherits(StringSchema, MixedSchema, {
       params: { regex },
       test: value => isAbsent(value) || (value === '' && excludeEmptyString) || regex.test(value),
     })
-  },
+  }
 
   email(message = locale.string.email) {
     return this.matches(rEmail, {
       message,
       excludeEmptyString: true,
     })
-  },
+  }
 
   url(message = locale.string.url) {
     return this.matches(rUrl, {
       message,
       excludeEmptyString: true,
     })
-  },
+  }
 
   //-- transforms --
   ensure() {
     return this.default('').transform(val => (val === null ? '' : val))
-  },
+  }
 
   trim(message = locale.string.trim) {
     return this.transform(val => (val != null ? val.trim() : val)).test({
@@ -115,7 +117,7 @@ inherits(StringSchema, MixedSchema, {
       name: 'trim',
       test: isTrimmed,
     })
-  },
+  }
 
   lowercase(message = locale.string.lowercase) {
     return this.transform(value => (!isAbsent(value) ? value.toLowerCase() : value)).test({
@@ -124,7 +126,7 @@ inherits(StringSchema, MixedSchema, {
       exclusive: true,
       test: value => isAbsent(value) || value === value.toLowerCase(),
     })
-  },
+  }
 
   uppercase(message = locale.string.uppercase) {
     return this.transform(value => (!isAbsent(value) ? value.toUpperCase() : value)).test({
@@ -133,5 +135,5 @@ inherits(StringSchema, MixedSchema, {
       exclusive: true,
       test: value => isAbsent(value) || value === value.toUpperCase(),
     })
-  },
-})
+  }
+}

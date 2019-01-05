@@ -1,8 +1,8 @@
-import bool from '../src/boolean'
+import { boolean } from '../src'
 
 describe('Boolean types', () => {
   it('should CAST correctly', () => {
-    let inst = bool()
+    let inst = boolean()
 
     inst.cast('true').should.equal(true)
     inst.cast('True').should.equal(true)
@@ -17,7 +17,7 @@ describe('Boolean types', () => {
   })
 
   it('should handle DEFAULT', () => {
-    let inst = bool()
+    let inst = boolean()
 
     expect(inst.default()).toStrictEqual(undefined)
     inst
@@ -28,7 +28,7 @@ describe('Boolean types', () => {
   })
 
   it('should type check', () => {
-    let inst = bool()
+    let inst = boolean()
 
     inst.isType(1).should.equal(false)
     inst.isType(false).should.equal(true)
@@ -47,20 +47,20 @@ describe('Boolean types', () => {
       .should.equal(true)
   })
 
-  it('bool should VALIDATE correctly', () => {
-    let inst = bool().required()
+  it('boolean should VALIDATE correctly', () => {
+    let inst = boolean().required()
 
     return Promise.all([
-      bool()
+      boolean()
         .isValid('1')
         .should.eventually()
         .equal(true),
-      bool()
+      boolean()
         .strict()
         .isValid(null)
         .should.eventually()
         .equal(false),
-      bool()
+      boolean()
         .nullable()
         .isValid(null)
         .should.eventually()

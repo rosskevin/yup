@@ -1,4 +1,4 @@
-import { array, mixed, string, number, object, ref, reach, bool } from '../src'
+import { array, mixed, string, number, object, ref, reach, boolean } from '../src'
 let noop = () => {}
 
 function ensureSync(fn) {
@@ -90,7 +90,7 @@ describe('Mixed Types ', () => {
     const schema = object({
       foo: array().of(
         object({
-          loose: bool(),
+          loose: boolean(),
           bar: string().when('loose', {
             is: true,
             otherwise: s => s.strict(),
@@ -113,7 +113,7 @@ describe('Mixed Types ', () => {
   //   const schema = object({
   //     foo: array().of(
   //       object({
-  //         loose: bool().default(true),
+  //         loose: boolean().default(true),
   //         bar: string(),
   //       }),
   //     ),

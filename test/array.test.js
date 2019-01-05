@@ -1,7 +1,4 @@
-import string from '../src/string'
-import number from '../src/number'
-import object from '../src/object'
-import array from '../src/array'
+import { string, number, object, array } from '../src'
 
 describe('Array types', () => {
   describe('casting', () => {

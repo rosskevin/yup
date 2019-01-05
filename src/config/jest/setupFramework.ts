@@ -1,4 +1,4 @@
-import mixed from '../../MixedSchema'
+import MixedSchema from '../../MixedSchema'
 
 const g = global as any
 
@@ -22,9 +22,9 @@ g.chai.should()
 g.TestHelpers = require('../../../test/helpers')
 
 if (g.YUP_USE_SYNC) {
-  const { validate } = mixed.prototype
+  const { validate } = MixedSchema.prototype
 
-  mixed.prototype.validate = function(value: any, options: any = {}) {
+  MixedSchema.prototype.validate = function(value: any, options: any = {}) {
     options.sync = true
     return validate.call(this, value, options)
   }

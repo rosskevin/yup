@@ -14,33 +14,37 @@ import ValidationError from './ValidationError'
 import isNotEmpty from './util/isNotEmpty'
 import RefSet from './util/RefSet'
 
-export default function MixedSchema(options = {}) {
-  if (!(this instanceof MixedSchema)) return new MixedSchema()
-
-  this._deps = []
-  this._conditions = []
-  this._options = { abortEarly: true, recursive: true }
-  this._exclusive = Object.create(null)
-
-  this._whitelist = new RefSet()
-  this._blacklist = new RefSet()
-
-  this.tests = []
-  this.transforms = []
-
-  this.withMutation(() => {
-    this.typeError(locale.mixed.notType)
-  })
-
-  if (has(options, 'default')) this._defaultDefault = options.default
-
-  this._type = options.type || 'mixed'
+export function mixed(/*options = {}*/) {
+  if (!(this instanceof MixedSchema)) {
+    return new MixedSchema()
+  }
+  return this
 }
+export default class MixedSchema {
+  constructor(options = {}) {
+    // if (!(this instanceof MixedSchema)) return new MixedSchema()
 
-MixedSchema.prototype = {
-  __isYupSchema__: true,
+    this._deps = []
+    this._conditions = []
+    this._options = { abortEarly: true, recursive: true }
+    this._exclusive = Object.create(null)
 
-  constructor: MixedSchema,
+    this._whitelist = new RefSet()
+    this._blacklist = new RefSet()
+
+    this.tests = []
+    this.transforms = []
+
+    this.withMutation(() => {
+      this.typeError(locale.mixed.notType)
+    })
+
+    if (has(options, 'default')) this._defaultDefault = options.default
+
+    this._type = options.type || 'mixed'
+  }
+
+  __isYupSchema__ = true
 
   clone() {
     if (this._mutate) return this
@@ -50,13 +54,13 @@ MixedSchema.prototype = {
     return cloneDeepWith(this, value => {
       if (isSchema(value) && value !== this) return value
     })
-  },
+  }
 
   label(label) {
     var next = this.clone()
     next._label = label
     return next
-  },
+  }
 
   meta(obj) {
     if (arguments.length === 0) return this._meta
@@ -64,14 +68,14 @@ MixedSchema.prototype = {
     var next = this.clone()
     next._meta = Object.assign(next._meta || {}, obj)
     return next
-  },
+  }
 
   withMutation(fn) {
     this._mutate = true
     let result = fn(this)
     this._mutate = false
     return result
-  },
+  }
 
   concat(schema) {
     if (!schema) return this
@@ -98,12 +102,12 @@ MixedSchema.prototype = {
     next._type = schema._type
 
     return next
-  },
+  }
 
   isType(v) {
     if (this._nullable && v === null) return true
     return !this._typeCheck || this._typeCheck(v)
-  },
+  }
 
   resolve({ context, parent }) {
     if (this._conditions.length) {
@@ -114,7 +118,7 @@ MixedSchema.prototype = {
     }
 
     return this
-  },
+  }
 
   cast(value, options = {}) {
     let resolvedSchema = this.resolve(options)
@@ -132,7 +136,7 @@ MixedSchema.prototype = {
     }
 
     return result
-  },
+  }
 
   _cast(rawValue) {
     let value =
@@ -145,7 +149,7 @@ MixedSchema.prototype = {
     }
 
     return value
-  },
+  }
 
   _validate(_value, options = {}) {
     let value = _value
@@ -194,12 +198,12 @@ MixedSchema.prototype = {
         validations: this.tests.map(fn => fn(validationParams)),
       }),
     )
-  },
+  }
 
   validate(value, options = {}) {
     let schema = this.resolve(options)
     return schema._validate(value, options)
-  },
+  }
 
   validateSync(value, options = {}) {
     let schema = this.resolve(options)
@@ -212,7 +216,7 @@ MixedSchema.prototype = {
 
     if (err) throw err
     return result
-  },
+  }
 
   isValid(value, options) {
     return this.validate(value, options)
@@ -221,7 +225,7 @@ MixedSchema.prototype = {
         if (ValidationError.isInstance(err)) return false
         throw err
       })
-  },
+  }
 
   isValidSync(value, options) {
     try {
@@ -231,12 +235,12 @@ MixedSchema.prototype = {
       if (ValidationError.isInstance(err)) return false
       throw err
     }
-  },
+  }
 
   getDefault(options = {}) {
     let schema = this.resolve(options)
     return schema.default()
-  },
+  }
 
   default(def) {
     if (arguments.length === 0) {
@@ -250,35 +254,35 @@ MixedSchema.prototype = {
     var next = this.clone()
     next._default = def
     return next
-  },
+  }
 
   strict() {
     var next = this.clone()
     next._options.strict = true
     return next
-  },
+  }
 
   required(message = locale.mixed.required) {
     return this.test({ message, name: 'required', test: isNotEmpty })
-  },
+  }
 
   notRequired() {
     var next = this.clone()
     next.tests = next.tests.filter(test => test.TEST_NAME !== 'required')
     return next
-  },
+  }
 
   nullable(value) {
     var next = this.clone()
     next._nullable = value === false ? false : true
     return next
-  },
+  }
 
   transform(fn) {
     var next = this.clone()
     next.transforms.push(fn)
     return next
-  },
+  }
 
   /**
    * Adds a test function to the schema's queue of tests.
@@ -328,7 +332,7 @@ MixedSchema.prototype = {
     next.tests.push(validate)
 
     return next
-  },
+  }
 
   when(keys, options) {
     var next = this.clone(),
@@ -341,7 +345,7 @@ MixedSchema.prototype = {
     next._conditions.push(new Condition(deps, options))
 
     return next
-  },
+  }
 
   typeError(message) {
     var next = this.clone()
@@ -360,7 +364,7 @@ MixedSchema.prototype = {
       },
     })
     return next
-  },
+  }
 
   oneOf(enums, message = locale.mixed.oneOf) {
     var next = this.clone()
@@ -388,7 +392,7 @@ MixedSchema.prototype = {
     })
 
     return next
-  },
+  }
 
   notOneOf(enums, message = locale.mixed.notOneOf) {
     var next = this.clone()
@@ -413,17 +417,17 @@ MixedSchema.prototype = {
     })
 
     return next
-  },
+  }
 
   strip(strip = true) {
     let next = this.clone()
     next._strip = strip
     return next
-  },
+  }
 
   _option(key, overrides) {
     return has(overrides, key) ? overrides[key] : this._options[key]
-  },
+  }
 
   describe() {
     let next = this.clone()
@@ -436,7 +440,7 @@ MixedSchema.prototype = {
         .map(fn => fn.TEST_NAME, {})
         .filter((n, idx, list) => list.indexOf(n) === idx),
     }
-  },
+  }
 }
 
 for (const method of ['validate', 'validateSync'])

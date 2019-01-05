@@ -1,4 +1,4 @@
-import ValidationError from '../src/ValidationError'
+import { ValidationError } from '../src'
 
 describe('ValidationError', () => {
   const ve = new ValidationError('a message', 'a value', 'a.path', 'aType')

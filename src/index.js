@@ -1,10 +1,10 @@
-import mixed from './MixedSchema'
-import bool from './boolean'
-import string from './string'
-import number from './number'
-import date from './date'
-import object from './object'
-import array from './array'
+import { mixed } from './MixedSchema'
+import { boolean } from './boolean'
+import { string } from './string'
+import { number } from './number'
+import { date } from './date'
+import { object } from './object'
+import { array } from './array'
 import Ref from './util/Ref'
 import Lazy from './Lazy'
 import ValidationError from './ValidationError'
@@ -12,7 +12,6 @@ import reach from './util/reach'
 import isSchema from './util/isSchema'
 import setLocale from './setLocale'
 
-let boolean = bool
 let ref = (key, options) => new Ref(key, options)
 
 let lazy = fn => new Lazy(fn)
