@@ -9,15 +9,15 @@ g.chai.use(require('sinon-chai'))
 g.chai.use(require('chai-as-promised'))
 g.chai.use(require('dirty-chai'))
 
-g.expect = g.chai.expect
+// g.expect = g.chai.expect
 g.chai.should()
 
 // WTF???
-Object.defineProperty(
-  Promise.prototype,
-  'should',
-  (Object as any).getOwnPropertyDescriptor(Object.prototype, 'should'),
-)
+// Object.defineProperty(
+//   Promise.prototype,
+//   'should',
+//   (Object as any).getOwnPropertyDescriptor(Object.prototype, 'should'),
+// )
 
 g.TestHelpers = require('../../../test/helpers')
 g.specify = g.it
@@ -31,4 +31,9 @@ if (g.YUP_USE_SYNC) {
   }
 }
 
-g.specify = g.it
+// Makes the script crash on unhandled rejections instead of silently
+// ignoring them. In the future, promise rejections that are not handled will
+// terminate the Node.js process with a non-zero exit code.
+process.on('unhandledRejection', (err: any) => {
+  throw err
+})

@@ -3,7 +3,7 @@ import { setLocale } from '../src'
 describe('Custom locale', () => {
   it('should get default locale', () => {
     const locale = require('../src/locale').default
-    expect(locale.string.email).to.equal('${path} must be a valid email')
+    expect(locale.string.email).toStrictEqual('${path} must be a valid email')
   })
 
   it('should set a new locale', () => {
@@ -16,11 +16,11 @@ describe('Custom locale', () => {
 
     setLocale(dict)
 
-    expect(locale.string.email).to.equal(dict.string.email)
+    expect(locale.string.email).toStrictEqual(dict.string.email)
   })
 
   it('should update the main locale', () => {
     const locale = require('../src/locale').default
-    expect(locale.string.email).to.equal('Invalid email')
+    expect(locale.string.email).toStrictEqual('Invalid email')
   })
 })

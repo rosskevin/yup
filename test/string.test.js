@@ -64,7 +64,7 @@ describe('String types', () => {
           .lowercase()
           .uppercase()
           .cast(null),
-      ).to.equal(null)
+      ).toStrictEqual(null)
     })
   })
 

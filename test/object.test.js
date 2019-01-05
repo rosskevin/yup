@@ -25,7 +25,7 @@ describe('Object types', () => {
     })
 
     it('should return null for failed casts', () => {
-      expect(object().cast('dfhdfh', { assert: false })).to.equal(null)
+      expect(object().cast('dfhdfh', { assert: false })).toStrictEqual(null)
     })
 
     it('should recursively cast fields', () => {
@@ -219,7 +219,7 @@ describe('Object types', () => {
       prop: mixed(),
     })
 
-    expect(inst.fields.prop).to.exist()
+    expect(inst.fields.prop).not.toBeNull()
   })
 
   describe('object defaults', () => {
@@ -690,9 +690,9 @@ describe('Object types', () => {
       other: bool(),
     }).default(undefined)
 
-    expect(inst.concat(object()).default()).to.equal(undefined)
+    expect(inst.concat(object()).default()).toStrictEqual(undefined)
 
-    expect(inst.concat(object().default({})).default()).to.eql({})
+    expect(inst.concat(object().default({})).default()).toStrictEqual({})
   })
 
   it('should handle nested conditionals', () => {
@@ -757,7 +757,7 @@ describe('Object types', () => {
       .cast({ CON_STAT: 5, CaseStatus: 6, 'hi john': 4 })
       .should.eql({ conStat: 5, caseStatus: 6, hiJohn: 4 })
 
-    expect(inst.nullable().cast(null)).to.equal(null)
+    expect(inst.nullable().cast(null)).toStrictEqual(null)
   })
 
   // it('should camelCase with leading underscore', () => {
@@ -782,7 +782,7 @@ describe('Object types', () => {
       .cast({ conStat: 5, CaseStatus: 6, 'hi john': 4 })
       .should.eql({ CON_STAT: 5, CASE_STATUS: 6, HI_JOHN: 4 })
 
-    expect(inst.nullable().cast(null)).to.equal(null)
+    expect(inst.nullable().cast(null)).toStrictEqual(null)
   })
 
   xit('should handle invalid shapes better', async () => {
@@ -790,6 +790,6 @@ describe('Object types', () => {
       permissions: undefined,
     })
 
-    expect(await schema.isValid({ permissions: [] }, { abortEarly: false })).to.equal(true)
+    expect(await schema.isValid({ permissions: [] }, { abortEarly: false })).toStrictEqual(true)
   })
 })

@@ -10,7 +10,7 @@ export let castAndShouldFail = (schema, value) => {
 export let castAll = (inst, { invalid = [], valid = [] }) => {
   valid.forEach(([value, result, schema = inst]) => {
     it(`should cast ${printValue(value)} to ${printValue(result)}`, () => {
-      expect(schema.cast(value)).to.equal(result)
+      expect(schema.cast(value)).toStrictEqual(result)
     })
   })
 

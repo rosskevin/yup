@@ -18,8 +18,8 @@ function ensureSync(fn) {
   return result
 }
 
-global.YUP_USE_SYNC &&
-  it('[internal] normal methods should be running in sync Mode', async () => {
+it('[internal] normal methods should be running in sync Mode', async () => {
+  if (global.YUP_USE_SYNC) {
     let schema = number()
 
     await ensureSync(() => Promise.resolve()).should.be.rejected()
@@ -28,8 +28,11 @@ global.YUP_USE_SYNC &&
 
     let err = await ensureSync(() => schema.validate('john')).should.be.rejected()
 
-    expect(err.message).to.match(/the final value was: `NaN`.+cast from the value `"john"`/)
-  })
+    expect(err.message).toMatch(/the final value was: `NaN`.+cast from the value `"john"`/)
+  } else {
+    console.log('Not running in sync mode')
+  }
+})
 
 describe('Mixed Types ', () => {
   it('should be immutable', () => {
@@ -80,7 +83,7 @@ describe('Mixed Types ', () => {
       .validate(null)
       .should.be.rejected()
 
-    expect(error.message).to.match(/If "null" is intended/)
+    expect(error.message).toMatch(/If "null" is intended/)
   })
 
   it('should validateAt', async () => {
@@ -103,7 +106,7 @@ describe('Mixed Types ', () => {
 
     const err = await schema.validateAt('foo[0].bar', value).should.be.rejected()
 
-    expect(err.message).to.match(/bar must be a `string` type/)
+    expect(err.message).toMatch(/bar must be a `string` type/)
   })
 
   // xit('should castAt', async () => {
@@ -129,7 +132,7 @@ describe('Mixed Types ', () => {
       .validate('john')
       .should.be.rejected()
 
-    expect(error.message).to.match(/the final value was: `NaN`.+cast from the value `"john"`/)
+    expect(error.message).toMatch(/the final value was: `NaN`.+cast from the value `"john"`/)
   })
 
   it('should allow function messages', async () => {
@@ -139,7 +142,7 @@ describe('Mixed Types ', () => {
       .validate()
       .should.be.rejected()
 
-    expect(error.message).to.match(/My string is required/)
+    expect(error.message).toMatch(/My string is required/)
   })
 
   it('should check types', async () => {
@@ -149,15 +152,15 @@ describe('Mixed Types ', () => {
 
     let error = await inst.validate(5).should.be.rejected()
 
-    error.type.should.equal('typeError')
-    error.message.should.equal('must be a string!')
-    error.inner.length.should.equal(0)
+    expect(error.type).toStrictEqual('typeError')
+    expect(error.message).toStrictEqual('must be a string!')
+    expect(error.inner.length).toStrictEqual(0)
 
     error = await inst.validate(5, { abortEarly: false }).should.be.rejected()
 
-    expect(error.type).to.not.exist()
-    error.message.should.equal('must be a string!')
-    error.inner.length.should.equal(1)
+    expect(error.type).toStrictEqual(undefined)
+    expect(error.message).toStrictEqual('must be a string!')
+    expect(error.inner.length).toStrictEqual(1)
   })
 
   it('should limit values', async () => {
@@ -202,7 +205,7 @@ describe('Mixed Types ', () => {
 
         schema.isValidSync('john').should.equal(false)
 
-        expect(() => schema.validateSync('john')).to.throw(
+        expect(() => schema.validateSync('john')).toThrow(
           /the final value was: `NaN`.+cast from the value `"john"`/,
         )
       })
@@ -218,7 +221,7 @@ describe('Mixed Types ', () => {
 
         let err = await ensureSync(() => schema.validate('john')).should.be.rejected()
 
-        expect(err.message).to.match(/Validation test of type: "test"/)
+        expect(err.message).toMatch(/Validation test of type: "test"/)
       })
     })
 
@@ -564,7 +567,7 @@ describe('Mixed Types ', () => {
   it('concat should maintain undefined defaults', function() {
     let inst = string().default('hi')
 
-    expect(inst.concat(string().default(undefined)).default()).to.equal(undefined)
+    expect(inst.concat(string().default(undefined)).default()).toStrictEqual(undefined)
   })
 
   it('defaults should be validated but not transformed', function() {

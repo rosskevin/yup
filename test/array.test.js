@@ -12,9 +12,9 @@ describe('Array types', () => {
     })
 
     it('should return null for failed casts', () => {
-      expect(array().cast('asfasf', { assert: false })).to.equal(null)
+      expect(array().cast('asfasf', { assert: false })).toStrictEqual(null)
 
-      expect(array().cast(null, { assert: false })).to.equal(null)
+      expect(array().cast(null, { assert: false })).toStrictEqual(null)
     })
 
     it('should recursively cast fields', () => {
@@ -31,7 +31,7 @@ describe('Array types', () => {
   })
 
   it('should handle DEFAULT', () => {
-    expect(array().default()).to.equal(undefined)
+    expect(array().default()).toStrictEqual(undefined)
 
     array()
       .default(() => [1, 2, 3])
@@ -48,7 +48,7 @@ describe('Array types', () => {
     inst.isType(NaN).should.equal(false)
     inst.isType(34545).should.equal(false)
 
-    expect(inst.isType(null)).to.equal(false)
+    expect(inst.isType(null)).toStrictEqual(false)
 
     inst
       .nullable()
@@ -68,13 +68,13 @@ describe('Array types', () => {
       array()
         .of(number())
         .concat(array())._subType,
-    ).to.exist()
+    ).not.toBeNull()
 
     expect(
       array()
         .of(number())
         .concat(array().of(false))._subType,
-    ).to.equal(false)
+    ).toStrictEqual(false)
   })
 
   it('should pass options to children', () => {

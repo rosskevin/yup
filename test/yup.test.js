@@ -66,9 +66,9 @@ describe('Yup', function() {
     const value = { nested: { arr: [{}, { num: 2 }] } }
     const { schema, parent, parentPath } = getIn(inst, 'nested.arr[1].num', value)
 
-    expect(schema).to.equal(num)
-    expect(parentPath).to.equal('num')
-    expect(parent).to.equal(value.nested.arr[1])
+    expect(schema).toStrictEqual(num)
+    expect(parentPath).toStrictEqual('num')
+    expect(parent).toStrictEqual(value.nested.arr[1])
   })
 
   it('should REACH correctly', async () => {

@@ -54,7 +54,7 @@ describe('Number types', function() {
           .integer()
           .round()
           .cast(null),
-      ).to.equal(null)
+      ).toStrictEqual(null)
       ;(function() {
         schema.round('fasf')
       }.should.throw(TypeError))
@@ -68,9 +68,9 @@ describe('Number types', function() {
     })
 
     it('should return NaN for failed casts', () => {
-      expect(number().cast('asfasf', { assert: false })).to.eql(NaN)
+      expect(number().cast('asfasf', { assert: false })).toStrictEqual(NaN)
 
-      expect(number().cast(null, { assert: false })).to.eql(NaN)
+      expect(number().cast(null, { assert: false })).toStrictEqual(NaN)
     })
   })
 

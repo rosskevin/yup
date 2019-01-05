@@ -19,7 +19,7 @@ describe('Boolean types', () => {
   it('should handle DEFAULT', () => {
     let inst = bool()
 
-    expect(inst.default()).to.equal(undefined)
+    expect(inst.default()).toStrictEqual(undefined)
     inst
       .default(true)
       .required()
@@ -39,7 +39,7 @@ describe('Boolean types', () => {
     inst.isType(34545).should.equal(false)
     inst.isType(new Boolean(false)).should.equal(true)
 
-    expect(inst.isType(null)).to.equal(false)
+    expect(inst.isType(null)).toStrictEqual(false)
 
     inst
       .nullable()
