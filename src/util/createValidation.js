@@ -2,8 +2,7 @@ import mapValues from 'lodash/mapValues'
 import ValidationError from '../ValidationError'
 import Ref from '../Reference'
 import { SynchronousPromise } from 'synchronous-promise'
-
-let formatError = ValidationError.formatError
+import formatError from './formatError'
 
 let thenable = p => p && typeof p.then === 'function' && typeof p.catch === 'function'
 

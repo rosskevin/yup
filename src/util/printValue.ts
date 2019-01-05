@@ -15,7 +15,7 @@ function printNumber(val: number): string {
   return isNegativeZero ? '-0' : '' + val
 }
 
-function printSimpleValue(val: Value, quoteStrings = false) {
+function printSimpleValue(val: Value, quoteStrings = false): string | null {
   if (val === null || val === true || val === false) {
     return '' + val
   }
@@ -25,7 +25,7 @@ function printSimpleValue(val: Value, quoteStrings = false) {
     return printNumber(val as number)
   }
   if (typeOf === 'string') {
-    return quoteStrings ? `"${val}"` : val
+    return quoteStrings ? `"${val}"` : (val as string)
   }
   if (typeOf === 'function') {
     // tslint:disable-next-line:ban-types
@@ -49,7 +49,7 @@ function printSimpleValue(val: Value, quoteStrings = false) {
   return null
 }
 
-export default function printValue(value: Value, quoteStrings: boolean) {
+export default function printValue(value: Value, quoteStrings: boolean = false): string {
   const result = printSimpleValue(value, quoteStrings)
   if (result !== null) {
     return result

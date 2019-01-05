@@ -19,7 +19,9 @@
     "sourceMap": true,
     "suppressImplicitAnyIndexErrors": true,
 
-    "outDir": "build"
+    "outDir": "build",
+    "baseUrl": ".",
+    "paths": { "yup": ["./src"] }
   },
   "include": ["./src/**/*", "./test/**/*"]
 }
