@@ -56,7 +56,7 @@ export class Ref {
   private pathGetter: any
 
   // FIXME mapFn and options together? keyArg only string?
-  constructor(keyArg: string | Function, mapFn: RefMapFn | undefined, options: RefOptions = {}) {
+  constructor(keyArg: string | Function, mapFn?: RefMapFn, options: RefOptions = {}) {
     validateName(keyArg)
     const prefix = options.contextPrefix || '$'
 

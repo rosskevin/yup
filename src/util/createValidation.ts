@@ -1,7 +1,15 @@
 import mapValues from 'lodash/mapValues'
 import { SynchronousPromise } from 'synchronous-promise'
 import { Ref } from '../Ref'
-import { CreateErrorArgs, Schema, TestContext, TestOptions, ValidateOptions } from '../types'
+import {
+  CreateErrorArgs,
+  Schema,
+  TestContext,
+  TestOptions,
+  ValidateArgs,
+  ValidateFn,
+  ValidateOptions,
+} from '../types'
 import ValidationError from '../ValidationError'
 import formatError from './formatError'
 
@@ -62,41 +70,15 @@ function createErrorFactory(
   }
 }
 
-export interface ValidateArgs<S> {
-  label: string
-  options: ValidateOptions
-  originalValue: any
-  path: string
-  schema: Schema<S>
-  sync: boolean
-  value: any
-}
-
-export default function createValidation<S>(testOptions: TestOptions) {
+export default function createValidation<T>(testOptions: TestOptions): ValidateFn<T> {
   const { name, message, test, params } = testOptions
 
-  function validate(validateArgs: ValidateArgs<S>) {
+  function validate(validateArgs: ValidateArgs<T>) {
     const { value, path, label, options, originalValue, sync, ...rest } = validateArgs
     const parent = options.parent // save here - it seems to be mutated later
     const resolve = (r: any) => (Ref.isRef(r) ? r.getValue(parent, options.context) : r)
 
-    const createError = createErrorFactory(
-      testOptions,
-      validateArgs,
-      resolve,
-      /*{
-      label,
-
-      message,
-      name,
-      params,
-
-      originalValue,
-      path,
-      resolve,
-      value,
-    }*/
-    )
+    const createError = createErrorFactory(testOptions, validateArgs, resolve)
 
     const ctx: TestContext = {
       createError,
@@ -117,9 +99,6 @@ export default function createValidation<S>(testOptions: TestOptions) {
     })
   }
 
-  validate.TEST_NAME = name
-  validate.TEST_FN = test
-  validate.TEST = testOptions
-
+  validate.TEST_OPTIONS = testOptions
   return validate
 }
