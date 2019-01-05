@@ -1,7 +1,6 @@
 // tslint:disable:ban-types
 
 import ValidationError from './ValidationError'
-import { MessageFormatter } from './util/formatError'
 
 export type Value = number | string | Function | null | boolean | Date
 

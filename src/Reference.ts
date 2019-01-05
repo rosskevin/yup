@@ -1,7 +1,7 @@
 // tslint:disable:ban-types
 
-import { getter } from 'property-expr'
 import { Value } from './types'
+import { getter } from './util/expression'
 
 const validateName = (d: any) => {
   if (typeof d !== 'string') {

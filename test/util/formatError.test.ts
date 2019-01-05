@@ -1,5 +1,5 @@
+import { MessageFormatter } from '../../src/types'
 import formatError from '../../src/util/formatError'
-import { MessageFormatter } from '../../src/util/formatError'
 
 describe('formatError', () => {
   it('should insert the params into the message', () => {

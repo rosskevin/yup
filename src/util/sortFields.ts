@@ -1,7 +1,7 @@
 import has from 'lodash/has'
-import { split } from 'property-expr'
 import toposort from 'toposort'
 import Ref from '../Reference'
+import { split } from './expression'
 import isSchema from './isSchema'
 
 export default function sortFields(fields: any, excludes: any[] = []) {
