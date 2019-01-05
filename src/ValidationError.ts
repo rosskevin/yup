@@ -1,15 +1,26 @@
 export default class ValidationError extends Error {
-  constructor(errors, value, field, type) {
+  public static isInstance(err: any) {
+    return err && err.name === 'ValidationError'
+  }
+
+  public name: string = 'ValidationError'
+  public value: any
+  public path: string
+  public type: string
+  public errors: string[]
+  public inner: ValidationError[]
+
+  constructor(errors: ValidationError[], value: any, path: string, type: string) {
     super()
-    this.name = 'ValidationError'
     this.value = value
-    this.path = field
+    this.path = path
     this.type = type
     this.errors = []
     this.inner = []
 
     if (errors) {
-      ;[].concat(errors).forEach(err => {
+      const all: ValidationError[] = []
+      all.concat(errors).forEach(err => {
         this.errors = this.errors.concat(err.errors || err)
 
         if (err.inner) {
@@ -24,8 +35,4 @@ export default class ValidationError extends Error {
       Error.captureStackTrace(this, ValidationError)
     }
   }
-}
-
-ValidationError.isInstance = function(err) {
-  return err && err.name === 'ValidationError'
 }
