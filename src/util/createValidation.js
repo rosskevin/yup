@@ -73,7 +73,7 @@ export default function createValidation(options) {
     }
 
     return runTest(test, ctx, value, sync).then(validOrError => {
-      if (ValidationError.isError(validOrError)) throw validOrError
+      if (ValidationError.isInstance(validOrError)) throw validOrError
       else if (!validOrError) throw createError()
     })
   }

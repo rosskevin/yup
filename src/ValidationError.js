@@ -26,6 +26,6 @@ export default function ValidationError(errors, value, field, type) {
 ValidationError.prototype = Object.create(Error.prototype)
 ValidationError.prototype.constructor = ValidationError
 
-ValidationError.isError = function(err) {
+ValidationError.isInstance = function(err) {
   return err && err.name === 'ValidationError'
 }

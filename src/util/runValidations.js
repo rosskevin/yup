@@ -45,13 +45,15 @@ export function settled(promises, sync) {
 export function collectErrors({ validations, value, path, sync, errors, sort }) {
   errors = unwrapError(errors)
   return settled(validations, sync).then(results => {
-    let nestedErrors = results.filter(r => !r.fulfilled).reduce((arr, { value: error }) => {
-      // we are only collecting validation errors
-      if (!ValidationError.isError(error)) {
-        throw error
-      }
-      return arr.concat(error)
-    }, [])
+    let nestedErrors = results
+      .filter(r => !r.fulfilled)
+      .reduce((arr, { value: error }) => {
+        // we are only collecting validation errors
+        if (!ValidationError.isInstance(error)) {
+          throw error
+        }
+        return arr.concat(error)
+      }, [])
 
     if (sort) nestedErrors.sort(sort)
 
