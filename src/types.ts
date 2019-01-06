@@ -5,6 +5,10 @@ import { Ref } from './Ref'
 import RefSet from './util/RefSet'
 import ValidationError from './ValidationError'
 
+export interface AnyObject {
+  [key: string]: any
+}
+
 export type Value = number | string | Function | null | boolean | Date
 
 export interface Params {
@@ -32,7 +36,9 @@ export interface AsyncValidateOptions {
   /**
    * Any context needed for validating schema conditions (see: when())
    */
-  context?: object
+  context?: AnyObject
+  parent?: AnyObject //  FIXME found in createValidation and validateAt
+  path?: string // FIXME found in validateAt
 }
 
 /**
@@ -40,9 +46,8 @@ export interface AsyncValidateOptions {
  */
 export interface ValidateOptions extends AsyncValidateOptions {
   originalValue?: any // FIXME _validate after typed, try commenting out
-  path?: string // FIXME _validate after typed, try commenting out
-  parent?: object //  FIXME found in createValidation
   sync?: boolean // found in _validate
+  assert?: boolean // found in mixed.cast
 }
 
 export interface ValidateArgs<T> {
@@ -79,9 +84,9 @@ export interface WhenOptionsObject<T> {
 export type WhenOptions<T> = WhenOptionsFn<T> | WhenOptionsObject<T>
 
 export interface SchemaDescription {
-  fields: object
-  label: string
-  meta: object
+  // fields: AnyObject
+  label?: string
+  meta: AnyObject
   tests: string[]
   type: string
 }
@@ -107,41 +112,42 @@ export interface Schema<T> {
   _blacklist: RefSet
   _whitelistError?: ValidateFn<T>
   _blacklistError?: ValidateFn<T>
+  _subType?: Schema<T>
+  fields: AnyObject
+  _strip: boolean
   clone(): Schema<T>
   label(label: string): Schema<T>
-  meta(metadata: any): Schema<T>
+  meta(metadata?: AnyObject): Schema<T>
   withMutation(fn: MutationFn<T>): void
   concat(schema: Schema<T>): Schema<T>
   test(options: TestOptions): Schema<T>
   isType(value: any): value is T
-  resolve(options: ValidateOptions): this
-  cast(value: any, options?: any): T
+  resolve(options: ValidateOptions): Schema<T>
+  cast(value: any, options?: ValidateOptions): T
+  _cast(rawValue: any, options?: ValidateOptions): any
   default(value?: any): Schema<T>
   when(keys: string | string[], options: WhenOptions<T>): Schema<T>
   validate(value: any, options?: AsyncValidateOptions): Promise<T>
+  _validate(value: any, options: ValidateOptions): Promise<T>
   validateSync(value: any, options?: ValidateOptions): any
   transform(fn: TransformFunction<T>): Schema<T>
   nullable(isNullable: boolean): Schema<T>
   typeError(message?: Message): Schema<T>
   oneOf(values: any[], message?: Message): Schema<T>
   notOneOf(values: any[], message?: Message): Schema<T>
-  // fields: { [key: string]: any }
   // type: string
-  // _subType: this
-  // meta(): any
-  // describe(): SchemaDescription
-  // validateSync(value: any, options?: ValidateOptions): T
-  // validateAt(path: string, value: T, options?: ValidateOptions): Promise<T>
-  // validateSyncAt(path: string, value: T, options?: ValidateOptions): T
-  // isValid(value: any, options?: any): Promise<boolean>
-  // isValidSync(value: any, options?: any): value is T
-  // strict(isStrict: boolean): this
-  // strip(strip: boolean): this
-  // required(message?: Message): this
-  // notRequired(): this
+  describe(): SchemaDescription
+  validateAt(path: string, value: T, options?: ValidateOptions): Promise<T>
+  validateSyncAt(path: string, value: T, options?: ValidateOptions): T
+  isValid(value: any, options?: any): Promise<boolean>
+  isValidSync(value: any, options?: any): value is T
+  strict(): Schema<T>
+  strip(strip?: boolean): Schema<T>
+  required(message?: Message): Schema<T>
+  notRequired(): Schema<T>
   // test(
   //   name: string,
-  //   message: string | ((params: object & Partial<TestMessageParams>) => string),
+  //   message: string | ((params: AnyObject & Partial<TestMessageParams>) => string),
   //   test: (
   //     this: TestContext,
   //     value?: any,
@@ -210,7 +216,7 @@ export interface TestOptions {
   /**
    * Values passed to message for interpolation
    */
-  params?: object
+  params?: AnyObject
 
   /**
    * Mark the test as exclusive, meaning only one of the same can be active at once

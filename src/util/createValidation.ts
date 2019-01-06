@@ -10,6 +10,7 @@ import {
   ValidateFn,
   ValidateOptions,
 } from '../types'
+import { AnyObject } from '../types'
 import ValidationError from '../ValidationError'
 import formatError from './formatError'
 
@@ -36,7 +37,7 @@ function runTest<S>(testOptions: TestOptions, ctx: TestContext, validateArgs: Va
 
 type Resolve = (r: any) => any
 
-function resolveParams(oldParams: object, newParams: object, resolve: Resolve) {
+function resolveParams(oldParams: AnyObject, newParams: AnyObject, resolve: Resolve) {
   return mapValues({ ...oldParams, ...newParams }, resolve)
 }
 

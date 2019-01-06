@@ -1,8 +1,9 @@
 import has from 'lodash/has'
+import { AnyObject } from '../types'
 import isObject from './isObject'
 import isSchema from './isSchema'
 
-export default function merge(target: object, source: object) {
+export default function merge(target: AnyObject, source: AnyObject) {
   for (const key in source) {
     if (has(source, key)) {
       const targetVal = target[key]

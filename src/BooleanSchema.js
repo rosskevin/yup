@@ -1,8 +1,7 @@
 import { MixedSchema } from './MixedSchema'
 
 export function boolean() {
-  if (!(this instanceof BooleanSchema)) return new BooleanSchema()
-  return this
+  return new BooleanSchema()
 }
 
 export class BooleanSchema extends MixedSchema {

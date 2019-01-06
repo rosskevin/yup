@@ -1,8 +1,162 @@
 import * as TestHelpers from './helpers'
-
 import { string, number, object, ref } from '../src'
 
-describe('String types', () => {
+describe('StringSchema', () => {
+  it('is constructed properly', () => {
+    const schema = string()
+    console.log('foo')
+    console.log('foo')
+    console.log('foo')
+    console.log('foo')
+    console.log('foo')
+    console.log('foo')
+    //
+    schema.stripped()
+  })
+
+  it('getDefault should return the default value', function() {
+    let inst = string().default('hi')
+    inst.getDefault({}).should.equal('hi')
+    inst.getDefault().should.equal('hi')
+  })
+
+  it('should check types', async () => {
+    let inst = string()
+      .strict()
+      .typeError('must be a ${type}!')
+
+    let error = await inst.validate(5).should.be.rejected()
+
+    expect(error.type).toStrictEqual('typeError')
+    expect(error.message).toStrictEqual('must be a string!')
+    expect(error.inner.length).toStrictEqual(0)
+
+    error = await inst.validate(5, { abortEarly: false }).should.be.rejected()
+
+    expect(error.type).toStrictEqual(undefined)
+    expect(error.message).toStrictEqual('must be a string!')
+    expect(error.inner.length).toStrictEqual(1)
+  })
+
+  it('should allow function messages', async () => {
+    let error = await string()
+      .label('My string')
+      .required(d => `${d.label} is required`)
+      .validate()
+      .should.be.rejected()
+
+    expect(error.message).toMatch(/My string is required/)
+  })
+
+  it('getDefault should return the default value using context', function() {
+    let inst = string().when('$foo', {
+      is: 'greet',
+      then: string().default('hi'),
+    })
+    inst.getDefault({ context: { foo: 'greet' } }).should.equal('hi')
+  })
+
+  it('should warn about null types', async () => {
+    let error = await string()
+      .strict()
+      .validate(null)
+      .should.be.rejected()
+
+    expect(error.message).toMatch(/If "null" is intended/)
+  })
+
+  it('should run subset of validations first', () => {
+    let called = false
+    let inst = string()
+      .strict()
+      .test('test', 'boom', () => (called = true))
+
+    return inst
+      .validate(25)
+      .should.be.rejected()
+      .then(() => {
+        called.should.equal(false)
+      })
+  })
+
+  it('should respect strict', () => {
+    let inst = string().equals(['hello', '5'])
+
+    return Promise.all([
+      inst
+        .isValid(5)
+        .should.eventually()
+        .equal(true),
+      inst
+        .strict()
+        .isValid(5)
+        .should.eventually()
+        .equal(false),
+    ])
+  })
+
+  it('should respect abortEarly', () => {
+    let inst = string()
+      .trim()
+      .min(10)
+
+    return Promise.all([
+      inst
+        .strict()
+        .validate(' hi ')
+        .should.be.rejected()
+        .then(err => {
+          err.errors.length.should.equal(1)
+        }),
+
+      inst
+        .strict()
+        .validate(' hi ', { abortEarly: false })
+        .should.be.rejected()
+        .then(err => {
+          err.errors.length.should.equal(2)
+        }),
+    ])
+  })
+
+  it('should allow custom validation', async () => {
+    let inst = string().test('name', 'test a', val => val === 'jim')
+
+    return inst
+      .validate('joe')
+      .should.be.rejected()
+      .then(e => {
+        e.errors[0].should.equal('test a')
+      })
+  })
+
+  it('concat should fail on different types', function() {
+    let inst = string().default('hi')
+
+    ;(function() {
+      inst.concat(object())
+    }.should.throw(TypeError))
+  })
+
+  it('concat should maintain undefined defaults', function() {
+    let inst = string().default('hi')
+
+    expect(inst.concat(string().default(undefined)).default()).toStrictEqual(undefined)
+  })
+
+  it('defaults should be validated but not transformed', function() {
+    let inst = string()
+      .trim()
+      .default('  hi  ')
+
+    return inst
+      .validate(undefined)
+      .should.be.rejected()
+      .then(function(err) {
+        err.message.should.equal('this must be a trimmed string')
+      })
+  })
+
   describe('casting', () => {
     let schema = string()
 

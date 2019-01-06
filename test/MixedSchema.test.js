@@ -1,44 +1,43 @@
-import { array, mixed, string, number, object, ref, reach, boolean, MixedSchema } from '../src'
-let noop = () => {}
+import { array, boolean, mixed, MixedSchema, number, object, reach, ref, string } from '../src'
+const noop = () => {}
 
 function ensureSync(fn) {
   let run = false
-  let resolve = t => {
-    if (!run) return t
+  const resolve = t => {
+    if (!run) {
+      return t
+    }
     throw new Error('Did not execute synchonously')
   }
-  let err = t => {
-    if (!run) throw t
+  const err = t => {
+    if (!run) {
+      throw t
+    }
     throw new Error('Did not execute synchonously')
   }
 
-  let result = fn().then(resolve, err)
+  const result = fn().then(resolve, err)
 
   run = true
   return result
 }
 
-it('[internal] normal methods should be running in sync Mode', async () => {
-  if (global.YUP_USE_SYNC) {
-    let schema = number()
-
-    await ensureSync(() => Promise.resolve()).should.be.rejected()
-
-    await ensureSync(() => schema.isValid('john')).should.be.become(false)
-
-    let err = await ensureSync(() => schema.validate('john')).should.be.rejected()
-
-    expect(err.message).toMatch(/the final value was: `NaN`.+cast from the value `"john"`/)
-  } else {
-    console.log('Not running in sync mode')
-  }
-})
-
-describe('Mixed Types ', () => {
+describe('MixedSchema', () => {
+  it('[internal] normal methods should be running in sync Mode', async () => {
+    if (global.YUP_USE_SYNC) {
+      const schema = number()
+      await ensureSync(() => Promise.resolve()).should.be.rejected()
+      await ensureSync(() => schema.isValid('john')).should.be.become(false)
+      const err = await ensureSync(() => schema.validate('john')).should.be.rejected()
+      expect(err.message).toMatch(/the final value was: `NaN`.+cast from the value `"john"`/)
+    } else {
+      console.log('Not running in sync mode')
+    }
+  })
   it('should be immutable', () => {
     let inst = mixed(),
       next
-    let sub = (inst.sub = mixed())
+    const sub = (inst.sub = mixed())
 
     inst.should.not.equal((next = inst.required()))
 
@@ -58,32 +57,9 @@ describe('Mixed Types ', () => {
   })
 
   it('cast should return a default when undefined', () => {
-    let inst = mixed().default('hello')
+    const inst = mixed().default('hello')
 
     inst.cast(undefined).should.equal('hello')
-  })
-
-  it('getDefault should return the default value', function() {
-    let inst = string().default('hi')
-    inst.getDefault({}).should.equal('hi')
-    inst.getDefault().should.equal('hi')
-  })
-
-  it('getDefault should return the default value using context', function() {
-    let inst = string().when('$foo', {
-      is: 'greet',
-      then: string().default('hi'),
-    })
-    inst.getDefault({ context: { foo: 'greet' } }).should.equal('hi')
-  })
-
-  it('should warn about null types', async () => {
-    let error = await string()
-      .strict()
-      .validate(null)
-      .should.be.rejected()
-
-    expect(error.message).toMatch(/If "null" is intended/)
   })
 
   it('should validateAt', async () => {
@@ -127,44 +103,8 @@ describe('Mixed Types ', () => {
   //   schema.castAt('foo[0].loose', value).should.equal(true);
   // });
 
-  it('should print the original value', async () => {
-    let error = await number()
-      .validate('john')
-      .should.be.rejected()
-
-    expect(error.message).toMatch(/the final value was: `NaN`.+cast from the value `"john"`/)
-  })
-
-  it('should allow function messages', async () => {
-    let error = await string()
-      .label('My string')
-      .required(d => `${d.label} is required`)
-      .validate()
-      .should.be.rejected()
-
-    expect(error.message).toMatch(/My string is required/)
-  })
-
-  it('should check types', async () => {
-    let inst = string()
-      .strict()
-      .typeError('must be a ${type}!')
-
-    let error = await inst.validate(5).should.be.rejected()
-
-    expect(error.type).toStrictEqual('typeError')
-    expect(error.message).toStrictEqual('must be a string!')
-    expect(error.inner.length).toStrictEqual(0)
-
-    error = await inst.validate(5, { abortEarly: false }).should.be.rejected()
-
-    expect(error.type).toStrictEqual(undefined)
-    expect(error.message).toStrictEqual('must be a string!')
-    expect(error.inner.length).toStrictEqual(1)
-  })
-
   it('should limit values', async () => {
-    let inst = mixed().oneOf([5, 'hello'])
+    const inst = mixed().oneOf([5, 'hello'])
 
     await inst
       .isValid(5)
@@ -175,7 +115,7 @@ describe('Mixed Types ', () => {
       .should.eventually()
       .equal(true)
 
-    let err = await inst.validate(6).should.be.rejected()
+    const err = await inst.validate(6).should.be.rejected()
 
     err.errors[0].should.equal('this must be one of the following values: 5, hello')
   })
@@ -189,7 +129,7 @@ describe('Mixed Types ', () => {
       .equal(true)
     await inst.isValid(1).should.eventually.equal(true)
 
-    let err = await inst.validate().should.be.rejected()
+    const err = await inst.validate().should.be.rejected()
 
     err.errors[0].should.equal('this is a required field')
 
@@ -198,35 +138,20 @@ describe('Mixed Types ', () => {
     await inst.isValid().should.eventually.equal(true)
   })
 
-  global.YUP_USE_SYNC &&
+  if (global.YUP_USE_SYNC) {
     describe('synchronous methods', () => {
-      it('should validate synchronously', async () => {
-        let schema = number()
-
-        schema.isValidSync('john').should.equal(false)
-
-        expect(() => schema.validateSync('john')).toThrow(
-          /the final value was: `NaN`.+cast from the value `"john"`/,
-        )
-      })
-
-      it('should isValid synchronously', async () => {
-        let schema = number()
-
-        schema.isValidSync('john').should.equal(false)
-      })
-
       it('should throw on async test', async () => {
-        let schema = mixed().test('test', 'foo', () => Promise.resolve())
+        const schema = mixed().test('test', 'foo', () => Promise.resolve())
 
-        let err = await ensureSync(() => schema.validate('john')).should.be.rejected()
+        const err = await ensureSync(() => schema.validate('john')).should.be.rejected()
 
         expect(err.message).toMatch(/Validation test of type: "test"/)
       })
     })
+  }
 
   describe('oneOf', () => {
-    let inst = mixed().oneOf(['hello'])
+    const inst = mixed().oneOf(['hello'])
 
     TestHelpers.validateAll(inst, {
       valid: [undefined, 'hello'],
@@ -237,21 +162,10 @@ describe('Mixed Types ', () => {
         [null, inst.nullable().required(), 'required'],
       ],
     })
-
-    it('should work with refs', async () => {
-      let inst = object({
-        foo: string(),
-        bar: string().oneOf([ref('foo'), 'b']),
-      })
-
-      await inst.validate({ foo: 'a', bar: 'a' }).should.be.fulfilled()
-
-      await inst.validate({ foo: 'foo', bar: 'bar' }).should.be.rejected()
-    })
   })
 
   describe('should exclude values', () => {
-    let inst = mixed().notOneOf([5, 'hello'])
+    const inst = mixed().notOneOf([5, 'hello'])
 
     TestHelpers.validateAll(inst, {
       valid: [6, 'hfhfh', [5, inst.oneOf([5]), '`oneOf` called after'], null],
@@ -259,68 +173,14 @@ describe('Mixed Types ', () => {
     })
 
     it('should throw the correct error', async () => {
-      let err = await inst.validate(5).should.be.rejected()
+      const err = await inst.validate(5).should.be.rejected()
 
       err.errors[0].should.equal('this must not be one of the following values: 5, hello')
     })
   })
 
-  it('should run subset of validations first', () => {
-    let called = false
-    let inst = string()
-      .strict()
-      .test('test', 'boom', () => (called = true))
-
-    return inst
-      .validate(25)
-      .should.be.rejected()
-      .then(() => {
-        called.should.equal(false)
-      })
-  })
-
-  it('should respect strict', () => {
-    let inst = string().equals(['hello', '5'])
-
-    return Promise.all([
-      inst
-        .isValid(5)
-        .should.eventually()
-        .equal(true),
-      inst
-        .strict()
-        .isValid(5)
-        .should.eventually()
-        .equal(false),
-    ])
-  })
-
-  it('should respect abortEarly', () => {
-    let inst = string()
-      .trim()
-      .min(10)
-
-    return Promise.all([
-      inst
-        .strict()
-        .validate(' hi ')
-        .should.be.rejected()
-        .then(err => {
-          err.errors.length.should.equal(1)
-        }),
-
-      inst
-        .strict()
-        .validate(' hi ', { abortEarly: false })
-        .should.be.rejected()
-        .then(err => {
-          err.errors.length.should.equal(2)
-        }),
-    ])
-  })
-
   it('should overload test()', () => {
-    let inst = mixed().test('test', noop)
+    const inst = mixed().test('test', noop)
 
     inst.tests.length.should.equal(1)
     inst.tests[0].TEST.test.should.equal(noop)
@@ -328,19 +188,19 @@ describe('Mixed Types ', () => {
   })
 
   it('should allow non string messages', async () => {
-    let message = { key: 'foo' }
-    let inst = mixed().test('test', message, () => false)
+    const message = { key: 'foo' }
+    const inst = mixed().test('test', message, () => false)
 
     inst.tests.length.should.equal(1)
     inst.tests[0].TEST.message.should.equal(message)
 
-    let error = await inst.validate('foo').should.be.rejected()
+    const error = await inst.validate('foo').should.be.rejected()
 
     error.message.should.equal(message)
   })
 
   it('should dedupe tests with the same test function', () => {
-    let inst = mixed()
+    const inst = mixed()
       .test('test', ' ', noop)
       .test('test', 'asdasd', noop)
 
@@ -349,7 +209,7 @@ describe('Mixed Types ', () => {
   })
 
   it('should not dedupe tests with the same test function and different type', () => {
-    let inst = mixed()
+    const inst = mixed()
       .test('test', ' ', noop)
       .test('test-two', 'asdasd', noop)
 
@@ -376,7 +236,7 @@ describe('Mixed Types ', () => {
   })
 
   it('should non-exclusive tests should stack', () => {
-    let inst = mixed()
+    const inst = mixed()
       .test({ name: 'test', message: ' ', test: () => {} })
       .test({ name: 'test', message: ' ', test: () => {} })
 
@@ -384,7 +244,7 @@ describe('Mixed Types ', () => {
   })
 
   it('should replace existing tests, with exclusive test ', () => {
-    let inst = mixed()
+    const inst = mixed()
       .test({ name: 'test', message: ' ', test: noop })
       .test({ name: 'test', exclusive: true, message: ' ', test: noop })
 
@@ -392,7 +252,7 @@ describe('Mixed Types ', () => {
   })
 
   it('should replace existing exclusive tests, with non-exclusive', () => {
-    let inst = mixed()
+    const inst = mixed()
       .test({ name: 'test', exclusive: true, message: ' ', test: () => {} })
       .test({ name: 'test', message: ' ', test: () => {} })
       .test({ name: 'test', message: ' ', test: () => {} })
@@ -407,13 +267,12 @@ describe('Mixed Types ', () => {
   })
 
   it('exclusive tests should replace previous ones', async () => {
-    let inst = mixed().test({
+    const inst = mixed().test({
       message: 'invalid',
       exclusive: true,
       name: 'max',
       test: v => v < 5,
     })
-
     ;(await inst.isValid(8)).should.equal(false)
     ;(await inst
       .test({
@@ -427,7 +286,7 @@ describe('Mixed Types ', () => {
 
   it('tests should be called with the correct `this`', async () => {
     let called = false
-    let inst = object({
+    const inst = object({
       other: mixed(),
       test: mixed().test({
         message: 'invalid',
@@ -449,7 +308,7 @@ describe('Mixed Types ', () => {
   })
 
   it('tests can return an error', () => {
-    let inst = mixed().test({
+    const inst = mixed().test({
       message: 'invalid ${path}',
       name: 'max',
       test() {
@@ -467,10 +326,10 @@ describe('Mixed Types ', () => {
   })
 
   it('should use returned error path and message', () => {
-    let inst = mixed().test({
+    const inst = mixed().test({
       message: 'invalid ${path}',
       name: 'max',
-      test: function() {
+      test() {
         return this.createError({ message: '${path} nope!', path: 'my.path' })
       },
     })
@@ -484,20 +343,9 @@ describe('Mixed Types ', () => {
       })
   })
 
-  it('should allow custom validation', async () => {
-    let inst = string().test('name', 'test a', val => val === 'jim')
-
-    return inst
-      .validate('joe')
-      .should.be.rejected()
-      .then(e => {
-        e.errors[0].should.equal('test a')
-      })
-  })
-
   describe('concat', () => {
     let next
-    let inst = object({
+    const inst = object({
       str: string().required(),
       obj: object({
         str: string(),
@@ -523,7 +371,7 @@ describe('Mixed Types ', () => {
     })
 
     it('should have the tests in the correct order', () => {
-      reach(next, 'str').tests[0].TEST_NAME.should.equal('required')
+      reach(next, 'str').tests[0].TEST_OPTIONS.name.should.equal('required')
     })
 
     it('should validate correctly', async () => {
@@ -548,39 +396,11 @@ describe('Mixed Types ', () => {
     })
   })
 
-  it('concat should fail on different types', function() {
-    let inst = string().default('hi')
-
-    ;(function() {
-      inst.concat(object())
-    }.should.throw(TypeError))
-  })
-
   it('concat should allow mixed and other type', function() {
-    let inst = mixed().default('hi')
-
+    const inst = mixed().default('hi')
     ;(function() {
       inst.concat(string())._type.should.equal('string')
     }.should.not.throw(TypeError))
-  })
-
-  it('concat should maintain undefined defaults', function() {
-    let inst = string().default('hi')
-
-    expect(inst.concat(string().default(undefined)).default()).toStrictEqual(undefined)
-  })
-
-  it('defaults should be validated but not transformed', function() {
-    let inst = string()
-      .trim()
-      .default('  hi  ')
-
-    return inst
-      .validate(undefined)
-      .should.be.rejected()
-      .then(function(err) {
-        err.message.should.equal('this must be a trimmed string')
-      })
   })
 
   it('should handle conditionals', async function() {
@@ -594,7 +414,7 @@ describe('Mixed Types ', () => {
     await inst.validate('hello', { parent: { prop: 5 } }).should.be.fulfilled()
 
     inst = string().when('prop', {
-      is: function(val) {
+      is(val) {
         return val === 5
       },
       then: string().required(),
@@ -639,7 +459,7 @@ describe('Mixed Types ', () => {
     await inst.validate('hello', { context: { prop: 5 } }).should.be.fulfilled()
 
     inst = string().when('$prop', {
-      is: function(val) {
+      is(val) {
         return val === 5
       },
       then: string().required(),
@@ -652,7 +472,7 @@ describe('Mixed Types ', () => {
   })
 
   it('should not use context refs in object calculations', function() {
-    let inst = object({
+    const inst = object({
       prop: string().when('$prop', {
         is: 5,
         then: string().required('from context'),
@@ -663,8 +483,8 @@ describe('Mixed Types ', () => {
   })
 
   it('should use label in error message', async function() {
-    let label = 'Label'
-    let inst = object({
+    const label = 'Label'
+    const inst = object({
       prop: string()
         .required()
         .label(label),

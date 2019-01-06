@@ -15,7 +15,7 @@ import {
   ValidateOptions,
   WhenOptions,
 } from './types'
-import { Message, TransformFunction } from './types'
+import { AnyObject, Message, SchemaDescription, TransformFunction } from './types'
 import createValidation from './util/createValidation'
 import getIn from './util/getIn'
 import isNotEmpty from './util/isNotEmpty'
@@ -51,6 +51,8 @@ export class MixedSchema<T = any> implements Schema<T> {
   public _whitelistError?: ValidateFn<T> = undefined
   public _blacklistError?: ValidateFn<T> = undefined
   public _default: any
+  public fields: AnyObject = {} // FIXME not sure what this is
+  public _strip: boolean = false
 
   constructor(options: { default?: any; type?: string } = {}) {
     this.withMutation(() => {
@@ -95,7 +97,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    *
    * Adds to a metadata object, useful for storing data with a schema, that doesn't belong the cast object itself.
    */
-  public meta(obj?: any) {
+  public meta(obj?: AnyObject) {
     if (arguments.length === 0) {
       return this._meta
     }
@@ -170,11 +172,11 @@ export class MixedSchema<T = any> implements Schema<T> {
     return !this._typeCheck || this._typeCheck(v)
   }
 
-  public resolve({ context, parent }: ValidateOptions) {
+  public resolve({ context, parent }: ValidateOptions): Schema<T> {
     if (this._conditions.length) {
       return this._conditions.reduce(
         (schema, match) => match.resolve(schema, match.getValue(parent, context)),
-        this,
+        this as Schema<T>, // initial value
       )
     }
 
@@ -189,7 +191,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    * @param options
    * @returns Failed casts generally return null, but may also return results like NaN and unexpected strings.
    */
-  public cast(value: any, options: any = {}): T {
+  public cast(value: any, options: ValidateOptions = {}): T {
     const resolvedSchema = this.resolve(options)
     const result = resolvedSchema._cast(value, options)
 
@@ -207,7 +209,7 @@ export class MixedSchema<T = any> implements Schema<T> {
     return result
   }
 
-  public _cast(rawValue: any, optionsUnusedAtTopLevelNoUnderstandingWhy: any = {}) {
+  public _cast(rawValue: any, options: ValidateOptions = {}): any {
     let value =
       rawValue === undefined
         ? rawValue
@@ -334,7 +336,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    * @param value
    * @param options Takes the same options as validateSync() and has the same caveats around async tests.
    */
-  public isValidSync(value: any, options: ValidateOptions) {
+  public isValidSync(value: any, options: ValidateOptions): value is T {
     try {
       this.validateSync(value, { ...options })
       return true
@@ -688,11 +690,11 @@ export class MixedSchema<T = any> implements Schema<T> {
    * Marks a schema to be removed from an output object. Only works as a nested schema.
    * @param strip
    */
-  // public strip(strip = true) {
-  //   const next = this.clone()
-  //   next._strip = strip // FIXME why not next._options ???
-  //   return next
-  // }
+  public strip(strip = true) {
+    const next = this.clone()
+    next._strip = strip // FIXME why not next._options ???
+    return next
+  }
 
   public _option(key: string, overrides: ValidateOptions) {
     return has(overrides, key) ? overrides[key] : this._options[key]
@@ -701,7 +703,7 @@ export class MixedSchema<T = any> implements Schema<T> {
   /**
    * Collects schema details (like meta, labels, and active tests) into a serializable description object.
    */
-  public describe() {
+  public describe(): SchemaDescription {
     const next = this.clone()
 
     return {
@@ -713,19 +715,33 @@ export class MixedSchema<T = any> implements Schema<T> {
       type: next._type,
     }
   }
-}
 
-/**
- * Validate a deeply nested path within the schema. Similar to how reach works, but uses the resulting schema as the subject
- * for validation.
- *
- * Note! The value here is the root value relative to the starting schema, not the value at the nested path.
- */
-for (const method of ['validate', 'validateSync']) {
-  MixedSchema.prototype[`${method}At`] = function(path, value, options = {} /* ValidateOptions */) {
+  /**
+   * Validate a deeply nested path within the schema. Similar to how reach works,
+   * but uses the resulting schema as the subject for validation.
+   *
+   * Note! The value here is the root value relative to the starting schema, not the value at the nested path.
+   */
+  public validateAt(path: string, value: any, options: ValidateOptions = {}): Promise<T> {
     const { parent, parentPath, schema } = getIn(this, path, value, options.context)
 
-    return schema[method](parent && parent[parentPath], {
+    return this.validate(parent && parentPath ? parent[parentPath] : undefined, {
+      ...options,
+      parent,
+      path,
+    })
+  }
+
+  /**
+   * Validate a deeply nested path within the schema. Similar to how reach works, but uses the resulting schema as the subject
+   * for validation.
+   *
+   * Note! The value here is the root value relative to the starting schema, not the value at the nested path.
+   */
+  public validateSyncAt(path: string, value: any, options: ValidateOptions = {}): T {
+    const { parent, parentPath, schema } = getIn(this, path, value, options.context)
+
+    return this.validateSync(parent && parentPath ? parent[parentPath] : undefined, {
       ...options,
       parent,
       path,

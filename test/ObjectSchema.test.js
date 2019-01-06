@@ -78,6 +78,18 @@ describe('Object types', () => {
     })
   })
 
+  describe('oneOf', () => {
+    it('should work with refs', async () => {
+      let inst = object({
+        foo: string(),
+        bar: string().oneOf([ref('foo'), 'b']),
+      })
+
+      await inst.validate({ foo: 'a', bar: 'a' }).should.be.fulfilled()
+
+      await inst.validate({ foo: 'foo', bar: 'bar' }).should.be.rejected()
+    })
+  })
   describe('validation', () => {
     let inst, obj
 

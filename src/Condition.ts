@@ -62,7 +62,7 @@ export default class Condition<T> {
     return values
   }
 
-  public resolve(ctx: any, values: any[]) {
+  public resolve(ctx: any, values: any[]): Schema<T> {
     const schema = this.fn.apply(ctx, values.concat(ctx) as any) // FIXME wow so confusing
 
     if (schema !== undefined && !isSchema(schema)) {

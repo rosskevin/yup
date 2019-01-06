@@ -19,8 +19,7 @@ function unknown(ctx, value) {
 }
 
 export function object(spec) {
-  if (!(this instanceof ObjectSchema)) return new ObjectSchema(spec)
-  return this
+  return new ObjectSchema(spec)
 }
 
 export class ObjectSchema extends MixedSchema {

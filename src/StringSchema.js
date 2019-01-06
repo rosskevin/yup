@@ -11,8 +11,7 @@ let hasLength = value => isAbsent(value) || value.length > 0
 let isTrimmed = value => isAbsent(value) || value === value.trim()
 
 export function string() {
-  if (!(this instanceof StringSchema)) return new StringSchema()
-  return this
+  return new StringSchema()
 }
 
 export class StringSchema extends MixedSchema {

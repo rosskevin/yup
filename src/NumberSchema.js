@@ -7,8 +7,7 @@ let isNaN = value => value != +value
 let isInteger = val => isAbsent(val) || val === (val | 0)
 
 export function number() {
-  if (!(this instanceof NumberSchema)) return new NumberSchema()
-  return this
+  return new NumberSchema()
 }
 
 export class NumberSchema extends MixedSchema {

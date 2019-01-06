@@ -11,8 +11,7 @@ function isDate(obj) {
 }
 
 export function date() {
-  if (!(this instanceof DateSchema)) return new DateSchema()
-  return this
+  return new DateSchema()
 }
 
 export class DateSchema extends MixedSchema {

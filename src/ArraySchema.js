@@ -9,8 +9,7 @@ import locale from './locale'
 let hasLength = value => !isAbsent(value) && value.length > 0
 
 export function array(type) {
-  if (!(this instanceof ArraySchema)) return new ArraySchema(type)
-  return this
+  return new ArraySchema(type)
 }
 
 export class ArraySchema extends MixedSchema {

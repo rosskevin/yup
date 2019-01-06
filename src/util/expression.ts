@@ -1,10 +1,11 @@
+import { AnyObject } from '../types'
 /**
  * Based on Kendo UI Core expression code <https://github.com/telerik/kendo-ui-core#license-information>
  */
 class Cache {
   public size: number = 0
   private maxSize: number
-  private values: { [key: string]: any } = {}
+  private values: AnyObject = {}
 
   constructor(maxSize: number) {
     this.maxSize = maxSize
@@ -185,7 +186,8 @@ function isQuoted(str: string): boolean {
     str !== undefined &&
     str !== null &&
     typeof str === 'string' &&
-    ['\'', '"'].indexOf(str.charAt(0)) !== -1
+    // tslint:disable-next-line:quotemark
+    ["'", '"'].indexOf(str.charAt(0)) !== -1
   )
 }
 

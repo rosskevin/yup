@@ -1,3 +1,4 @@
+import { AnyObject } from '../types'
 import ValidationError from '../ValidationError' // this may or may not be right - based on the err name below
 
 function findIndex(arr: string[], err: ValidationError) {
@@ -13,7 +14,7 @@ function findIndex(arr: string[], err: ValidationError) {
   return idx
 }
 
-export default function sortByKeyOrder(fields: object) {
+export default function sortByKeyOrder(fields: AnyObject) {
   const keys = Object.keys(fields)
   return (a: ValidationError, b: ValidationError) => {
     return findIndex(keys, a) - findIndex(keys, b)

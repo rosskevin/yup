@@ -1,12 +1,39 @@
 import * as TestHelpers from './helpers'
 import { number, NumberSchema } from '../src'
 
-describe('Number types', function() {
+describe('NumberSchema', function() {
   it('is newable', () => {
     let schema = new number()
     schema.integer().required()
   })
 
+  it('should print the original value', async () => {
+    let error = await number()
+      .validate('john')
+      .should.be.rejected()
+
+    expect(error.message).toMatch(/the final value was: `NaN`.+cast from the value `"john"`/)
+  })
+
+  if (global.YUP_USE_SYNC) {
+    describe('synchronous methods', () => {
+      it('should validate synchronously', async () => {
+        let schema = number()
+
+        schema.isValidSync('john').should.equal(false)
+
+        expect(() => schema.validateSync('john')).toThrow(
+          /the final value was: `NaN`.+cast from the value `"john"`/,
+        )
+      })
+
+      it('should isValid synchronously', async () => {
+        let schema = number()
+
+        schema.isValidSync('john').should.equal(false)
+      })
+    })
+  }
   it('is extensible', () => {
     class MyNumber extends NumberSchema {
       foo() {
