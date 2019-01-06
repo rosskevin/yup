@@ -10,10 +10,12 @@ import {
   MutationFn,
   Schema,
   TestOptions,
+  ValidateArgs,
   ValidateFn,
   ValidateOptions,
   WhenOptions,
 } from './types'
+import { Message, TransformFunction } from './types'
 import createValidation from './util/createValidation'
 import getIn from './util/getIn'
 import isNotEmpty from './util/isNotEmpty'
@@ -30,14 +32,14 @@ export function mixed(options = {}) {
 
 export class MixedSchema<T = any> implements Schema<T> {
   public __isYupSchema__ = true
-  public _deps: Ref[]
-  public _conditions: any[]
-  public _options: { abortEarly: boolean; recursive: boolean }
-  public _exclusive: any
-  public _whitelist: RefSet
-  public _blacklist: RefSet
-  public tests: Array<ValidateFn<T>>
-  public transforms: any[]
+  public _deps: Ref[] = []
+  public _conditions: Array<Condition<T>> = []
+  public _options: Partial<ValidateOptions> = { abortEarly: true, recursive: true } // FIXME appears sparingly used - at least in Mixed
+  public _exclusive = Object.create(null)
+  public _whitelist: RefSet = new RefSet()
+  public _blacklist: RefSet = new RefSet()
+  public tests: Array<ValidateFn<T>> = []
+  public transforms: Array<TransformFunction<T>> = []
   public _defaultDefault: any
   public _type: string
   public _mutate: any
@@ -45,22 +47,12 @@ export class MixedSchema<T = any> implements Schema<T> {
   public _nullable: boolean = false
   public _typeCheck: any
   public _label: string | undefined = undefined
-  public _typeError: any
-  public _whitelistError: any
-  public _blacklistError: any
+  public _typeError?: ValidateFn<T> = undefined
+  public _whitelistError?: ValidateFn<T> = undefined
+  public _blacklistError?: ValidateFn<T> = undefined
   public _default: any
+
   constructor(options: { default?: any; type?: string } = {}) {
-    this._deps = []
-    this._conditions = []
-    this._options = { abortEarly: true, recursive: true }
-    this._exclusive = Object.create(null)
-
-    this._whitelist = new RefSet()
-    this._blacklist = new RefSet()
-
-    this.tests = []
-    this.transforms = []
-
     this.withMutation(() => {
       this.typeError(locale.mixed.notType)
     })
@@ -197,7 +189,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    * @param options
    * @returns Failed casts generally return null, but may also return results like NaN and unexpected strings.
    */
-  public cast(value: any, options: any = {}) {
+  public cast(value: any, options: any = {}): T {
     const resolvedSchema = this.resolve(options)
     const result = resolvedSchema._cast(value, options)
 
@@ -215,7 +207,7 @@ export class MixedSchema<T = any> implements Schema<T> {
     return result
   }
 
-  public _cast(rawValue: any) {
+  public _cast(rawValue: any, optionsUnusedAtTopLevelNoUnderstandingWhy: any = {}) {
     let value =
       rawValue === undefined
         ? rawValue
@@ -231,19 +223,17 @@ export class MixedSchema<T = any> implements Schema<T> {
   public _validate(_value: any, options: ValidateOptions = {}): Promise<T> {
     let value = _value
     const originalValue = options.originalValue != null ? options.originalValue : _value
-
     const isStrict = this._option('strict', options)
     const endEarly = this._option('abortEarly', options)
-
-    const sync = options.sync
-    const path = options.path
-    const label = this._label
+    const sync = options.sync || false
+    const path = options.path as any // FIXME
+    const label = this._label as any // FIXME
 
     if (!isStrict) {
       value = this._cast(value, { assert: false, ...options })
     }
     // value is cast, we can check if it meets type requirements
-    const validationParams = {
+    const validateArgs: ValidateArgs<T> = {
       label,
       options,
       originalValue,
@@ -252,33 +242,35 @@ export class MixedSchema<T = any> implements Schema<T> {
       sync,
       value,
     }
-    const initialTests = []
+    const prerequisiteValidations: Array<ValidateFn<T>> = []
 
     if (this._typeError) {
-      initialTests.push(this._typeError(validationParams))
+      prerequisiteValidations.push(this._typeError(validateArgs) as any) // FIXME this seems correct
     }
 
     if (this._whitelistError) {
-      initialTests.push(this._whitelistError(validationParams))
+      prerequisiteValidations.push(this._whitelistError(validateArgs) as any) // FIXME same as above
     }
 
     if (this._blacklistError) {
-      initialTests.push(this._blacklistError(validationParams))
+      prerequisiteValidations.push(this._blacklistError(validateArgs) as any) // FIXME same as above
     }
 
+    // run prerequisites
     return runValidations({
-      validations: initialTests,
       endEarly,
-      value,
       path,
       sync,
-    }).then(value =>
+      validations: prerequisiteValidations,
+      value,
+    }).then((v: any) =>
+      // run provided validations
       runValidations({
+        endEarly,
         path,
         sync,
-        value,
-        endEarly,
-        validations: this.tests.map(fn => fn(validationParams)),
+        validations: this.tests.map(fn => fn(validateArgs)),
+        value: v,
       }),
     )
   }
@@ -310,8 +302,8 @@ export class MixedSchema<T = any> implements Schema<T> {
 
     schema
       ._validate(value, { ...options, sync: true })
-      .then(r => (result = r))
-      .catch(e => (err = e))
+      .then((r: any) => (result = r))
+      .catch((e: any) => (err = e))
 
     if (err) {
       throw err
@@ -328,7 +320,7 @@ export class MixedSchema<T = any> implements Schema<T> {
   public isValid(value: any, options: ValidateOptions) {
     return this.validate(value, options)
       .then(() => true)
-      .catch(err => {
+      .catch((err: any) => {
         if (ValidationError.isInstance(err)) {
           return false
         }
@@ -412,7 +404,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    */
   public notRequired() {
     const next = this.clone()
-    next.tests = next.tests.filter(test => test.TEST_OPTIONS.name !== 'required')
+    next.tests = next.tests.filter(test => (test as any).TEST_OPTIONS.name !== 'required')
     return next
   }
 
@@ -422,7 +414,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    *
    * @param value
    */
-  public nullable(value) {
+  public nullable(value = true) {
     const next = this.clone()
     next._nullable = value === false ? false : true
     return next
@@ -445,8 +437,8 @@ export class MixedSchema<T = any> implements Schema<T> {
    *
    * @param fn
    */
-  public transform(fn) {
-    const next = this.clone()
+  public transform(fn: TransformFunction<T>): Schema<T> {
+    const next: Schema<T> = this.clone()
     next.transforms.push(fn)
     return next
   }
@@ -493,7 +485,7 @@ export class MixedSchema<T = any> implements Schema<T> {
     }
 
     const next = this.clone()
-    const validate = createValidation(opts)
+    const validate = createValidation<T>(opts)
 
     const isExclusive = opts.exclusive || (opts.name && next._exclusive[opts.name] === true)
 
@@ -521,38 +513,84 @@ export class MixedSchema<T = any> implements Schema<T> {
   }
 
   /**
-   * Adjust the schema based on a sibling or sibling children fields. You can provide an object literal where the key `is`
-   * is value or a matcher function, then provides the true schema and/or otherwise for the failure condition.
-   * `is` conditions are strictly compared (===) if you want to use a different form of equality you can provide
-   * a function like: is: `(value) => value == true`.
+   * Adjust the schema based on a sibling or sibling children fields. You can provide an object literal where
+   * the key `is` is value or a matcher function, then provides the true schema and/or otherwise for the failure
+   * condition. `is` conditions are strictly compared (===) if you want to use a different form of equality
+   * you can provide a function like: is: `(value) => value === true`.
    *
-   * Like joi you can also prefix properties with $ to specify a property that is dependent on context passed in by
-   * validate() or isValid. when conditions are additive.
+   * Like joi you can also prefix properties with $ to specify a property that is dependent on context passed
+   * in by validate() or isValid. when conditions are additive.
+   *
+   *
+   * const inst = yup.object({
+   *   isBig: yup.boolean(),
+   *   count: yup
+   *     .number()
+   *     .when('isBig', {
+   *       is: true, // alternatively: (val) => val == true
+   *       then: yup.number().min(5),
+   *       otherwise: yup.number().min(0),
+   *     })
+   *     .when('$other', (other, schema) => (other === 4 ? schema.max(6) : schema)),
+   * })
+   *
+   * inst.validate(value, { context: { other: 4 } });
+   *
+   * You can also specify more than one dependent key, in which case each value will be spread as an argument.
+   *
+   * const inst = yup.object({
+   *       isSpecial: yup.boolean(),
+   *       isBig: yup.boolean(),
+   *       count: yup.number()
+   *         .when(['isBig', 'isSpecial'], {
+   *           is: true,  // alternatively: (isBig, isSpecial) => isBig && isSpecial
+   *           then:      yup.number().min(5),
+   *           otherwise: yup.number().min(0)
+   *         })
+   *     })
+   *
+   * inst.validate({
+   *   isBig: true,
+   *   isSpecial: true,
+   *   count: 10
+   * })
+   *
+   * Alternatively you can provide a function that returns a schema (called with the value of the key and the current schema).
+   *
+   * const inst = yup.object({
+   *   isBig: yup.boolean(),
+   *   count: yup.number().when('isBig', (isBig, schema) => {
+   *     return isBig ? schema.min(5) : schema.min(0);
+   *   }),
+   * });
+   *
+   * inst.validate({ isBig: false, count: 4 });
    *
    * @param keys
    * @param options
    */
-  public when(keys: string | any[], options: WhenOptions<Schema<T>>) {
+  public when(keys: string | string[], options: WhenOptions<T>): Schema<T> {
     const next = this.clone()
-    //
     const deps: Ref[] = ([] as string[]).concat(keys).map(key => new Ref(key))
 
     deps.forEach(dep => {
       if (!dep.isContext) {
-        next._deps.push(dep.key)
+        // next._deps.push(dep.key) FIXME changed
+        next._deps.push(dep)
       }
     })
 
-    next._conditions.push(new Condition(deps, options))
+    next._conditions.push(new Condition<T>(deps, options))
 
     return next
   }
 
   /**
-   * Define an error message for failed type checks. The ${value} and ${type} interpolation can be used in the message argument.
+   * Define an error message for failed type checks.
+   * The ${value} and ${type} interpolation can be used in the message argument.
    * @param message
    */
-  public typeError(message) {
+  public typeError(message: Message) {
     const next = this.clone()
 
     next._typeError = createValidation({
@@ -578,13 +616,13 @@ export class MixedSchema<T = any> implements Schema<T> {
    *
    *  const schema = yup.mixed().oneOf(['jimmy', 42])
    *
-   * @param enums
+   * @param values
    * @param message
    */
-  public oneOf(enums, message = locale.mixed.oneOf) {
+  public oneOf(values: any[], message: Message = locale.mixed.oneOf) {
     const next = this.clone()
 
-    enums.forEach(val => {
+    values.forEach(val => {
       next._whitelist.add(val)
       next._blacklist.delete(val)
     })
@@ -617,12 +655,12 @@ export class MixedSchema<T = any> implements Schema<T> {
    *
    *  const schema = yup.mixed().notOneOf(['jimmy', 42])
    *
-   * @param enums
+   * @param values
    * @param message
    */
-  public notOneOf(enums, message = locale.mixed.notOneOf) {
+  public notOneOf(values: any[], message = locale.mixed.notOneOf) {
     const next = this.clone()
-    enums.forEach(val => {
+    values.forEach(val => {
       next._blacklist.add(val)
       next._whitelist.delete(val)
     })
@@ -650,13 +688,13 @@ export class MixedSchema<T = any> implements Schema<T> {
    * Marks a schema to be removed from an output object. Only works as a nested schema.
    * @param strip
    */
-  public strip(strip = true) {
-    const next = this.clone()
-    next._strip = strip
-    return next
-  }
+  // public strip(strip = true) {
+  //   const next = this.clone()
+  //   next._strip = strip // FIXME why not next._options ???
+  //   return next
+  // }
 
-  public _option(key, overrides) {
+  public _option(key: string, overrides: ValidateOptions) {
     return has(overrides, key) ? overrides[key] : this._options[key]
   }
 
@@ -667,12 +705,12 @@ export class MixedSchema<T = any> implements Schema<T> {
     const next = this.clone()
 
     return {
-      type: next._type,
-      meta: next._meta,
       label: next._label,
+      meta: next._meta,
       tests: next.tests
-        .map(fn => fn.TEST_OPTIONS.name, {})
+        .map(fn => (fn as any).TEST_OPTIONS.name, {})
         .filter((n, idx, list) => list.indexOf(n) === idx),
+      type: next._type,
     }
   }
 }

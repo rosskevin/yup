@@ -1,6 +1,8 @@
 // tslint:disable:ban-types
 
+import Condition from './Condition'
 import { Ref } from './Ref'
+import RefSet from './util/RefSet'
 import ValidationError from './ValidationError'
 
 export type Value = number | string | Function | null | boolean | Date
@@ -43,28 +45,6 @@ export interface ValidateOptions extends AsyncValidateOptions {
   sync?: boolean // found in _validate
 }
 
-export interface WhenOptionsBuilder<T> {
-  (value: any, schema: T): T
-  (v1: any, v2: any, schema: T): T
-  (v1: any, v2: any, v3: any, schema: T): T
-  (v1: any, v2: any, v3: any, v4: any, schema: T): T
-}
-
-export type WhenOptions<T> =
-  | WhenOptionsBuilder<T>
-  | { is: boolean | ((value: any) => boolean); then: any; otherwise: any }
-  | object
-
-export interface SchemaDescription {
-  fields: object
-  label: string
-  meta: object
-  tests: string[]
-  type: string
-}
-
-export type TransformFunction<T> = ((this: T, value: any, originalValue: any) => any)
-
 export interface ValidateArgs<T> {
   label: string
   options: ValidateOptions
@@ -77,6 +57,37 @@ export interface ValidateArgs<T> {
 
 export type ValidateFn<T> = (args: ValidateArgs<T>) => Promise<void>
 
+/*
+export interface WhenOptionsFns<T> {
+  (value: any, schema: T): T
+  (v1: any, v2: any, schema: T): T
+  (v1: any, v2: any, v3: any, schema: T): T
+  (v1: any, v2: any, v3: any, v4: any, schema: T): T
+}
+*/
+
+export type WhenIsFn = (values: any[]) => boolean
+
+export type WhenOptionsFn<T> = (values: any[], schema: Schema<T>) => Schema<T>
+
+export interface WhenOptionsObject<T> {
+  is: boolean | WhenIsFn
+  then: Schema<T>
+  otherwise: Schema<T>
+}
+
+export type WhenOptions<T> = WhenOptionsFn<T> | WhenOptionsObject<T>
+
+export interface SchemaDescription {
+  fields: object
+  label: string
+  meta: object
+  tests: string[]
+  type: string
+}
+
+export type TransformFunction<T> = ((this: Schema<T>, value: any, originalValue: any) => any)
+
 export type MutationFn<T> = (current: Schema<T>) => void
 
 export interface Schema<T> {
@@ -87,6 +98,15 @@ export interface Schema<T> {
   _label: string | undefined
   _meta: any
   _deps: Ref[]
+  transforms: Array<TransformFunction<T>>
+  _options: Partial<ValidateOptions>
+  _nullable: boolean
+  _conditions: Array<Condition<T>>
+  _typeError?: ValidateFn<T>
+  _whitelist: RefSet
+  _blacklist: RefSet
+  _whitelistError?: ValidateFn<T>
+  _blacklistError?: ValidateFn<T>
   clone(): Schema<T>
   label(label: string): Schema<T>
   meta(metadata: any): Schema<T>
@@ -97,11 +117,14 @@ export interface Schema<T> {
   resolve(options: ValidateOptions): this
   cast(value: any, options?: any): T
   default(value?: any): Schema<T>
-  when(keys: string | any[], options: WhenOptions<Schema<T>>): Schema<T>
+  when(keys: string | string[], options: WhenOptions<T>): Schema<T>
   validate(value: any, options?: AsyncValidateOptions): Promise<T>
   validateSync(value: any, options?: ValidateOptions): any
-  // _whitelist: any
-  // _blacklist: any
+  transform(fn: TransformFunction<T>): Schema<T>
+  nullable(isNullable: boolean): Schema<T>
+  typeError(message?: Message): Schema<T>
+  oneOf(values: any[], message?: Message): Schema<T>
+  notOneOf(values: any[], message?: Message): Schema<T>
   // fields: { [key: string]: any }
   // type: string
   // _subType: this
@@ -114,12 +137,8 @@ export interface Schema<T> {
   // isValidSync(value: any, options?: any): value is T
   // strict(isStrict: boolean): this
   // strip(strip: boolean): this
-  // nullable(isNullable: boolean): this
   // required(message?: Message): this
   // notRequired(): this
-  // typeError(message?: Message): this
-  // oneOf(arrayOfValues: any[], message?: Message): this
-  // notOneOf(arrayOfValues: any[], message?: Message): this
   // test(
   //   name: string,
   //   message: string | ((params: object & Partial<TestMessageParams>) => string),
@@ -129,7 +148,6 @@ export interface Schema<T> {
   //   ) => boolean | ValidationError | Promise<boolean | ValidationError>,
   //   callbackStyleAsync?: boolean,
   // ): this
-  // transform(fn: TransformFunction<this>): this
 }
 
 export interface CreateErrorArgs {
@@ -156,11 +174,19 @@ export interface TestMessageParams {
   value: any
 }
 
+export interface LocaleFnArgs {
+  path: string
+  type: string
+  value: any
+  originalValue: any
+}
+export type LocaleFn = (args: LocaleFnArgs) => string
+
 export interface MessageFormatterParams extends Partial<TestMessageParams> {
   [key: string]: any // open params?
 }
 export type MessageFormatter = (params: MessageFormatterParams) => string
-export type Message = string | MessageFormatter
+export type Message = string | MessageFormatter | LocaleFn
 
 export interface TestOptions {
   /**

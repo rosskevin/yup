@@ -1,12 +1,5 @@
+import { LocaleFnArgs } from './types'
 import printValue from './util/printValue'
-
-export interface LocaleFnArgs {
-  path: string
-  type: string
-  value: any
-  originalValue: any
-}
-export type LocaleFn = (args: LocaleFnArgs) => string
 
 const mixed = {
   default: '${path} is invalid',
