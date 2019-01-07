@@ -21,7 +21,7 @@ function unknown(ctx: any, value: any) {
   return Object.keys(value).filter(key => known.indexOf(key) === -1)
 }
 
-export function object(spec: any) {
+export function object(spec?: any) {
   return new ObjectSchema(spec)
 }
 
@@ -55,7 +55,7 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
   private _nodes: any[] = []
   private _excludedEdges: any[] = []
 
-  constructor(spec: any) {
+  constructor(spec?: any) {
     super({
       default: () => {
         // FIXME a really ugly way to override/augment the default() implementation in super
@@ -217,7 +217,7 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
       })
   }
 
-  public concat(schema: Schema<T>): Schema<T> {
+  public concat(schema: Schema<T>): this {
     const next = super.concat(schema)
     next._nodes = sortFields(next.fields, next._excludedEdges)
     return next

@@ -16,7 +16,7 @@ export interface Params {
   label?: string
 }
 
-export interface AsyncValidateOptions {
+export interface ValidateOptions {
   /**
    * Only validate the input, and skip and coercion or transformation. Default - false
    */
@@ -39,12 +39,6 @@ export interface AsyncValidateOptions {
   context?: AnyObject
   parent?: AnyObject //  FIXME found in createValidation and validateAt
   path?: string // FIXME found in validateAt
-}
-
-/**
- * most of these seen in _validate, not sure why not exposed externally
- */
-export interface ValidateOptions extends AsyncValidateOptions {
   originalValue?: any // FIXME _validate after typed, try commenting out
   sync?: boolean // found in _validate
   assert?: boolean // found in mixed.cast
@@ -100,7 +94,7 @@ export type MutationFn<T> = (current: Schema<T>) => void
 export interface BaseSchema<T> {
   resolve(options: ValidateOptions): BaseSchema<T>
   cast(value: any, options?: ValidateOptions): T
-  validate(value: any, options?: AsyncValidateOptions): Promise<T>
+  validate(value: any, options?: ValidateOptions): Promise<T>
 }
 export interface Schema<T> extends BaseSchema<T> {
   _type: string
@@ -127,7 +121,7 @@ export interface Schema<T> extends BaseSchema<T> {
   _strip: boolean
   _cast(rawValue: any, options?: ValidateOptions): any
   clone(): this
-  concat(schema: Schema<T>): Schema<T>
+  concat(schema: Schema<T>): this
   default(value?: any): Schema<T>
   describe(): SchemaDescription
   isType(value: any): value is T

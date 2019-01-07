@@ -6,7 +6,6 @@ import Condition from './Condition'
 import locale from './locale'
 import { Ref } from './Ref'
 import {
-  AsyncValidateOptions,
   MutationFn,
   Schema,
   TestOptions,
@@ -127,7 +126,7 @@ export class MixedSchema<T = any> implements Schema<T> {
   /**
    * Creates a new instance of the schema by combining two schemas. Only schemas of the same type can be concatenated.
    */
-  public concat(schema: Schema<T>): Schema<T> {
+  public concat(schema: Schema<T>): this {
     if (!schema) {
       return this
     }
@@ -138,7 +137,7 @@ export class MixedSchema<T = any> implements Schema<T> {
       )
     }
     const cloned = this.clone()
-    let next: Schema<T> = merge(this.clone(), schema.clone()) as any
+    let next: this = merge(this.clone(), schema.clone()) as any
 
     // undefined isn't merged over, but is a valid value for default
     if (has(schema, '_default')) {
@@ -285,7 +284,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    * @param value
    * @param options object hash containing any schema options you may want to override (or specify for the first time).
    */
-  public validate(value: any, options: AsyncValidateOptions = {}) {
+  public validate(value: any, options: ValidateOptions = {}) {
     const schema = this.resolve(options)
     return schema._validate(value, options)
   }
