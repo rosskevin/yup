@@ -68,7 +68,7 @@ export interface WhenOptionsFns<T> {
 
 export type WhenIsFn = (values: any[]) => boolean
 
-export type WhenOptionsFn<T> = (values: any[], schema: Schema<T>) => Schema<T>
+export type WhenOptionsFn<T> = (values: any, schema: Schema<T>) => Schema<T> | undefined
 
 export interface WhenOptionsObject<T> {
   is: boolean | WhenIsFn
@@ -92,8 +92,9 @@ export type TransformFunction<T> = ((this: Schema<T>, value: any, originalValue:
 export type MutationFn<T> = (current: Schema<T>) => void
 
 export interface BaseSchema<T> {
-  resolve(options: ValidateOptions): BaseSchema<T>
   cast(value: any, options?: ValidateOptions): T
+  describe(): SchemaDescription
+  resolve(options: ValidateOptions): BaseSchema<T>
   validate(value: any, options?: ValidateOptions): Promise<T>
 }
 export interface Schema<T> extends BaseSchema<T> {
@@ -117,13 +118,12 @@ export interface Schema<T> extends BaseSchema<T> {
    * `undefined` specifically means uninitialized, as opposed to "no subtype"
    */
   _subType?: BaseSchema<T>
-  fields: AnyObject
+  // fields: AnyObject
   _strip: boolean
   _cast(rawValue: any, options?: ValidateOptions): any
   clone(): this
   concat(schema: Schema<T>): this
   default(value?: any): Schema<T>
-  describe(): SchemaDescription
   isType(value: any): value is T
   isValid(value: any, options?: any): Promise<boolean>
   isValidSync(value: any, options?: any): value is T
@@ -133,10 +133,10 @@ export interface Schema<T> extends BaseSchema<T> {
   notRequired(): Schema<T>
   nullable(isNullable: boolean): Schema<T>
   oneOf(values: any[], message?: Message): Schema<T>
-  required(message?: Message): Schema<T>
+  required(message?: Message): this
   strict(): Schema<T>
   strip(strip?: boolean): Schema<T>
-  test(options: TestOptions): Schema<T>
+  test(options: TestOptions): this
   // test(
   //   name: string,
   //   message: string | ((params: AnyObject & Partial<TestMessageParams>) => string),

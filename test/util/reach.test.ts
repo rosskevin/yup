@@ -33,7 +33,7 @@ describe('reach', () => {
                 object().shape({
                   foo: number(),
                   num: number().when('foo', foo => {
-                    if (foo.length === 5) {
+                    if (foo === 5) {
                       return num
                     }
                   }),
@@ -76,14 +76,24 @@ describe('reach', () => {
     }
 
     const lazySchema = lazy(val => types[val.type])
-    const err = await object({
-      x: array(lazySchema),
-    })
-    // .strict()
-    // .validate({
-    //   x: [{ type: 1, foo: '4' }, { type: 2, foo: '5' }],
+    // const err = await object({
+    //   x: array(lazySchema),
     // })
+    //   .strict()
+    //   .validate({
+    //     x: [{ type: 1, foo: '4' }, { type: 2, foo: '5' }],
+    //   })
     // .should.be.rejected()
-    err.message.should.match(/must be a `number` type/)
+    // (err as any).message.should.match(/must be a `number` type/)
+
+    expect(
+      object({
+        x: array(lazySchema),
+      })
+        .strict()
+        .validate({
+          x: [{ type: 1, foo: '4' }, { type: 2, foo: '5' }],
+        }),
+    ).rejects.toMatch(/must be a `number` type/)
   })
 })

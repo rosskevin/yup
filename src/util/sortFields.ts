@@ -1,10 +1,11 @@
 import has from 'lodash/has'
 import toposort from 'toposort'
+import { SchemaShape } from '../ObjectSchema'
 import { Ref } from '../Ref'
 import { split } from './expression'
 import isSchema from './isSchema'
 
-export default function sortFields(fields: any, excludes: any[] = []) {
+export default function sortFields(fields: SchemaShape, excludes: any[] = []) {
   const edges: any[] = []
   const nodes: any[] = []
 

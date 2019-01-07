@@ -6,7 +6,7 @@ import mapKeys from 'lodash/mapKeys'
 import snakeCase from 'lodash/snakeCase'
 import locale from './locale'
 import { MixedSchema } from './MixedSchema'
-import { Schema, SchemaDescription, ValidateOptions } from './types'
+import { AnyObject, BaseSchema, Schema, SchemaDescription, ValidateOptions } from './types'
 import { getter } from './util/expression'
 import isObject from './util/isObject'
 import makePath from './util/makePath'
@@ -21,8 +21,11 @@ function unknown(ctx: any, value: any) {
   return Object.keys(value).filter(key => known.indexOf(key) === -1)
 }
 
-export function object(spec?: any) {
-  return new ObjectSchema(spec)
+export interface SchemaShape {
+  [key: string]: BaseSchema<any>
+}
+export function object(schemaShape?: SchemaShape) {
+  return new ObjectSchema(schemaShape)
 }
 
 /**
@@ -54,8 +57,9 @@ export function object(spec?: any) {
 export class ObjectSchema<T = any> extends MixedSchema<T> {
   private _nodes: any[] = []
   private _excludedEdges: any[] = []
+  private fields: SchemaShape = {}
 
-  constructor(spec?: any) {
+  constructor(schemaShape?: any) {
     super({
       default: () => {
         // FIXME a really ugly way to override/augment the default() implementation in super
@@ -87,8 +91,8 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
         return null
       })
 
-      if (spec) {
-        this.shape(spec)
+      if (schemaShape) {
+        this.shape(schemaShape)
       }
     })
   }
@@ -246,11 +250,9 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
    * @param schema
    * @param excludes
    */
-  public shape(schema: Schema<T>, excludes = []) {
+  public shape(schemaShape: SchemaShape, excludes = []) {
     const next = this.clone()
-    const fields = Object.assign(next.fields, schema)
-
-    next.fields = fields
+    next.fields = Object.assign(next.fields, schemaShape)
 
     if (excludes.length) {
       // if (!Array.isArray(excludes[0])) {
@@ -260,8 +262,7 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
       next._excludedEdges = next._excludedEdges.concat(keys)
     }
 
-    next._nodes = sortFields(fields, next._excludedEdges)
-
+    next._nodes = sortFields(next.fields, next._excludedEdges)
     return next
   }
 

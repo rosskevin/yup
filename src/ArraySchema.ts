@@ -20,6 +20,8 @@ export function array<T = any>(subTypeSchema?: BaseSchema<T>) {
 }
 
 export class ArraySchema<T = any[]> extends MixedSchema<T> {
+  private _subType?: BaseSchema<T>
+
   constructor(subTypeSchema?: BaseSchema<T>) {
     super({ type: 'array' })
 
@@ -121,22 +123,24 @@ export class ArraySchema<T = any[]> extends MixedSchema<T> {
       })
   }
 
-  public of(subTypeSchema: BaseSchema<T>) {
-    const next = this.clone()
+  public of(subTypeSchema: BaseSchema<T> | false): this {
+    const next: this = this.clone()
 
-    if ((subTypeSchema as any) !== false && !isSchema(subTypeSchema)) {
+    if (subTypeSchema !== false && !isSchema(subTypeSchema)) {
       throw new TypeError(
         '`array.of()` sub-schema must be a valid yup schema, or `false` to negate a current sub-schema. ' +
           'not: ' +
           printValue(subTypeSchema as any),
       )
     }
-    next._subType = subTypeSchema
+    if (isSchema(subTypeSchema)) {
+      next._subType = subTypeSchema
+    }
     return next
   }
 
-  public required(message = locale.mixed.required) {
-    const next = MixedSchema.prototype.required.call(this, message)
+  public required(message = locale.mixed.required): this {
+    const next = super.required(message)
 
     return next.test({
       message,
@@ -197,5 +201,12 @@ export class ArraySchema<T = any[]> extends MixedSchema<T> {
       base.innerType = this._subType.describe() // FIXME - this is explicitly subType - WHY call it innerType here?
     }
     return base
+  }
+
+  protected assertSubtype() {
+    if (!this._subType) {
+      throw new Error('Expected subType to be set')
+    }
+    return this._subType
   }
 }

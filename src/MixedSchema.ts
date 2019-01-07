@@ -14,7 +14,7 @@ import {
   ValidateOptions,
   WhenOptions,
 } from './types'
-import { AnyObject, Message, SchemaDescription, TransformFunction } from './types'
+import { AnyObject, BaseSchema, Message, SchemaDescription, TransformFunction } from './types'
 import createValidation from './util/createValidation'
 import getIn from './util/getIn'
 import isNotEmpty from './util/isNotEmpty'
@@ -49,9 +49,7 @@ export class MixedSchema<T = any> implements Schema<T> {
   public _whitelistError?: ValidateFn<T> = undefined
   public _blacklistError?: ValidateFn<T> = undefined
   public _default: any
-  public fields: AnyObject = {} // FIXME not sure what this is
   public _strip: boolean = false
-  public _subType?: Schema<T>
 
   constructor(options: { default?: any; type?: string } = {}) {
     this.withMutation(() => {
@@ -80,6 +78,7 @@ export class MixedSchema<T = any> implements Schema<T> {
       if (isSchema(value) && value !== this) {
         return value
       }
+      return undefined
     })
   }
 
@@ -469,7 +468,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    * using the ${param} syntax. By default all test messages are passed a path value which is valuable in nested schemas.
    *
    */
-  public test(opts: TestOptions) {
+  public test(opts: TestOptions): this {
     // public test(...args) {
     //   let opts = args[0]
     //   if (args.length > 1) {
@@ -509,7 +508,6 @@ export class MixedSchema<T = any> implements Schema<T> {
     })
 
     next.tests.push(validate)
-
     return next
   }
 
@@ -745,12 +743,6 @@ export class MixedSchema<T = any> implements Schema<T> {
       parent,
       path,
     })
-  }
-  protected assertSubtype(): Schema<T> {
-    if (!this._subType) {
-      throw new Error('Expected subType to be set')
-    }
-    return this._subType
   }
 }
 

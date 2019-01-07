@@ -1,3 +1,5 @@
+// tslint:disable:variable-name
+
 import { BaseSchema, Schema, ValidateOptions } from './types'
 import isSchema from './util/isSchema'
 
@@ -8,7 +10,6 @@ export function lazy(fn: any) {
 export type MapFn<T> = (options?: ValidateOptions) => Schema<T>
 
 export class Lazy<T = any> implements BaseSchema<T> {
-  // tslint:disable-next-line:variable-name
   public __isYupSchema__: boolean = true
   private mapFn: MapFn<T>
 
@@ -24,11 +25,14 @@ export class Lazy<T = any> implements BaseSchema<T> {
     return this._resolve(/*value, options*/ options).cast(value, options)
   }
 
+  public describe() {
+    return this._resolve().describe()
+  }
+
   public validate(value: any, options?: ValidateOptions) {
     return this._resolve(/*value, options*/ options).validate(value, options)
   }
 
-  // tslint:disable-next-line:variable-name
   private _resolve = (/*...args*/ options?: ValidateOptions) => {
     const schema = this.mapFn(/*...args*/ options)
     if (!isSchema(schema)) {
