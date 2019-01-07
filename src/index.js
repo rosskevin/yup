@@ -18,7 +18,7 @@ export * from './BooleanSchema'
 export * from './DateSchema'
 export * from './MixedSchema'
 export * from './NumberSchema'
-export * from './ObjectSchema'
+export * from './ObjectSchema/ObjectSchema'
 export * from './StringSchema'
 
 export * from './Lazy'
