@@ -12,9 +12,9 @@ import isObject from '../util/isObject'
 import makePath from '../util/makePath'
 import propagateErrors from '../util/propagateErrors'
 import runValidations from '../util/runValidations'
+import ValidationError from '../ValidationError'
 import sortByKeyOrder from './sortByKeyOrder'
 import sortFields from './sortFields'
-import ValidationError from '../ValidationError'
 
 function unknown(ctx: any, value: any) {
   const known = Object.keys(ctx.fields)

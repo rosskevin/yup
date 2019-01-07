@@ -104,7 +104,7 @@ export interface Schema<T> extends BaseSchema<T> {
   _exclusive: any
   _label: string | undefined
   _meta: any
-  _deps: Ref[]
+  // _deps: Ref[]
   transforms: Array<TransformFunction<T>>
   _options: Partial<ValidateOptions>
   _nullable: boolean

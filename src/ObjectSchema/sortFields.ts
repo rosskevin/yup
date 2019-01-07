@@ -34,8 +34,8 @@ export default function sortFields(fields: SchemaShape, excludes: any[] = []) {
 
       if (Ref.isRef(value) && !value.isContext) {
         addNode(value.path, key)
-      } else if (isSchema(value) && value._deps) {
-        value._deps.forEach((path: string) => addNode(path, key))
+      } else if (isSchema(value) && (value as any)._deps) {
+        (value as any)._deps.forEach((path: string) => addNode(path, key))
       }
     }
   }

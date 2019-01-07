@@ -1,17 +1,18 @@
 import has from 'lodash/has'
-import { Schema, ValidateOptions } from '../types'
+import { ArraySchema } from '../ArraySchema'
+import { BaseSchema, Schema, ValidateOptions } from '../types'
 import { forEach } from './expression'
 
 function trim(part: string) {
   return part.substr(0, part.length - 1).substr(1)
 }
 
-export default function getIn<T = any>(
-  schemaArg: Schema<T>,
+export default function getIn<S extends BaseSchema<any>>(
+  schemaArg: S,
   path: string,
   value: any,
   context?: ValidateOptions['context'],
-): { schema: Schema<T>; parent?: any; parentPath?: string } {
+): { schema: S; parent?: any; parentPath?: string } {
   let schema = schemaArg
   let parent: any
   let lastPart
@@ -24,7 +25,7 @@ export default function getIn<T = any>(
     return {
       parent,
       parentPath: path,
-      schema: schema.resolve({ context, parent /*, value*/ }),
+      schema: schema.resolve({ context, parent /*, value*/ }) as S,
     }
   }
 
@@ -35,14 +36,15 @@ export default function getIn<T = any>(
       // we skipped an array: foo[].bar
       const idx = isArray ? parseInt(part, 10) : 0
 
-      const resolvedSubType = schema.resolve({ context, parent /*, value */ })._subType
+      const resolvedSubType = (schema.resolve({ context, parent /*, value */ }) as ArraySchema)
+        ._subType
       if (!resolvedSubType) {
         throw new Error(
           `Yup.reach cannot resolve subTye for an array item at index: ${partArg}, in the path: ${path}. `,
         )
       }
 
-      schema = resolvedSubType
+      schema = resolvedSubType as S
 
       if (value) {
         if (isArray && idx >= value.length) {
@@ -57,7 +59,7 @@ export default function getIn<T = any>(
     }
 
     if (!isArray) {
-      schema = schema.resolve({ context, parent /*, value*/ })
+      schema = schema.resolve({ context, parent /*, value*/ }) as S
 
       if (!has(schema, 'fields') || !has(schema.fields, part)) {
         throw new Error(

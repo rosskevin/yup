@@ -20,7 +20,7 @@ export function array<T = any>(subTypeSchema?: BaseSchema<T>) {
 }
 
 export class ArraySchema<T = any[]> extends MixedSchema<T> {
-  private _subType?: BaseSchema<T>
+  public _subType?: BaseSchema<T>
 
   constructor(subTypeSchema?: BaseSchema<T>) {
     super({ type: 'array' })
