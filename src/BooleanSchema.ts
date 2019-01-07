@@ -11,16 +11,22 @@ export class BooleanSchema extends MixedSchema {
     this.withMutation(() => {
       this.transform(function(value) {
         if (!this.isType(value)) {
-          if (/^(true|1)$/i.test(value)) return true
-          if (/^(false|0)$/i.test(value)) return false
+          if (/^(true|1)$/i.test(value)) {
+            return true
+          }
+          if (/^(false|0)$/i.test(value)) {
+            return false
+          }
         }
         return value
       })
     })
   }
 
-  _typeCheck(v) {
-    if (v instanceof Boolean) v = v.valueOf()
+  public _typeCheck(v: any) {
+    if (v instanceof Boolean) {
+      v = v.valueOf()
+    }
     return typeof v === 'boolean'
   }
 }

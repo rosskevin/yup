@@ -33,19 +33,6 @@ function scopeToValue<T>(promises: Array<T | PromiseLike<T>>, value: any, sync: 
   return c
 }
 
-/**
- * If not failing on the first error, catch the errors
- * and collect them in an array
- */
-export function propagateErrors(endEarly: boolean, errors: ValidationError[]) {
-  return endEarly
-    ? null
-    : (err: ValidationError) => {
-        errors.push(err)
-        return err.value
-      }
-}
-
 export function settled<T>(promises: Array<T | PromiseLike<T>>, sync: boolean) {
   const settle = (promiseInner: Promise<T>) =>
     promiseInner.then(value => ({ fulfilled: true, value }), value => ({ fulfilled: false, value }))

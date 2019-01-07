@@ -45,7 +45,6 @@ export class MixedSchema<T = any> implements Schema<T> {
   public _mutate: any
   public _meta: any
   public _nullable: boolean = false
-  public _typeCheck: any
   public _label: string | undefined = undefined
   public _typeError?: ValidateFn<T> = undefined
   public _whitelistError?: ValidateFn<T> = undefined
@@ -53,6 +52,7 @@ export class MixedSchema<T = any> implements Schema<T> {
   public _default: any
   public fields: AnyObject = {} // FIXME not sure what this is
   public _strip: boolean = false
+  public _subType?: Schema<T>
 
   constructor(options: { default?: any; type?: string } = {}) {
     this.withMutation(() => {
@@ -70,7 +70,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    * Creates a deep copy of the schema.
    * Clone is used internally to return a new schema with every schema state change.
    */
-  public clone(): Schema<T> {
+  public clone(): this {
     if (this._mutate) {
       return this
     }
@@ -127,7 +127,7 @@ export class MixedSchema<T = any> implements Schema<T> {
   /**
    * Creates a new instance of the schema by combining two schemas. Only schemas of the same type can be concatenated.
    */
-  public concat(schema: Schema<T>) {
+  public concat(schema: Schema<T>): Schema<T> {
     if (!schema) {
       return this
     }
@@ -169,7 +169,7 @@ export class MixedSchema<T = any> implements Schema<T> {
     if (this._nullable && v === null) {
       return true
     }
-    return !this._typeCheck || this._typeCheck(v)
+    return !(this as any)._typeCheck || (this as any)._typeCheck(v)
   }
 
   public resolve({ context, parent }: ValidateOptions): Schema<T> {
@@ -370,7 +370,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    *
    * @param value
    */
-  public default(value?: any) {
+  public default(value?: any): Schema<T> {
     if (arguments.length === 0) {
       const defaultValue = has(this, '_default') ? this._default : this._defaultDefault
 
@@ -746,6 +746,12 @@ export class MixedSchema<T = any> implements Schema<T> {
       parent,
       path,
     })
+  }
+  protected assertSubtype(): Schema<T> {
+    if (!this._subType) {
+      throw new Error('Expected subType to be set')
+    }
+    return this._subType
   }
 }
 

@@ -1,10 +1,17 @@
-import { MixedSchema } from './MixedSchema'
 import locale from './locale'
+import { MixedSchema } from './MixedSchema'
 import isAbsent from './util/isAbsent'
 
-let isNaN = value => value != +value
+const ROUND_METHODS = ['ceil', 'floor', 'round', 'trunc']
 
-let isInteger = val => isAbsent(val) || val === (val | 0)
+function isNaN(value: any) {
+  return value !== +value
+}
+
+function isInteger(val: any) {
+  // tslint:disable-next-line:no-bitwise
+  return isAbsent(val) || val === (val | 0)
+}
 
 export function number() {
   return new NumberSchema()
@@ -20,28 +27,34 @@ export class NumberSchema extends MixedSchema {
 
         if (typeof parsed === 'string') {
           parsed = parsed.replace(/\s/g, '')
-          if (parsed === '') return NaN
+          if (parsed === '') {
+            return NaN
+          }
           // don't use parseFloat to avoid positives on alpha-numeric strings
           parsed = +parsed
         }
 
-        if (this.isType(parsed)) return parsed
+        if (this.isType(parsed)) {
+          return parsed
+        }
 
         return parseFloat(parsed)
       })
     })
   }
-  _typeCheck(value) {
-    if (value instanceof Number) value = value.valueOf()
+  public _typeCheck(value: any) {
+    if (value instanceof Number) {
+      value = value.valueOf()
+    }
 
     return typeof value === 'number' && !isNaN(value)
   }
 
-  min(min, message = locale.number.min) {
+  public min(min: number, message = locale.number.min) {
     return this.test({
+      exclusive: true,
       message,
       name: 'min',
-      exclusive: true,
       params: { min },
       test(value) {
         return isAbsent(value) || value >= this.resolve(min)
@@ -49,11 +62,11 @@ export class NumberSchema extends MixedSchema {
     })
   }
 
-  max(max, message = locale.number.max) {
+  public max(max: number, message = locale.number.max) {
     return this.test({
+      exclusive: true,
       message,
       name: 'max',
-      exclusive: true,
       params: { max },
       test(value) {
         return isAbsent(value) || value <= this.resolve(max)
@@ -61,11 +74,11 @@ export class NumberSchema extends MixedSchema {
     })
   }
 
-  lessThan(less, message = locale.number.lessThan) {
+  public lessThan(less: number, message = locale.number.lessThan) {
     return this.test({
+      exclusive: true,
       message,
       name: 'max',
-      exclusive: true,
       params: { less },
       test(value) {
         return isAbsent(value) || value < this.resolve(less)
@@ -73,11 +86,11 @@ export class NumberSchema extends MixedSchema {
     })
   }
 
-  moreThan(more, message = locale.number.moreThan) {
+  public moreThan(more: number, message = locale.number.moreThan) {
     return this.test({
+      exclusive: true,
       message,
       name: 'min',
-      exclusive: true,
       params: { more },
       test(value) {
         return isAbsent(value) || value > this.resolve(more)
@@ -85,31 +98,34 @@ export class NumberSchema extends MixedSchema {
     })
   }
 
-  positive(msg = locale.number.positive) {
+  public positive(msg = locale.number.positive) {
     return this.min(0, msg)
   }
 
-  negative(msg = locale.number.negative) {
+  public negative(msg = locale.number.negative) {
     return this.max(0, msg)
   }
 
-  integer(message = locale.number.integer) {
+  public integer(message = locale.number.integer) {
     return this.test({ name: 'integer', message, test: isInteger })
   }
 
-  truncate() {
+  public truncate() {
+    // tslint:disable-next-line:no-bitwise
     return this.transform(value => (!isAbsent(value) ? value | 0 : value))
   }
 
-  round(method) {
-    var avail = ['ceil', 'floor', 'round', 'trunc']
-    method = (method && method.toLowerCase()) || 'round'
+  public round(methodArg?: 'ceil' | 'floor' | 'round' | 'trunc') {
+    const method = (methodArg && methodArg.toLowerCase()) || 'round'
 
     // this exists for symemtry with the new Math.trunc
-    if (method === 'trunc') return this.truncate()
+    if (method === 'trunc') {
+      return this.truncate()
+    }
 
-    if (avail.indexOf(method.toLowerCase()) === -1)
-      throw new TypeError('Only valid options for round() are: ' + avail.join(', '))
+    if (ROUND_METHODS.indexOf(method.toLowerCase()) === -1) {
+      throw new TypeError('Only valid options for round() are: ' + ROUND_METHODS.join(', '))
+    }
 
     return this.transform(value => (!isAbsent(value) ? Math[method](value) : value))
   }

@@ -48,6 +48,7 @@ export interface ValidateOptions extends AsyncValidateOptions {
   originalValue?: any // FIXME _validate after typed, try commenting out
   sync?: boolean // found in _validate
   assert?: boolean // found in mixed.cast
+  __validating?: boolean // found in ObjectSchema
 }
 
 export interface ValidateArgs<T> {
@@ -89,13 +90,19 @@ export interface SchemaDescription {
   meta: AnyObject
   tests: string[]
   type: string
+  innerType?: SchemaDescription
 }
 
 export type TransformFunction<T> = ((this: Schema<T>, value: any, originalValue: any) => any)
 
 export type MutationFn<T> = (current: Schema<T>) => void
 
-export interface Schema<T> {
+export interface BaseSchema<T> {
+  resolve(options: ValidateOptions): BaseSchema<T>
+  cast(value: any, options?: ValidateOptions): T
+  validate(value: any, options?: AsyncValidateOptions): Promise<T>
+}
+export interface Schema<T> extends BaseSchema<T> {
   _type: string
   _default: any
   tests: Array<ValidateFn<T>> // FIXME rename to validations
@@ -112,39 +119,30 @@ export interface Schema<T> {
   _blacklist: RefSet
   _whitelistError?: ValidateFn<T>
   _blacklistError?: ValidateFn<T>
-  _subType?: Schema<T>
+  /**
+   * `undefined` specifically means uninitialized, as opposed to "no subtype"
+   */
+  _subType?: BaseSchema<T>
   fields: AnyObject
   _strip: boolean
-  clone(): Schema<T>
-  label(label: string): Schema<T>
-  meta(metadata?: AnyObject): Schema<T>
-  withMutation(fn: MutationFn<T>): void
-  concat(schema: Schema<T>): Schema<T>
-  test(options: TestOptions): Schema<T>
-  isType(value: any): value is T
-  resolve(options: ValidateOptions): Schema<T>
-  cast(value: any, options?: ValidateOptions): T
   _cast(rawValue: any, options?: ValidateOptions): any
+  clone(): this
+  concat(schema: Schema<T>): Schema<T>
   default(value?: any): Schema<T>
-  when(keys: string | string[], options: WhenOptions<T>): Schema<T>
-  validate(value: any, options?: AsyncValidateOptions): Promise<T>
-  _validate(value: any, options: ValidateOptions): Promise<T>
-  validateSync(value: any, options?: ValidateOptions): any
-  transform(fn: TransformFunction<T>): Schema<T>
-  nullable(isNullable: boolean): Schema<T>
-  typeError(message?: Message): Schema<T>
-  oneOf(values: any[], message?: Message): Schema<T>
-  notOneOf(values: any[], message?: Message): Schema<T>
-  // type: string
   describe(): SchemaDescription
-  validateAt(path: string, value: T, options?: ValidateOptions): Promise<T>
-  validateSyncAt(path: string, value: T, options?: ValidateOptions): T
+  isType(value: any): value is T
   isValid(value: any, options?: any): Promise<boolean>
   isValidSync(value: any, options?: any): value is T
+  label(label: string): Schema<T>
+  meta(metadata?: AnyObject): Schema<T>
+  notOneOf(values: any[], message?: Message): Schema<T>
+  notRequired(): Schema<T>
+  nullable(isNullable: boolean): Schema<T>
+  oneOf(values: any[], message?: Message): Schema<T>
+  required(message?: Message): Schema<T>
   strict(): Schema<T>
   strip(strip?: boolean): Schema<T>
-  required(message?: Message): Schema<T>
-  notRequired(): Schema<T>
+  test(options: TestOptions): Schema<T>
   // test(
   //   name: string,
   //   message: string | ((params: AnyObject & Partial<TestMessageParams>) => string),
@@ -154,6 +152,14 @@ export interface Schema<T> {
   //   ) => boolean | ValidationError | Promise<boolean | ValidationError>,
   //   callbackStyleAsync?: boolean,
   // ): this
+  transform(fn: TransformFunction<T>): Schema<T>
+  typeError(message?: Message): Schema<T>
+  _validate(value: any, options: ValidateOptions): Promise<T>
+  validateAt(path: string, value: T, options?: ValidateOptions): Promise<T>
+  validateSync(value: any, options?: ValidateOptions): any
+  validateSyncAt(path: string, value: T, options?: ValidateOptions): T
+  when(keys: string | string[], options: WhenOptions<T>): Schema<T>
+  withMutation(fn: MutationFn<T>): void
 }
 
 export interface CreateErrorArgs {
