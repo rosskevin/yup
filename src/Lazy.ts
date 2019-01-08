@@ -1,7 +1,7 @@
 // tslint:disable:variable-name
 
 import { BaseSchema, Schema, ValidateOptions } from './types'
-import isSchema from './util/isSchema'
+import { isSchema } from './util/isSchema'
 
 export function lazy(fn: any) {
   return new Lazy(fn)

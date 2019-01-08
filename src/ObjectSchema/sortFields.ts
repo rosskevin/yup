@@ -2,7 +2,7 @@ import has from 'lodash/has'
 import toposort from 'toposort'
 import { Ref } from '../Ref'
 import { split } from '../util/expression'
-import isSchema from '../util/isSchema'
+import { isSchema } from '../util/isSchema'
 import { SchemaShape } from './ObjectSchema'
 
 export default function sortFields(fields: SchemaShape, excludes: any[] = []) {

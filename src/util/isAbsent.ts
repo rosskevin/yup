@@ -1,1 +1,3 @@
-export default (value: any) => value == null
+export function isAbsent(value: any) {
+  return value == null
+}

@@ -3,7 +3,7 @@
 import Condition from './Condition'
 import { Ref } from './Ref'
 import RefSet from './util/RefSet'
-import ValidationError from './ValidationError'
+import { ValidationError } from './ValidationError'
 
 export interface AnyObject {
   [key: string]: any

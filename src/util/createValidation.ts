@@ -11,7 +11,7 @@ import {
   ValidateOptions,
 } from '../types'
 import { AnyObject } from '../types'
-import ValidationError from '../ValidationError'
+import { ValidationError } from '../ValidationError'
 import formatError from './formatError'
 
 function isPromiseLike(p: any): p is PromiseLike<any> {

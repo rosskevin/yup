@@ -1,7 +1,7 @@
 import has from 'lodash/has'
 import { Ref } from './Ref'
 import { Schema, WhenIsFn, WhenOptions, WhenOptionsFn } from './types'
-import isSchema from './util/isSchema'
+import { isSchema } from './util/isSchema'
 
 function callOrConcat<T>(schema: Schema<T>) {
   if (typeof schema === 'function') {

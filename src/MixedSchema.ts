@@ -17,13 +17,13 @@ import {
 import { AnyObject, BaseSchema, Message, SchemaDescription, TransformFunction } from './types'
 import createValidation from './util/createValidation'
 import getIn from './util/getIn'
-import isNotEmpty from './util/isNotEmpty'
-import isSchema from './util/isSchema'
+import { isNotEmpty } from './util/isNotEmpty'
+import { isSchema } from './util/isSchema'
 import merge from './util/merge'
 import printValue from './util/printValue'
 import RefSet from './util/RefSet'
 import runValidations from './util/runValidations'
-import ValidationError from './ValidationError'
+import { ValidationError } from './ValidationError'
 
 export function mixed(options = {}) {
   return new MixedSchema(options)

@@ -3,7 +3,7 @@ import { ArraySchema } from '../ArraySchema'
 import { ObjectSchema } from '../ObjectSchema'
 import { BaseSchema, Schema, ValidateOptions } from '../types'
 import { forEach } from './expression'
-import isConcreteSchema from './isConcreteSchema'
+import { isConcreteSchema } from './isConcreteSchema'
 
 function trim(part: string) {
   return part.substr(0, part.length - 1).substr(1)

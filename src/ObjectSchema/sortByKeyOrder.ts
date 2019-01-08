@@ -1,5 +1,5 @@
 import { AnyObject } from '../types'
-import ValidationError from '../ValidationError' // this may or may not be right - based on the err name below
+import { ValidationError } from '../ValidationError' // FIXME this may or may not be right - based on the err name below
 
 function findIndex(arr: string[], err: ValidationError) {
   let idx = Infinity

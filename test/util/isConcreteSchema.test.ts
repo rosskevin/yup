@@ -1,5 +1,5 @@
 import { boolean, lazy, mixed, object, string } from '../../src'
-import isConcreteSchema from '../../src/util/isConcreteSchema'
+import { isConcreteSchema } from '../../src/util/isConcreteSchema'
 
 describe('isConcreteSchema', () => {
   it('should be true', () => {

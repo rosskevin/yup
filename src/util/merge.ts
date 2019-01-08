@@ -1,8 +1,8 @@
 import has from 'lodash/has'
 import { AnyObject } from '../types'
-import isConcreteSchema from './isConcreteSchema'
-import isObject from './isObject'
-import isSchema from './isSchema'
+import { isConcreteSchema } from './isConcreteSchema'
+import { isObject } from './isObject'
+import { isSchema } from './isSchema'
 
 export default function merge(target: AnyObject, source: AnyObject) {
   for (const key in source) {

@@ -1,5 +1,5 @@
 import { SynchronousPromise } from 'synchronous-promise'
-import ValidationError from '../ValidationError'
+import { ValidationError } from '../ValidationError'
 
 function promise<T>(sync: boolean): Promise<T> {
   return sync ? (SynchronousPromise as any) : Promise

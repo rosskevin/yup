@@ -3,13 +3,13 @@
 import locale from './locale'
 import { MixedSchema } from './MixedSchema'
 import { BaseSchema, Message, TransformFunction, ValidateOptions } from './types'
-import isAbsent from './util/isAbsent'
-import isSchema from './util/isSchema'
+import { isAbsent } from './util/isAbsent'
+import { isSchema } from './util/isSchema'
 import makePath from './util/makePath'
 import printValue from './util/printValue'
 import propagateErrors from './util/propagateErrors'
 import runValidations from './util/runValidations'
-import ValidationError from './ValidationError'
+import { ValidationError } from './ValidationError'
 
 function hasLength(value: any) {
   return !isAbsent(value) && value.length > 0

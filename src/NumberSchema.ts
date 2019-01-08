@@ -1,6 +1,6 @@
 import locale from './locale'
 import { MixedSchema } from './MixedSchema'
-import isAbsent from './util/isAbsent'
+import { isAbsent } from './util/isAbsent'
 
 const ROUND_METHODS = ['ceil', 'floor', 'round', 'trunc']
 

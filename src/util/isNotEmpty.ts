@@ -1,5 +1,5 @@
-import isAbsent from './isAbsent'
+import { isAbsent } from './isAbsent'
 
-export default function isNotEmpty(value: any) {
+export function isNotEmpty(value: any) {
   return !isAbsent(value)
 }
