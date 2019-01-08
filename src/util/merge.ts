@@ -1,5 +1,6 @@
 import has from 'lodash/has'
 import { AnyObject } from '../types'
+import isConcreteSchema from './isConcreteSchema'
 import isObject from './isObject'
 import isSchema from './isSchema'
 
@@ -14,7 +15,7 @@ export default function merge(target: AnyObject, source: AnyObject) {
       }
 
       if (isSchema(sourceVal)) {
-        target[key] = isSchema(targetVal) ? targetVal.concat(sourceVal) : sourceVal
+        target[key] = isConcreteSchema(targetVal) ? targetVal.concat(sourceVal as any) : sourceVal
       } else if (isObject(sourceVal)) {
         target[key] = isObject(targetVal) ? merge(targetVal, sourceVal) : sourceVal
       } else if (Array.isArray(sourceVal)) {

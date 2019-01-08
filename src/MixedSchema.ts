@@ -317,7 +317,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    * @param value
    * @param options Takes the same options as validate().
    */
-  public isValid(value: any, options: ValidateOptions) {
+  public isValid(value: any, options?: ValidateOptions) {
     return this.validate(value, options)
       .then(() => true)
       .catch((err: any) => {
@@ -334,7 +334,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    * @param value
    * @param options Takes the same options as validateSync() and has the same caveats around async tests.
    */
-  public isValidSync(value: any, options: ValidateOptions): value is T {
+  public isValidSync(value: any, options?: ValidateOptions): value is T {
     try {
       this.validateSync(value, { ...options })
       return true

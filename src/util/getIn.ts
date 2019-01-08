@@ -1,8 +1,9 @@
 import has from 'lodash/has'
 import { ArraySchema } from '../ArraySchema'
 import { ObjectSchema } from '../ObjectSchema'
-import { BaseSchema, ValidateOptions } from '../types'
+import { BaseSchema, Schema, ValidateOptions } from '../types'
 import { forEach } from './expression'
+import isConcreteSchema from './isConcreteSchema'
 
 function trim(part: string) {
   return part.substr(0, part.length - 1).substr(1)
@@ -13,7 +14,7 @@ export default function getIn(
   path: string,
   value: any,
   context?: ValidateOptions['context'],
-): { schema: BaseSchema<any>; parent?: any; parentPath?: string } {
+): { schema: Schema<any>; parent?: any; parentPath?: string } {
   let schema = schemaArg
   let parent: any
   let lastPart
@@ -85,6 +86,10 @@ export default function getIn(
   // if (!lastPart) {
   //   throw new Error(`Yup.reach cannot resolve parentPath for ${path}`)
   // }
+
+  if (!isConcreteSchema(schema)) {
+    throw new Error('Expect to have resolved a concrete schema')
+  }
 
   return { schema, parent, parentPath: lastPart }
 }

@@ -92,10 +92,11 @@ export type TransformFunction<T> = ((this: Schema<T>, value: any, originalValue:
 export type MutationFn<T> = (current: Schema<T>) => void
 
 export interface BaseSchema<T> {
-  _type: string
+  _type: string // try moving this back down toSchema
   cast(value: any, options?: ValidateOptions): T
+
   describe(): SchemaDescription
-  resolve(options: ValidateOptions): BaseSchema<T>
+  resolve(options: ValidateOptions): Schema<T>
   validate(value: any, options?: ValidateOptions): Promise<T>
 }
 export interface Schema<T> extends BaseSchema<T> {
@@ -125,8 +126,8 @@ export interface Schema<T> extends BaseSchema<T> {
   concat(schema: Schema<T>): this
   default(value?: any): Schema<T>
   isType(value: any): value is T
-  isValid(value: any, options?: any): Promise<boolean>
-  isValidSync(value: any, options?: any): value is T
+  isValid(value: any, options?: ValidateOptions): Promise<boolean>
+  isValidSync(value: any, options?: ValidateOptions): value is T
   label(label: string): Schema<T>
   meta(metadata?: AnyObject): Schema<T>
   notOneOf(values: any[], message?: Message): Schema<T>

@@ -36,6 +36,7 @@ describe('reach', () => {
                     if (foo === 5) {
                       return num
                     }
+                    return undefined
                   }),
                 }),
               )
@@ -75,9 +76,8 @@ describe('reach', () => {
       2: object({ foo: number() }),
     }
 
-    const lazySchema = lazy(val => types[val.type])
     // const err = await object({
-    //   x: array(lazySchema),
+    //   x: array(lazy(val => types[val.type])),
     // })
     //   .strict()
     //   .validate({
@@ -86,6 +86,7 @@ describe('reach', () => {
     // .should.be.rejected()
     // (err as any).message.should.match(/must be a `number` type/)
 
+    const lazySchema = lazy((val: any) => types[val.type])
     expect(
       object({
         x: array(lazySchema),
