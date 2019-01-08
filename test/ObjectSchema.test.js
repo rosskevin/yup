@@ -212,7 +212,6 @@ describe('Object types', () => {
       } catch (err) {
         /* ignore */
       } finally {
-        //eslint-disable-line
         mixed.prototype.clone = base
       }
     })
