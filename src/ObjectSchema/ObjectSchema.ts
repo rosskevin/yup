@@ -55,9 +55,9 @@ export function object(schemaShape?: SchemaShape) {
  * Failed casts return: null;
  */
 export class ObjectSchema<T = any> extends MixedSchema<T> {
+  public fields: SchemaShape = {}
   private _nodes: any[] = []
   private _excludedEdges: any[] = []
-  private fields: SchemaShape = {}
 
   constructor(schemaShape?: any) {
     super({
@@ -69,7 +69,9 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
 
         const dft = {}
         this._nodes.forEach(key => {
-          dft[key] = this.fields[key].default ? this.fields[key].default() : undefined
+          dft[key] = (this.fields[key] as any).default
+            ? (this.fields[key] as MixedSchema).default()
+            : undefined
         })
         return dft
       },
@@ -130,7 +132,7 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
 
       if (field) {
         let fieldValue
-        const strict = field._options && field._options.strict
+        const strict = (field as any)._options && (field as MixedSchema)._options.strict
 
         // safe to mutate since this is fired in sequence
         innerOptions.path = makePath([`${options.path}.${prop}`])
@@ -138,7 +140,7 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
 
         field = field.resolve(innerOptions)
 
-        if (field._strip === true) {
+        if ((field as any)._strip === true) {
           isChanged = isChanged || prop in value
           return
         }

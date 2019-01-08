@@ -92,13 +92,13 @@ export type TransformFunction<T> = ((this: Schema<T>, value: any, originalValue:
 export type MutationFn<T> = (current: Schema<T>) => void
 
 export interface BaseSchema<T> {
+  _type: string
   cast(value: any, options?: ValidateOptions): T
   describe(): SchemaDescription
   resolve(options: ValidateOptions): BaseSchema<T>
   validate(value: any, options?: ValidateOptions): Promise<T>
 }
 export interface Schema<T> extends BaseSchema<T> {
-  _type: string
   _default: any
   tests: Array<ValidateFn<T>> // FIXME rename to validations
   _exclusive: any

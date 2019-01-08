@@ -1,18 +1,19 @@
 import has from 'lodash/has'
 import { ArraySchema } from '../ArraySchema'
-import { BaseSchema, Schema, ValidateOptions } from '../types'
+import { ObjectSchema } from '../ObjectSchema'
+import { BaseSchema, ValidateOptions } from '../types'
 import { forEach } from './expression'
 
 function trim(part: string) {
   return part.substr(0, part.length - 1).substr(1)
 }
 
-export default function getIn<S extends BaseSchema<any>>(
-  schemaArg: S,
+export default function getIn(
+  schemaArg: BaseSchema<any>,
   path: string,
   value: any,
   context?: ValidateOptions['context'],
-): { schema: S; parent?: any; parentPath?: string } {
+): { schema: BaseSchema<any>; parent?: any; parentPath?: string } {
   let schema = schemaArg
   let parent: any
   let lastPart
@@ -25,7 +26,7 @@ export default function getIn<S extends BaseSchema<any>>(
     return {
       parent,
       parentPath: path,
-      schema: schema.resolve({ context, parent /*, value*/ }) as S,
+      schema: schema.resolve({ context, parent /*, value*/ }),
     }
   }
 
@@ -44,7 +45,7 @@ export default function getIn<S extends BaseSchema<any>>(
         )
       }
 
-      schema = resolvedSubType as S
+      schema = resolvedSubType
 
       if (value) {
         if (isArray && idx >= value.length) {
@@ -59,16 +60,16 @@ export default function getIn<S extends BaseSchema<any>>(
     }
 
     if (!isArray) {
-      schema = schema.resolve({ context, parent /*, value*/ }) as S
+      schema = schema.resolve({ context, parent /*, value*/ })
 
-      if (!has(schema, 'fields') || !has(schema.fields, part)) {
+      if (!has(schema, 'fields') || !has((schema as any).fields, part)) {
         throw new Error(
           `The schema does not contain the path: ${path}. ` +
             `(failed at: ${lastPartDebug} which is a type: "${schema._type}") `,
         )
       }
 
-      schema = schema.fields[part]
+      schema = (schema as ObjectSchema).fields[part]
 
       parent = value
       value = value && value[part]
