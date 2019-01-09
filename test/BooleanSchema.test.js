@@ -5,12 +5,12 @@ describe('Boolean types', () => {
   it('should CAST correctly', () => {
     let inst = boolean()
 
-    inst.cast('true').should.equal(true)
-    inst.cast('True').should.equal(true)
-    inst.cast('false').should.equal(false)
-    inst.cast('False').should.equal(false)
-    inst.cast(1).should.equal(true)
-    inst.cast(0).should.equal(false)
+    expect(inst.cast('true')).toStrictEqual(true)
+    expect(inst.cast('True')).toStrictEqual(true)
+    expect(inst.cast('false')).toStrictEqual(false)
+    expect(inst.cast('False')).toStrictEqual(false)
+    expect(inst.cast(1)).toStrictEqual(true)
+    expect(inst.cast(0)).toStrictEqual(false)
 
     castAndShouldFail(inst, 'foo')
 
@@ -25,27 +25,25 @@ describe('Boolean types', () => {
       .default(true)
       .required()
       .default()
-      .should.equal(true)
+    expect().toStrictEqual(true)
   })
 
   it('should type check', () => {
     let inst = boolean()
 
-    inst.isType(1).should.equal(false)
-    inst.isType(false).should.equal(true)
-    inst.isType('true').should.equal(false)
-    inst.isType(NaN).should.equal(false)
-    inst.isType(new Number('foooo')).should.equal(false)
+    expect(inst.isType(1)).toStrictEqual(false)
+    expect(inst.isType(false)).toStrictEqual(true)
+    expect(inst.isType('true')).toStrictEqual(false)
+    expect(inst.isType(NaN)).toStrictEqual(false)
+    expect(inst.isType(new Number('foooo'))).toStrictEqual(false)
 
-    inst.isType(34545).should.equal(false)
-    inst.isType(new Boolean(false)).should.equal(true)
+    expect(inst.isType(34545)).toStrictEqual(false)
+    expect(inst.isType(new Boolean(false))).toStrictEqual(true)
 
     expect(inst.isType(null)).toStrictEqual(false)
 
-    inst
-      .nullable()
-      .isType(null)
-      .should.equal(true)
+    inst.nullable().isType(null)
+    expect().toStrictEqual(true)
   })
 
   it('boolean should VALIDATE correctly', () => {
@@ -70,7 +68,7 @@ describe('Boolean types', () => {
         .validate()
         .should.be.rejected()
         .then(err => {
-          err.errors.length.should.equal(1)
+          expect(err.errors.length).toStrictEqual(1)
           err.errors[0].should.contain('required')
         }),
     ])

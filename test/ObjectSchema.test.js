@@ -61,7 +61,7 @@ describe('Object types', () => {
         arrNested: [{ num: 5 }, { num: 5 }],
       })
 
-      cast.arrNested[0].should.equal(obj.arrNested[0], 'should be kept as is')
+      expect(cast.arrNested[0]).toStrictEqual(obj.arrNested[0], 'should be kept as is')
     })
 
     it('should return the same object if all props are already cast', () => {
@@ -74,7 +74,7 @@ describe('Object types', () => {
         arrNested: [{ num: 5 }, { num: 5 }],
       }
 
-      inst.cast(obj).should.equal(obj)
+      expect(inst.cast(obj)).toStrictEqual(obj)
     })
   })
 
@@ -122,7 +122,7 @@ describe('Object types', () => {
 
       let error = await inst.validate(obj).should.be.rejected()
 
-      error.errors.length.should.equal(1)
+      expect(error.errors.length).toStrictEqual(1)
       error.errors[0].should.contain('nested.str')
 
       obj.nested.str = 'hello'
@@ -141,7 +141,7 @@ describe('Object types', () => {
 
       let value = await inst.validate({ field: 5 })
 
-      value.field.should.equal('5')
+      expect(value.field).toStrictEqual('5')
 
       castSpy.should.have.been.calledOnce()
 
@@ -188,7 +188,7 @@ describe('Object types', () => {
 
       let err = await inst.validate({}).should.be.rejected()
 
-      err.errors[0].should.equal('this oops')
+      expect(err.errors[0]).toStrictEqual('this oops')
     })
 
     it('should not clone during validating', async function() {
@@ -328,7 +328,7 @@ describe('Object types', () => {
         .validate({ extra: 'field' }, { strict: true })
         .should.be.rejected()
         .then(err => {
-          err.errors[0].should.equal('hi')
+          expect(err.errors[0]).toStrictEqual('hi')
         }),
 
       inst
@@ -422,7 +422,7 @@ describe('Object types', () => {
       let inst = lazy(() => number())
 
       inst.cast.should.be.a('function')
-      inst.cast('4').should.equal(4)
+      expect(inst.cast('4')).toStrictEqual(4)
     })
 
     it('should be validatable', async () => {
@@ -437,7 +437,7 @@ describe('Object types', () => {
       try {
         await inst.validate('  john  ')
       } catch (err) {
-        err.message.should.equal('trim me!')
+        expect(err.message).toStrictEqual('trim me!')
       }
     })
 
@@ -449,14 +449,14 @@ describe('Object types', () => {
         }),
       })
 
-      reach(inst, 'nested').should.equal(inst)
-      reach(inst, 'x.y').should.equal(inst)
+      expect(reach(inst, 'nested')).toStrictEqual(inst)
+      expect(reach(inst, 'x.y')).toStrictEqual(inst)
     })
 
     it('should be passed the value', done => {
       let inst = object({
         nested: lazy(value => {
-          value.should.equal('foo')
+          expect(value).toStrictEqual('foo')
           done()
           return string()
         }),
@@ -468,7 +468,7 @@ describe('Object types', () => {
     it('should be passed the options', done => {
       let opts = {}
       let inst = lazy((_, options) => {
-        options.should.equal(opts)
+        expect(options).toStrictEqual(opts)
         done()
         return string()
       })
@@ -496,7 +496,7 @@ describe('Object types', () => {
       try {
         await inst.validate(value, { strict: true })
       } catch (err) {
-        err.path.should.equal('nested.str')
+        expect(err.path).toStrictEqual('nested.str')
         err.message.should.match(/required/)
       }
     })
@@ -517,7 +517,7 @@ describe('Object types', () => {
       try {
         await inst.validate(value, { strict: true })
       } catch (err) {
-        err.path.should.equal('nested[0].str')
+        expect(err.path).toStrictEqual('nested[0].str')
         err.message.should.match(/required/)
       }
     })
@@ -544,10 +544,10 @@ describe('Object types', () => {
         .should.be.rejected()
         .then(err => {
           err.value.should.eql({ nest: { str: '' } })
-          err.errors.length.should.equal(1)
+          expect(err.errors.length).toStrictEqual(1)
           err.errors.should.eql(['oops'])
 
-          err.path.should.equal('nest')
+          expect(err.path).toStrictEqual('nest')
         }),
 
       inst
@@ -555,7 +555,7 @@ describe('Object types', () => {
         .should.be.rejected()
         .then(err => {
           err.value.should.eql({ nest: { str: '' } })
-          err.errors.length.should.equal(2)
+          expect(err.errors.length).toStrictEqual(2)
           err.errors.should.eql(['nest.str is a required field', 'oops'])
         }),
     ])
@@ -587,14 +587,14 @@ describe('Object types', () => {
         .validate(val, { abortEarly: false })
         .should.be.rejected()
         .then(err => {
-          err.errors.length.should.equal(2)
+          expect(err.errors.length).toStrictEqual(2)
         }),
 
       inst
         .validate(val, { abortEarly: false, recursive: false })
         .should.be.rejected()
         .then(err => {
-          err.errors.length.should.equal(1)
+          expect(err.errors.length).toStrictEqual(1)
           err.errors.should.eql(['oops'])
         }),
     ])

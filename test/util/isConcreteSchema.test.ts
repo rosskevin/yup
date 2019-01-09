@@ -10,7 +10,7 @@ describe('isConcreteSchema', () => {
   })
 
   it('should be false', () => {
-    expect(isConcreteSchema(lazy(() => {}))).toStrictEqual(false)
+    expect(isConcreteSchema(lazy((() => {}) as any))).toStrictEqual(false)
     expect(isConcreteSchema(false)).toStrictEqual(false)
     expect(isConcreteSchema(undefined)).toStrictEqual(false)
   })

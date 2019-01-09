@@ -3,12 +3,12 @@ import { Ref } from './Ref'
 import { Schema, WhenIsFn, WhenOptions, WhenOptionsFn } from './types'
 import { isSchema } from './util/isSchema'
 
-function callOrConcat<T>(schema: Schema<T>) {
-  if (typeof schema === 'function') {
-    return schema
+function callOrConcat<T>(thenOrOtherwise: Schema<T> | WhenOptionsFn<T> | undefined) {
+  if (typeof thenOrOtherwise === 'function') {
+    return thenOrOtherwise
   }
 
-  return (base: any) => base.concat(schema)
+  return (base: Schema<T>) => (thenOrOtherwise !== undefined ? base.concat(thenOrOtherwise) : base)
 }
 
 export default class Condition<T> {
@@ -28,7 +28,7 @@ export default class Condition<T> {
        *   otherwise: yup.number().min(0)
        * }
        */
-      const { is, then: thenOpt, otherwise: otherwiseOpt } = options
+      const { is: isOpt, then: thenOpt, otherwise: otherwiseOpt } = options
       const then = callOrConcat(thenOpt)
       const otherwise = callOrConcat(otherwiseOpt)
       if (!has(options, 'is')) {
@@ -39,19 +39,22 @@ export default class Condition<T> {
         throw new TypeError('either `then:` or `otherwise:` is required for `when()` conditions')
       }
 
-      let isFn: WhenIsFn
-      if (typeof is === 'function') {
+      let is: WhenIsFn
+      if (typeof isOpt === 'function') {
         // (isBig, isSpecial) => isBig && isSpecial
-        isFn = is
+        is = isOpt
       } else {
         // generate fn to check every value against `is`
-        isFn = (values: any[]) => values.every(value => value === (is as any))
+        is = (...values: any[]) => values.every(value => value === (is as any))
       }
 
-      this.fn = (values: any[]) => {
+      this.fn = (...values: any[]) => {
         const currentSchema = values.pop() // WTF as result of call? FIXME this is too confusing
-        const option = isFn(values) ? then : otherwise
-        return option(currentSchema)
+        if (is(values)) {
+          return (then as any)(currentSchema) // FIXME: type needs resolved
+        } else {
+          return (otherwise as any)(currentSchema) // FIXME: type needs resolved
+        }
       }
     }
   }

@@ -23,11 +23,11 @@ describe('Yup', function() {
       settled([Promise.resolve('hi'), Promise.reject('error')])
         .should.be.fulfilled()
         .then(function(results) {
-          results.length.should.equal(2)
-          results[0].fulfilled.should.equal(true)
-          results[0].value.should.equal('hi')
-          results[1].fulfilled.should.equal(false)
-          results[1].value.should.equal('error')
+          expect(results.length).toStrictEqual(2)
+          expect(results[0].fulfilled).toStrictEqual(true)
+          expect(results[0].value).toStrictEqual('hi')
+          expect(results[1].fulfilled).toStrictEqual(false)
+          expect(results[1].value).toStrictEqual('error')
         }),
     ])
   })

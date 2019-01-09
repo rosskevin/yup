@@ -20,7 +20,7 @@ describe('NumberSchema', function() {
       it('should validate synchronously', async () => {
         let schema = number()
 
-        schema.isValidSync('john').should.equal(false)
+        expect(schema.isValidSync('john')).toStrictEqual(false)
 
         expect(() => schema.validateSync('john')).toThrow(
           /the final value was: `NaN`.+cast from the value `"john"`/,
@@ -30,7 +30,7 @@ describe('NumberSchema', function() {
       it('should isValid synchronously', async () => {
         let schema = number()
 
-        schema.isValidSync('john').should.equal(false)
+        expect(schema.isValidSync('john')).toStrictEqual(false)
       })
     })
   }
@@ -61,18 +61,12 @@ describe('NumberSchema', function() {
     })
 
     it('should round', () => {
-      schema
-        .round('floor')
-        .cast(45.99999)
-        .should.equal(45)
-      schema
-        .round('ceIl')
-        .cast(45.1111)
-        .should.equal(46)
-      schema
-        .round()
-        .cast(45.444444)
-        .should.equal(45)
+      schema.round('floor').cast(45.99999)
+      expect().toStrictEqual(45)
+      schema.round('ceIl').cast(45.1111)
+      expect().toStrictEqual(46)
+      schema.round().cast(45.444444)
+      expect().toStrictEqual(45)
 
       expect(
         schema
@@ -87,10 +81,8 @@ describe('NumberSchema', function() {
     })
 
     it('should truncate', () => {
-      schema
-        .truncate()
-        .cast(45.55)
-        .should.equal(45)
+      schema.truncate().cast(45.55)
+      expect().toStrictEqual(45)
     })
 
     it('should return NaN for failed casts', () => {
@@ -103,27 +95,25 @@ describe('NumberSchema', function() {
   it('should handle DEFAULT', function() {
     var inst = number().default(0)
 
-    inst.default().should.equal(0)
+    expect(inst.default()).toStrictEqual(0)
     inst
       .default(5)
       .required()
       .default()
-      .should.equal(5)
+    expect().toStrictEqual(5)
   })
 
   it('should type check', function() {
     var inst = number()
 
-    inst.isType(5).should.equal(true)
-    inst.isType(new Number(5)).should.equal(true)
-    inst.isType(new Number('foo')).should.equal(false)
-    inst.isType(false).should.equal(false)
-    inst.isType(null).should.equal(false)
-    inst.isType(NaN).should.equal(false)
-    inst
-      .nullable()
-      .isType(null)
-      .should.equal(true)
+    expect(inst.isType(5)).toStrictEqual(true)
+    expect(inst.isType(new Number(5))).toStrictEqual(true)
+    expect(inst.isType(new Number('foo'))).toStrictEqual(false)
+    expect(inst.isType(false)).toStrictEqual(false)
+    expect(inst.isType(null)).toStrictEqual(false)
+    expect(inst.isType(NaN)).toStrictEqual(false)
+    inst.nullable().isType(null)
+    expect().toStrictEqual(true)
   })
 
   it('should VALIDATE correctly', function() {
@@ -169,7 +159,7 @@ describe('NumberSchema', function() {
         .validate()
         .should.be.rejected()
         .then(function(err) {
-          err.errors.length.should.equal(1)
+          expect(err.errors.length).toStrictEqual(1)
           err.errors[0].should.contain('required')
         }),
     ])

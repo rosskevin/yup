@@ -28,14 +28,12 @@ describe('Date types', () => {
   it('should type check', () => {
     var inst = date()
 
-    inst.isType(new Date()).should.equal(true)
-    inst.isType(false).should.equal(false)
-    inst.isType(null).should.equal(false)
-    inst.isType(NaN).should.equal(false)
-    inst
-      .nullable()
-      .isType(new Date())
-      .should.equal(true)
+    expect(inst.isType(new Date())).toStrictEqual(true)
+    expect(inst.isType(false)).toStrictEqual(false)
+    expect(inst.isType(null)).toStrictEqual(false)
+    expect(inst.isType(NaN)).toStrictEqual(false)
+    inst.nullable().isType(new Date())
+    expect().toStrictEqual(true)
   })
 
   it('should VALIDATE correctly', () => {
@@ -71,7 +69,7 @@ describe('Date types', () => {
         .validate()
         .should.be.rejected()
         .then(err => {
-          err.errors.length.should.equal(1)
+          expect(err.errors.length).toStrictEqual(1)
           err.errors[0].should.contain('required')
         }),
     ])

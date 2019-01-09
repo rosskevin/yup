@@ -9,8 +9,8 @@ describe('StringSchema', () => {
 
   it('getDefault should return the default value', function() {
     let inst = string().default('hi')
-    inst.getDefault({}).should.equal('hi')
-    inst.getDefault().should.equal('hi')
+    expect(inst.getDefault({})).toStrictEqual('hi')
+    expect(inst.getDefault()).toStrictEqual('hi')
   })
 
   it('should check types', async () => {
@@ -46,7 +46,7 @@ describe('StringSchema', () => {
       is: 'greet',
       then: string().default('hi'),
     })
-    inst.getDefault({ context: { foo: 'greet' } }).should.equal('hi')
+    expect(inst.getDefault({ context: { foo: 'greet' } })).toStrictEqual('hi')
   })
 
   it('should warn about null types', async () => {
@@ -68,7 +68,7 @@ describe('StringSchema', () => {
       .validate(25)
       .should.be.rejected()
       .then(() => {
-        called.should.equal(false)
+        expect(called).toStrictEqual(false)
       })
   })
 
@@ -99,7 +99,7 @@ describe('StringSchema', () => {
         .validate(' hi ')
         .should.be.rejected()
         .then(err => {
-          err.errors.length.should.equal(1)
+          expect(err.errors.length).toStrictEqual(1)
         }),
 
       inst
@@ -107,7 +107,7 @@ describe('StringSchema', () => {
         .validate(' hi ', { abortEarly: false })
         .should.be.rejected()
         .then(err => {
-          err.errors.length.should.equal(2)
+          expect(err.errors.length).toStrictEqual(2)
         }),
     ])
   })
@@ -119,7 +119,7 @@ describe('StringSchema', () => {
       .validate('joe')
       .should.be.rejected()
       .then(e => {
-        e.errors[0].should.equal('test a')
+        expect(e.errors[0]).toStrictEqual('test a')
       })
   })
 
@@ -146,7 +146,7 @@ describe('StringSchema', () => {
       .validate(undefined)
       .should.be.rejected()
       .then(function(err) {
-        err.message.should.equal('this must be a trimmed string')
+        expect(err.message).toStrictEqual('this must be a trimmed string')
       })
   })
 
@@ -183,24 +183,18 @@ describe('StringSchema', () => {
     })
 
     it('should trim', () => {
-      schema
-        .trim()
-        .cast(' 3  ')
-        .should.equal('3')
+      schema.trim().cast(' 3  ')
+      expect().toStrictEqual('3')
     })
 
     it('should transform to lowercase', () => {
-      schema
-        .lowercase()
-        .cast('HellO JohN')
-        .should.equal('hello john')
+      schema.lowercase().cast('HellO JohN')
+      expect().toStrictEqual('hello john')
     })
 
     it('should transform to uppercase', () => {
-      schema
-        .uppercase()
-        .cast('HellO JohN')
-        .should.equal('HELLO JOHN')
+      schema.uppercase().cast('HellO JohN')
+      expect().toStrictEqual('HELLO JOHN')
     })
 
     it('should handle nulls', () => {
@@ -222,20 +216,18 @@ describe('StringSchema', () => {
       .default('my_value')
       .required()
       .default()
-      .should.equal('my_value')
+    expect().toStrictEqual('my_value')
   })
 
   it('should type check', function() {
     var inst = string()
 
-    inst.isType('5').should.equal(true)
-    inst.isType(new String('5')).should.equal(true)
-    inst.isType(false).should.equal(false)
-    inst.isType(null).should.equal(false)
-    inst
-      .nullable(false)
-      .isType(null)
-      .should.equal(false)
+    expect(inst.isType('5')).toStrictEqual(true)
+    expect(inst.isType(new String('5'))).toStrictEqual(true)
+    expect(inst.isType(false)).toStrictEqual(false)
+    expect(inst.isType(null)).toStrictEqual(false)
+    inst.nullable(false).isType(null)
+    expect().toStrictEqual(false)
   })
 
   it('should VALIDATE correctly', function() {
@@ -272,7 +264,7 @@ describe('StringSchema', () => {
         .validate('')
         .should.be.rejected()
         .then(function(err) {
-          err.errors.length.should.equal(1)
+          expect(err.errors.length).toStrictEqual(1)
         }),
     ])
   })

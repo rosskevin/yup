@@ -11,15 +11,15 @@ describe('reach', () => {
       }),
     })
 
-    reach(inst, '').should.equal(inst)
+    expect(reach(inst, '')).toStrictEqual(inst)
 
-    reach(inst, 'nested.arr.num').should.equal(num)
-    reach(inst, 'nested.arr[].num').should.equal(num)
-    reach(inst, 'nested.arr[1].num').should.equal(num)
-    reach(inst, 'nested["arr"][1].num').should.not.equal(number())
+    expect(reach(inst, 'nested.arr.num')).toStrictEqual(num)
+    expect(reach(inst, 'nested.arr[].num')).toStrictEqual(num)
+    expect(reach(inst, 'nested.arr[1].num')).toStrictEqual(num)
+    expect(reach(inst, 'nested["arr"][1].num')).not.toStrictEqual(number())
 
     const valid = await reach(inst, 'nested.arr[].num').isValid(5)
-    valid.should.equal(true)
+    expect(valid).toStrictEqual(true)
   })
 
   it('should REACH conditionally correctly', () => {
@@ -53,20 +53,20 @@ describe('reach', () => {
       },
     }
 
-    reach(inst, 'nested.arr.num', value).should.equal(num)
-    reach(inst, 'nested.arr[].num', value).should.equal(num)
+    expect(reach(inst, 'nested.arr.num', value)).toStrictEqual(num)
+    expect(reach(inst, 'nested.arr[].num', value)).toStrictEqual(num)
 
-    reach(inst, 'nested.arr.num', value, context).should.equal(num)
-    reach(inst, 'nested.arr[].num', value, context).should.equal(num)
-    reach(inst, 'nested.arr[0].num', value, context).should.equal(num)
+    expect(reach(inst, 'nested.arr.num', value, context)).toStrictEqual(num)
+    expect(reach(inst, 'nested.arr[].num', value, context)).toStrictEqual(num)
+    expect(reach(inst, 'nested.arr[0].num', value, context)).toStrictEqual(num)
 
     // should fail b/c item[1] is used to resolve the schema
-    reach(inst, 'nested["arr"][1].num', value, context).should.not.equal(num)
+    expect(reach(inst, 'nested["arr"][1].num', value, context)).not.toStrictEqual(num)
 
     return reach(inst, 'nested.arr[].num', value, context)
       .isValid(5)
       .then(valid => {
-        valid.should.equal(true)
+        expect(valid).toStrictEqual(true)
       })
   })
 
@@ -87,7 +87,8 @@ describe('reach', () => {
     // (err as any).message.should.match(/must be a `number` type/)
 
     const lazySchema = lazy((val: any) => types[val.type])
-    expect(
+    expect.assertions(1)
+    await expect(
       object({
         x: array(lazySchema),
       })

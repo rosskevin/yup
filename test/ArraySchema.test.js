@@ -39,18 +39,16 @@ describe('Array types', () => {
   it('should type check', () => {
     var inst = array()
 
-    inst.isType([]).should.equal(true)
-    inst.isType({}).should.equal(false)
-    inst.isType('true').should.equal(false)
-    inst.isType(NaN).should.equal(false)
-    inst.isType(34545).should.equal(false)
+    expect(inst.isType([])).toStrictEqual(true)
+    expect(inst.isType({})).toStrictEqual(false)
+    expect(inst.isType('true')).toStrictEqual(false)
+    expect(inst.isType(NaN)).toStrictEqual(false)
+    expect(inst.isType(34545)).toStrictEqual(false)
 
     expect(inst.isType(null)).toStrictEqual(false)
 
-    inst
-      .nullable()
-      .isType(null)
-      .should.equal(true)
+    inst.nullable().isType(null)
+    expect().toStrictEqual(true)
   })
 
   it('should cast children', () => {
@@ -115,7 +113,7 @@ describe('Array types', () => {
 
       let value = await array(string()).validate([5])
 
-      value[0].should.equal('5')
+      expect(value[0]).toStrictEqual('5')
 
       castSpy.should.have.been.calledOnce()
       StringSchema.prototype._cast.restore()
@@ -133,7 +131,7 @@ describe('Array types', () => {
         .should.be.rejected()
         .then(err => {
           err.value.should.eql([{ str: '' }])
-          err.errors.length.should.equal(1)
+          expect(err.errors.length).toStrictEqual(1)
           err.errors.should.eql(['oops'])
         }),
 
@@ -143,7 +141,7 @@ describe('Array types', () => {
         .then(err => {
           err.value.should.eql([{ str: '' }])
 
-          err.errors.length.should.equal(2)
+          expect(err.errors.length).toStrictEqual(2)
           err.errors.should.eql(['[0].str is a required field', 'oops'])
         }),
     ])
@@ -168,7 +166,7 @@ describe('Array types', () => {
     var inst = array().ensure()
 
     const a = [1, 4]
-    inst.cast(a).should.equal(a)
+    expect(inst.cast(a)).toStrictEqual(a)
 
     inst.cast(null).should.eql([])
   })
