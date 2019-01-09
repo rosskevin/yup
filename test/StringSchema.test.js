@@ -1,16 +1,9 @@
-import * as TestHelpers from './helpers'
 import { string, number, object, ref } from '../src'
+import { generateCastTests } from './helpers'
 
 describe('StringSchema', () => {
   it('is constructed properly', () => {
     const schema = string()
-    console.log('foo')
-    console.log('foo')
-    console.log('foo')
-    console.log('foo')
-    console.log('foo')
-    console.log('foo')
-    //
     schema.stripped()
   })
 
@@ -160,7 +153,7 @@ describe('StringSchema', () => {
   describe('casting', () => {
     let schema = string()
 
-    TestHelpers.castAll(schema, {
+    generateCastTests(schema, {
       valid: [
         [5, '5'],
         ['3', '3'],
@@ -177,7 +170,7 @@ describe('StringSchema', () => {
     describe('ensure', () => {
       let schema = string().ensure()
 
-      TestHelpers.castAll(schema, {
+      generateCastTests(schema, {
         valid: [
           [5, '5'],
           ['3', '3'],

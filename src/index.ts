@@ -13,3 +13,5 @@ export * from './overrideLocale'
 export * from './ValidationError'
 export * from './util/reach'
 export * from './util/isSchema'
+
+export * from './types'

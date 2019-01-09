@@ -1,4 +1,6 @@
 import { array, boolean, mixed, MixedSchema, number, object, reach, ref, string } from '../src'
+import { generateIsValidTests } from './helpers'
+
 const noop = () => {}
 
 function ensureSync(fn) {
@@ -153,7 +155,7 @@ describe('MixedSchema', () => {
   describe('oneOf', () => {
     const inst = mixed().oneOf(['hello'])
 
-    TestHelpers.validateAll(inst, {
+    generateIsValidTests(inst, {
       valid: [undefined, 'hello'],
       invalid: [
         'YOLO',
@@ -167,7 +169,7 @@ describe('MixedSchema', () => {
   describe('should exclude values', () => {
     const inst = mixed().notOneOf([5, 'hello'])
 
-    TestHelpers.validateAll(inst, {
+    generateIsValidTests(inst, {
       valid: [6, 'hfhfh', [5, inst.oneOf([5]), '`oneOf` called after'], null],
       invalid: [5, [null, inst.required(), 'required schema']],
     })

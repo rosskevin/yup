@@ -18,9 +18,6 @@ g.chai.should()
 //   (Object as any).getOwnPropertyDescriptor(Object.prototype, 'should'),
 // )
 
-// FIXME get this out of globals
-g.TestHelpers = require('../../../test/helpers')
-
 if (g.YUP_USE_SYNC) {
   const { validate } = MixedSchema.prototype
 

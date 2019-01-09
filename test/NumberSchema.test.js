@@ -1,4 +1,4 @@
-import * as TestHelpers from './helpers'
+import { generateCastTests, generateIsValidTests } from './helpers'
 import { number, NumberSchema } from '../src'
 
 describe('NumberSchema', function() {
@@ -50,7 +50,7 @@ describe('NumberSchema', function() {
   describe('casting', () => {
     let schema = number()
 
-    TestHelpers.castAll(schema, {
+    generateCastTests(schema, {
       valid: [
         ['5', 5],
         [3, 3],
@@ -178,7 +178,7 @@ describe('NumberSchema', function() {
   describe('min', () => {
     var schema = number().min(5)
 
-    TestHelpers.validateAll(schema, {
+    generateIsValidTests(schema, {
       valid: [7, 35738787838, [null, schema.nullable()]],
       invalid: [2, null, [14, schema.min(10).min(15)]],
     })
@@ -187,7 +187,7 @@ describe('NumberSchema', function() {
   describe('max', () => {
     var schema = number().max(5)
 
-    TestHelpers.validateAll(schema, {
+    generateIsValidTests(schema, {
       valid: [4, -5222, [null, schema.nullable()]],
       invalid: [10, null, [16, schema.max(20).max(15)]],
     })
@@ -196,7 +196,7 @@ describe('NumberSchema', function() {
   describe('lessThan', () => {
     var schema = number().lessThan(5)
 
-    TestHelpers.validateAll(schema, {
+    generateIsValidTests(schema, {
       valid: [4, -10, [null, schema.nullable()]],
       invalid: [5, 7, null, [14, schema.lessThan(10).lessThan(14)]],
     })
@@ -212,7 +212,7 @@ describe('NumberSchema', function() {
   describe('moreThan', () => {
     var schema = number().moreThan(5)
 
-    TestHelpers.validateAll(schema, {
+    generateIsValidTests(schema, {
       valid: [6, 56445435, [null, schema.nullable()]],
       invalid: [5, -10, null, [64, schema.moreThan(52).moreThan(74)]],
     })
@@ -226,7 +226,7 @@ describe('NumberSchema', function() {
   })
 
   describe('integer', () => {
-    TestHelpers.validateAll(number().integer(), {
+    generateIsValidTests(number().integer(), {
       valid: [4, -5222],
       invalid: [10.53, 0.1 * 0.2, -34512535.626, 3.12312e51, new Date()],
     })

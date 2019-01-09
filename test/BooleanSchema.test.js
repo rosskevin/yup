@@ -1,4 +1,5 @@
 import { boolean } from '../src'
+import { castAndShouldFail } from './helpers'
 
 describe('Boolean types', () => {
   it('should CAST correctly', () => {
@@ -11,9 +12,9 @@ describe('Boolean types', () => {
     inst.cast(1).should.equal(true)
     inst.cast(0).should.equal(false)
 
-    TestHelpers.castAndShouldFail(inst, 'foo')
+    castAndShouldFail(inst, 'foo')
 
-    TestHelpers.castAndShouldFail(inst, 'bar1')
+    castAndShouldFail(inst, 'bar1')
   })
 
   it('should handle DEFAULT', () => {

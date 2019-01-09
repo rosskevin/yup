@@ -4,7 +4,7 @@ import { DateSchema } from './DateSchema'
 import { locale } from './locale'
 import { MixedSchema } from './MixedSchema'
 import { NumberSchema } from './NumberSchema'
-import { ObjectSchema } from './ObjectSchema/ObjectSchema'
+import { ObjectSchema } from './ObjectSchema'
 import { StringSchema } from './StringSchema'
 
 export interface LocaleOverride {
