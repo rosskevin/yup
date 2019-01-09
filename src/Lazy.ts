@@ -3,11 +3,11 @@
 import { BaseSchema, Schema, ValidateOptions } from './types'
 import { isSchema } from './util/isSchema'
 
-export function lazy(fn: any) {
-  return new Lazy(fn)
-}
+export type MapToSchemaFn<T> = (...args: any[]) => Schema<T>
 
-export type MapFn<T> = (...args: any[]) => Schema<T>
+export function lazy<T>(mapToSchema: MapToSchemaFn<T>) {
+  return new Lazy(mapToSchema)
+}
 
 /**
  * Creates a schema that is evaluated at validation/cast time.
@@ -39,10 +39,10 @@ export type MapFn<T> = (...args: any[]) => Schema<T>
 export class Lazy<T = any> implements BaseSchema<T> {
   public __isYupSchema__: boolean = true
   public _type: string = 'lazy'
-  private mapFn: MapFn<T>
+  private mapToSchema: MapToSchemaFn<T>
 
-  constructor(mapFn: MapFn<T>) {
-    this.mapFn = mapFn
+  constructor(mapToSchema: MapToSchemaFn<T>) {
+    this.mapToSchema = mapToSchema
   }
 
   public resolve(/*{ value, ...rest }*/ options: ValidateOptions) {
@@ -62,7 +62,7 @@ export class Lazy<T = any> implements BaseSchema<T> {
   }
 
   private _resolve = (...args: any[]): Schema<T> => {
-    const schema = this.mapFn(...args)
+    const schema = this.mapToSchema(...args)
     if (!isSchema(schema)) {
       throw new TypeError('lazy() functions must return a valid schema')
     }

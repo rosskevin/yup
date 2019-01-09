@@ -3,7 +3,7 @@ import { MixedSchema } from '../../MixedSchema'
 const g = global as any
 
 g.chai = require('chai')
-g.sinon = require('sinon')
+// g.sinon = require('sinon')
 
 g.chai.use(require('sinon-chai'))
 g.chai.use(require('chai-as-promised'))
