@@ -63,7 +63,7 @@ const array = {
   min: '${path} field must have at least ${min} items',
 }
 
-export default {
+export const locale = {
   array,
   boolean,
   date,

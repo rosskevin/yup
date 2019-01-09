@@ -1,4 +1,4 @@
-import locale from './locale'
+import { locale } from './locale'
 import { MixedSchema } from './MixedSchema'
 import { Ref } from './Ref'
 import { isAbsent } from './util/isAbsent'

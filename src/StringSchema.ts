@@ -1,4 +1,4 @@
-import locale from './locale'
+import { locale } from './locale'
 import { MixedSchema } from './MixedSchema'
 import { Message } from './types'
 import { isAbsent } from './util/isAbsent'
@@ -97,7 +97,9 @@ export class StringSchema extends MixedSchema {
 
     if (options) {
       if ((options as any).message || options.hasOwnProperty('excludeEmptyString')) {
-        ({ excludeEmptyString = false, message } = options as MatchesOptions)
+        const matchesOptions: MatchesOptions = options as MatchesOptions
+        excludeEmptyString = matchesOptions.excludeEmptyString || false
+        message = matchesOptions.message
       } else {
         message = options as Message
       }

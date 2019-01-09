@@ -1,4 +1,4 @@
-import { setLocale } from '../src'
+import { overrideLocale } from '../src'
 
 describe('Custom locale', () => {
   it('should get default locale', () => {
@@ -8,15 +8,15 @@ describe('Custom locale', () => {
 
   it('should set a new locale', () => {
     const locale = require('../src/locale').default
-    const dict = {
+    const email = 'Invalid email'
+
+    overrideLocale({
       string: {
-        email: 'Invalid email',
+        email,
       },
-    }
+    })
 
-    setLocale(dict)
-
-    expect(locale.string.email).toStrictEqual(dict.string.email)
+    expect(locale.string.email).toStrictEqual(email)
   })
 
   it('should update the main locale', () => {

@@ -1,6 +1,6 @@
 // tslint:disable:variable-name
 
-import locale from './locale'
+import { locale } from './locale'
 import { MixedSchema } from './MixedSchema'
 import { BaseSchema, Message, TransformFunction, ValidateOptions } from './types'
 import { isAbsent } from './util/isAbsent'

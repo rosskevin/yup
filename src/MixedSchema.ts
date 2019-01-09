@@ -3,7 +3,7 @@
 import cloneDeepWith from 'lodash/cloneDeepWith'
 import has from 'lodash/has'
 import Condition from './Condition'
-import locale from './locale'
+import { locale } from './locale'
 import { Ref } from './Ref'
 import {
   MutationFn,
