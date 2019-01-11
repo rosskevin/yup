@@ -27,7 +27,7 @@ export function generateCastTests<S extends MixedSchema<any>>(
 
 export function generateIsValidTests<S extends MixedSchema<any>>(
   inst: S,
-  { valid = [], invalid = [] }: { valid: any[]; invalid: [] },
+  { valid = [], invalid = [] }: { valid: any[]; invalid: any[] },
 ) {
   describe('valid:', () => {
     runValidations(valid, true)
@@ -44,7 +44,7 @@ export function generateIsValidTests<S extends MixedSchema<any>>(
       let schema = inst
 
       if (Array.isArray(config)) {
-        [value, schema, message = ''] = config
+        ;[value, schema, message = ''] = config
       }
 
       it(`${printValue(value)}${message && `  (${message})`}`, () =>

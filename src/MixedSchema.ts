@@ -481,14 +481,12 @@ export class MixedSchema<T = any> implements Schema<T> {
     //   }
 
     if (typeof opts.test !== 'function') {
-      throw new TypeError('`test` is a required parameters')
+      throw new TypeError('`test` is a required parameter')
     }
 
     const next = this.clone()
     const validate = createValidation<T>(opts)
-
     const isExclusive = opts.exclusive || (opts.name && next._exclusive[opts.name] === true)
-
     if (opts.exclusive && !opts.name) {
       throw new TypeError('Exclusive tests must provide a unique `name` identifying the test')
     }

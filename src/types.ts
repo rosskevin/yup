@@ -66,7 +66,7 @@ export interface WhenOptionsFns<T> {
 }
 */
 
-export type WhenIsFn = (values: any[]) => boolean
+export type WhenIsFn = (...values: any[]) => boolean
 
 export type WhenOptionsFn<T> = (values: any, schema: Schema<T>) => Schema<T> // | undefined
 
@@ -75,15 +75,16 @@ export type WhenOptionsFn<T> = (values: any, schema: Schema<T>) => Schema<T> // 
 //   then?: Schema<T> | WhenOptionsFn<T>
 //   otherwise?: Schema<T> | WhenOptionsFn<T>
 // }
+export type WhenIs = boolean | number | string | WhenIsFn
 
 export interface WhenIsThenOptions<T> {
-  is: boolean | WhenIsFn
+  is: WhenIs
   then: Schema<T> | WhenOptionsFn<T>
   otherwise?: Schema<T> | WhenOptionsFn<T>
 }
 
 export interface WhenIsOtherwiseOptions<T> {
-  is: boolean | WhenIsFn
+  is: WhenIs
   then?: Schema<T> | WhenOptionsFn<T>
   otherwise: Schema<T> | WhenOptionsFn<T>
 }
