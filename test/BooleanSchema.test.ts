@@ -1,20 +1,16 @@
 import { boolean } from 'yup'
-import { expectCastFailure } from './helpers'
+import { expectCastFailure, genCastInvalid, genCastValid } from './helpers'
 
 describe('BooleanSchema', () => {
-  describe('cast', () => {
-    it('should work', () => {
-      const inst = boolean()
-      expect(inst.cast('true')).toStrictEqual(true)
-      expect(inst.cast('True')).toStrictEqual(true)
-      expect(inst.cast('false')).toStrictEqual(false)
-      expect(inst.cast('False')).toStrictEqual(false)
-      expect(inst.cast(1)).toStrictEqual(true)
-      expect(inst.cast(0)).toStrictEqual(false)
-      expectCastFailure(inst, 'foo')
-      expectCastFailure(inst, 'bar1')
-    })
-  })
+  genCastValid(boolean(), [
+    ['true', true],
+    ['True', true],
+    [1, true],
+    [0, false],
+    ['false', false],
+    ['False', false],
+  ])
+  genCastInvalid(boolean(), ['foo'])
 
   describe('default/defaultValue', () => {
     it('should handle default/defaultValue', () => {

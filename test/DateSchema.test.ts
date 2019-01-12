@@ -1,19 +1,21 @@
 import { date, ref } from 'yup'
 import { isDate } from '../src/util/isDate'
+import { genCastValid } from './helpers'
 
 describe('DateSchema', () => {
   describe('cast', () => {
-    it('should work', () => {
-      const inst = date()
-
-      expect(inst.cast(new Date())).toBeInstanceOf(Date)
-      expect(inst.cast('01 Jan 1970 00:00:00 GMT')).toStrictEqual(new Date(0))
-      expect(inst.cast('jan 15 2014')).toStrictEqual(new Date(2014, 0, 15))
-      expect(inst.cast('2014-09-23T19:25:25Z')).toStrictEqual(new Date(1411500325000))
+    genCastValid(date(), [
+      ['01 Jan 1970 00:00:00 GMT', new Date(0)],
+      ['jan 15 2014', new Date(2014, 0, 15)],
+      ['2014-09-23T19:25:25Z', new Date(1411500325000)],
       // Leading-zero milliseconds
-      expect(inst.cast('2016-08-10T11:32:19.012Z')).toStrictEqual(new Date(1470828739012))
+      ['2016-08-10T11:32:19.012Z', new Date(1470828739012)],
       // Microsecond precision
-      expect(inst.cast('2016-08-10T11:32:19.2125Z')).toStrictEqual(new Date(1470828739212))
+      ['2016-08-10T11:32:19.2125Z', new Date(1470828739212)],
+    ])
+
+    it('instanceOf should be Date', () => {
+      expect(date().cast(new Date())).toBeInstanceOf(Date)
     })
 
     it('should return invalid date for failed casts', () => {

@@ -11,7 +11,7 @@ function _generateIsValidTest<S extends MixedSchema<any>>(
     let value = config
 
     if (Array.isArray(config)) {
-      [value, schema, message = ''] = config
+      ;[value, schema, message = ''] = config
     }
 
     const description = `${printValue(value)}${message && `  (${message})`}`
@@ -23,13 +23,13 @@ function _generateIsValidTest<S extends MixedSchema<any>>(
 }
 
 export function genIsInvalid<S extends MixedSchema<any>>(schema: S, values: any[]) {
-  describe('should be invalid', () => {
+  describe('isValid should be false', () => {
     _generateIsValidTest(schema, values, false)
   })
 }
 
 export function genIsValid<S extends MixedSchema<any>>(schema: S, values: any[]) {
-  describe('should be valid', () => {
+  describe('isValid should be true', () => {
     _generateIsValidTest(schema, values, true)
   })
 }

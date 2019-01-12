@@ -6,19 +6,23 @@ export function expectCastFailure(schema: BaseSchema<any>, value: any) {
     /The value of (.+) could not be cast to a value that satisfies the schema type/gi,
   )
 }
-export function genCast<S extends MixedSchema<any>>(
-  inst: S,
-  { invalid = [], valid = [] }: { invalid: any[]; valid: any[] },
-) {
-  valid.forEach(([value, result, schema = inst]) => {
-    it(`should cast ${printValue(value)} to ${printValue(result)}`, () => {
-      expect(schema.cast(value)).toStrictEqual(result)
+
+export function genCastValid<S extends MixedSchema<any>>(inst: S, values: any[]) {
+  describe('cast should be valid', () => {
+    values.forEach(([value, result, schema = inst]) => {
+      it(`${printValue(value)} to ${printValue(result)}`, () => {
+        expect(schema.cast(value)).toStrictEqual(result)
+      })
     })
   })
+}
 
-  invalid.forEach(value => {
-    it(`should not cast ${printValue(value)}`, () => {
-      expectCastFailure(inst, value)
+export function genCastInvalid<S extends MixedSchema<any>>(inst: S, values: any[]) {
+  describe('cast should be invalid', () => {
+    values.forEach(value => {
+      it(`${printValue(value)}`, () => {
+        expectCastFailure(inst, value)
+      })
     })
   })
 }

@@ -1,5 +1,5 @@
 import { number, NumberSchema } from 'yup'
-import { genCast, genIsInvalid, genIsValid } from './helpers'
+import { genCastInvalid, genCastValid, genIsInvalid, genIsValid } from './helpers'
 
 describe('NumberSchema', () => {
   it('should print the original value', async () => {
@@ -43,16 +43,18 @@ describe('NumberSchema', () => {
   })
 
   describe('cast', () => {
-    genCast(number(), {
+    genCastInvalid(
+      number(),
       // tslint:disable-next-line:no-construct
-      invalid: ['', false, true, new Date(), new Number('foo')],
-      valid: [
-        ['5', 5],
-        [3, 3],
-        // [new Number(5), 5],
-        [' 5.656 ', 5.656],
-      ],
-    })
+      ['', false, true, new Date(), new Number('foo')],
+    )
+
+    genCastValid(number(), [
+      ['5', 5],
+      [3, 3],
+      // [new Number(5), 5],
+      [' 5.656 ', 5.656],
+    ])
 
     it('should round', () => {
       expect(
