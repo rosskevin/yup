@@ -1,4 +1,4 @@
-import { string, number, object, ref } from '../src'
+import { string, number, object, ref } from 'yup'
 import { generateCastTests } from './helpers'
 
 describe('StringSchema', () => {

@@ -10,7 +10,7 @@ import {
   lazy,
   reach,
   StringSchema,
-} from '../src'
+} from 'yup'
 
 describe('Object types', () => {
   describe('casting', () => {

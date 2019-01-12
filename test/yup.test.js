@@ -1,5 +1,5 @@
 import { settled } from '../src/util/runValidations'
-import { object, array, string, lazy, number } from '../src'
+import { object, array, string, lazy, number } from 'yup'
 
 describe('Yup', function() {
   it('cast should not assert on undefined', () => {

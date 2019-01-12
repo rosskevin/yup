@@ -1,4 +1,4 @@
-import { date, ref } from '../src'
+import { date, ref } from 'yup'
 import { isDate } from '../src/util/isDate'
 
 describe('DateSchema', () => {

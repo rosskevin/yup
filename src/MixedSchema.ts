@@ -207,14 +207,14 @@ export class MixedSchema<T = any> implements Schema<T> {
     return result
   }
 
-  public _cast(rawValue: any, options: ValidateOptions = {}): any {
+  public _cast(rawValue: any, options: ValidateOptions = {}): T {
     let value =
       rawValue === undefined
         ? rawValue
         : this.transforms.reduce((v: any, fn) => fn.call(this, v, rawValue), rawValue)
 
     if (value === undefined && has(this, '_default')) {
-      value = this.default()
+      value = this.defaultValue()
     }
 
     return value
@@ -312,12 +312,13 @@ export class MixedSchema<T = any> implements Schema<T> {
   }
 
   /**
-   * Returns true when the passed in value matches the schema. isValid is asynchronous and returns a Promise object.
+   * Returns true when the passed in value matches the schema.
+   * isValid is asynchronous and returns a Promise object.
    *
    * @param value
    * @param options Takes the same options as validate().
    */
-  public isValid(value: any, options?: ValidateOptions) {
+  public isValid(value: any, options?: ValidateOptions): Promise<boolean> {
     return this.validate(value, options)
       .then(() => true)
       .catch((err: any) => {

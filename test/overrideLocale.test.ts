@@ -1,4 +1,4 @@
-import { overrideLocale } from '../src'
+import { overrideLocale } from 'yup'
 
 describe('Custom locale', () => {
   it('should get default locale', () => {

@@ -137,7 +137,7 @@ export interface Schema<T> extends BaseSchema<T> {
   _cast(rawValue: any, options?: ValidateOptions): any
   clone(): this
   concat(schema: Schema<T>): this
-  default(value?: any): Schema<T>
+  default(value: any): Schema<T>
   defaultValue(): T
   isType(value: any): value is T
   isValid(value: any, options?: ValidateOptions): Promise<boolean>

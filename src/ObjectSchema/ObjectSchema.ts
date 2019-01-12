@@ -70,7 +70,7 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
         const dft = {}
         this._nodes.forEach(key => {
           dft[key] = (this.fields[key] as any).default
-            ? (this.fields[key] as MixedSchema).default()
+            ? (this.fields[key] as MixedSchema).defaultValue()
             : undefined
         })
         return dft

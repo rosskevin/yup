@@ -185,13 +185,13 @@ export class ArraySchema<T = any[]> extends MixedSchema<T> {
     })
   }
 
-  public compact(rejector?: any) {
+  public compact(rejector?: (value: T, index: number, array: T[]) => boolean) {
     const rejectorFn = !rejector
       ? (v: any[]) => !!v
-      : (v: any, i: any, a: any) => !rejector(v, i, a) // FIXME types
+      : (v: any, i: any, a: any) => !rejector(v, i, a)
 
-    const transformFn: TransformFunction<T> = values =>
-      values != null ? values.filter(rejectorFn) : values
+    const transformFn: TransformFunction<T> = (value: any) =>
+      value != null ? (value as any[]).filter(rejectorFn) : value
     return this.transform(transformFn)
   }
 

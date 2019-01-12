@@ -1,5 +1,5 @@
 import * as sinon from 'sinon'
-import { lazy, mixed } from '../src'
+import { lazy, mixed } from 'yup'
 import { MapToSchemaFn } from '../src/Lazy'
 
 describe('lazy', () => {

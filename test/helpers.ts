@@ -1,4 +1,4 @@
-import { BaseSchema, MixedSchema } from '../src'
+import { BaseSchema, MixedSchema } from 'yup'
 import printValue from '../src/util/printValue'
 
 export function castAndShouldFail(schema: BaseSchema<any>, value: any) {

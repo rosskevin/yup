@@ -1,6 +1,6 @@
 // tslint:disable:object-literal-sort-keys
 
-import { array, boolean, mixed, MixedSchema, number, object, reach, ref, string } from '../src'
+import { array, boolean, mixed, MixedSchema, number, object, reach, ref, string } from 'yup'
 import { generateIsValidTests } from './helpers'
 
 const noop = () => true

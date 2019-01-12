@@ -1,4 +1,4 @@
-import { boolean } from '../src'
+import { boolean } from 'yup'
 import { castAndShouldFail } from './helpers'
 
 describe('BooleanSchema', () => {

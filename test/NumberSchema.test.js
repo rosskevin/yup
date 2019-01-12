@@ -1,5 +1,5 @@
 import { generateCastTests, generateIsValidTests } from './helpers'
-import { number, NumberSchema } from '../src'
+import { number, NumberSchema } from 'yup'
 
 describe('NumberSchema', function() {
   it('is newable', () => {
