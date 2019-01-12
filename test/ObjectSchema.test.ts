@@ -1,16 +1,18 @@
 import {
-  mixed,
-  string,
-  date,
-  number,
-  boolean,
   array,
-  object,
-  ref,
+  boolean,
+  date,
   lazy,
+  mixed,
+  number,
+  object,
+  ObjectSchema,
   reach,
+  ref,
+  string,
   StringSchema,
 } from 'yup'
+import { genIsInvalid, genIsValid } from './helpers'
 
 describe('Object types', () => {
   describe('min', () => {
@@ -44,16 +46,16 @@ describe('Object types', () => {
   })
 
   describe('casting', () => {
-    let inst
+    let inst: ObjectSchema<any>
 
     beforeEach(() => {
       inst = object({
-        num: number(),
-        str: string(),
         arr: array().of(number()),
+        arrNested: array().of(object().shape({ num: number() })),
         dte: date(),
         nested: object().shape({ str: string() }),
-        arrNested: array().of(object().shape({ num: number() })),
+        num: number(),
+        str: string(),
         stripped: string().strip(),
       })
     })
@@ -71,37 +73,37 @@ describe('Object types', () => {
     })
 
     it('should recursively cast fields', () => {
-      let obj = {
-        num: '5',
-        str: 'hello',
+      const obj = {
         arr: ['4', 5],
+        arrNested: [{ num: 5 }, { num: '5' }],
         dte: '2014-09-23T19:25:25Z',
         nested: { str: 5 },
-        arrNested: [{ num: 5 }, { num: '5' }],
+        num: '5',
+        str: 'hello',
       }
 
-      const cast = inst.cast(obj)
+      const casted = inst.cast(obj)
 
-      cast.should.eql({
-        num: 5,
-        str: 'hello',
+      casted.should.eql({
         arr: [4, 5],
+        arrNested: [{ num: 5 }, { num: 5 }],
         dte: new Date(1411500325000),
         nested: { str: '5' },
-        arrNested: [{ num: 5 }, { num: 5 }],
+        num: 5,
+        str: 'hello',
       })
 
-      expect(cast.arrNested[0]).toStrictEqual(obj.arrNested[0], 'should be kept as is')
+      expect(casted.arrNested[0]).toStrictEqual(obj.arrNested[0]) // 'should be kept as is'
     })
 
     it('should return the same object if all props are already cast', () => {
-      let obj = {
-        num: 5,
-        str: 'hello',
+      const obj = {
         arr: [4, 5],
+        arrNested: [{ num: 5 }, { num: 5 }],
         dte: new Date(1411500325000),
         nested: { str: '5' },
-        arrNested: [{ num: 5 }, { num: 5 }],
+        num: 5,
+        str: 'hello',
       }
 
       expect(inst.cast(obj)).toStrictEqual(obj)
@@ -110,66 +112,65 @@ describe('Object types', () => {
 
   describe('oneOf', () => {
     it('should work with refs', async () => {
-      let inst = object({
-        foo: string(),
+      const inst = object({
         bar: string().oneOf([ref('foo'), 'b']),
+        foo: string(),
       })
 
-      await inst.validate({ foo: 'a', bar: 'a' }).should.be.fulfilled()
-
-      await inst.validate({ foo: 'foo', bar: 'bar' }).should.be.rejected()
+      expect.assertions(2)
+      await expect(inst.validate({ foo: 'a', bar: 'a' })).resolves
+      await expect(inst.validate({ foo: 'foo', bar: 'bar' })).resolves
     })
   })
   describe('validation', () => {
-    let inst, obj
+    let inst: ObjectSchema
+    let obj: any
 
     beforeEach(() => {
       inst = object().shape({
-        num: number().max(4),
-        str: string(),
         arr: array().of(number().max(6)),
+        arrNested: array().of(object().shape({ num: number() })),
         dte: date(),
         nested: object()
           .shape({ str: string().min(3) })
           .required(),
-        arrNested: array().of(object().shape({ num: number() })),
+        num: number().max(4),
+        str: string(),
       })
       obj = {
-        num: '4',
-        str: 'hello',
         arr: ['4', 5, 6],
+        arrNested: [{ num: 5 }, { num: '2' }],
         dte: '2014-09-23T19:25:25Z',
         nested: { str: 5 },
-        arrNested: [{ num: 5 }, { num: '2' }],
+        num: '4',
+        str: 'hello',
       }
     })
 
     it('should run validations recursively', async () => {
-      await inst
-        .isValid()
-        .should.eventually()
-        .equal(true)
+      expect.assertions(1)
+      await expect(inst.isValid(null)).resolves.toStrictEqual(true)
 
-      let error = await inst.validate(obj).should.be.rejected()
-
-      expect(error.errors.length).toStrictEqual(1)
-      error.errors[0].should.contain('nested.str')
+      await expect(inst.validate(obj)).rejects.toMatchObject({
+        errors: [{ message: 'nested.str' }],
+      })
 
       obj.nested.str = 'hello'
       obj.arr[1] = 8
 
-      error = await inst.validate(obj).should.be.rejected()
-      error.errors[0].should.contain('arr[1]')
+      await expect(inst.validate(obj)).rejects.toMatchObject({
+        errors: [{ message: 'arr[1]' }],
+      })
     })
 
     it('should prevent recursive casting', async () => {
-      let castSpy = sinon.spy(StringSchema.prototype, '_cast')
+      const castSpy = sinon.spy(StringSchema.prototype, '_cast')
 
       inst = object({
         field: string(),
       })
 
-      let value = await inst.validate({ field: 5 })
+      const value = await inst.validate({ field: 5 })
 
       expect(value.field).toStrictEqual('5')
 
@@ -183,7 +184,7 @@ describe('Object types', () => {
         field: string(),
       }).strict()
 
-      let err = await inst.validate({ field: 5 }).should.be.rejected()
+      const err = await inst.validate({ field: 5 }).should.be.rejected()
 
       err.message.should.match(/must be a `string` type/)
     })
@@ -209,23 +210,25 @@ describe('Object types', () => {
     })
 
     it('should handle custom validation', async () => {
-      let inst = object()
+      const inst = object()
         .shape({
           prop: mixed(),
           other: mixed(),
         })
         .test('test', '${path} oops', () => false)
 
-      let err = await inst.validate({}).should.be.rejected()
+      const err = await inst.validate({}).should.be.rejected()
 
       expect(err.errors[0]).toStrictEqual('this oops')
     })
 
     it('should not clone during validating', async function() {
-      let base = mixed.prototype.clone
+      const base = mixed.prototype.clone
 
       mixed.prototype.clone = function(...args) {
-        if (!this._mutate) throw new Error('should not call clone')
+        if (!this._mutate) {
+          throw new Error('should not call clone')
+        }
 
         return base.apply(this, args)
       }
@@ -268,7 +271,7 @@ describe('Object types', () => {
   })
 
   it('should call shape with constructed with an arg', () => {
-    let inst = object({
+    const inst = object({
       prop: mixed(),
     })
 
@@ -328,7 +331,7 @@ describe('Object types', () => {
   })
 
   it('should handle empty keys', () => {
-    let inst = object().shape({
+    const inst = object().shape({
       prop: mixed(),
     })
 
@@ -347,7 +350,7 @@ describe('Object types', () => {
   })
 
   it('should work with noUnknown', () => {
-    let inst = object().shape({
+    const inst = object().shape({
       prop: mixed(),
       other: mixed(),
     })
@@ -372,7 +375,7 @@ describe('Object types', () => {
   })
 
   it('should strip specific fields', () => {
-    let inst = object().shape({
+    const inst = object().shape({
       prop: mixed().strip(false),
       other: mixed().strip(),
     })
@@ -383,7 +386,7 @@ describe('Object types', () => {
   })
 
   it('should handle field striping with `when`', () => {
-    let inst = object().shape({
+    const inst = object().shape({
       other: boolean(),
       prop: mixed().when('other', {
         is: true,
@@ -397,7 +400,7 @@ describe('Object types', () => {
   })
 
   it('should allow refs', async function() {
-    let schema = object({
+    const schema = object({
       quz: ref('baz'),
       baz: ref('foo.bar'),
       foo: object({
@@ -406,14 +409,14 @@ describe('Object types', () => {
       x: ref('$x'),
     })
 
-    let value = await schema.validate(
+    const value = await schema.validate(
       {
         foo: { bar: 'boom' },
       },
       { context: { x: 5 } },
     )
 
-    //console.log(value)
+    // console.log(value)
     value.should.eql({
       foo: {
         bar: 'boom',
@@ -425,12 +428,12 @@ describe('Object types', () => {
   })
 
   it('should allow refs with abortEarly false', async () => {
-    let schema = object().shape({
+    const schema = object().shape({
       field: string(),
       dupField: ref('field'),
     })
 
-    let actual = await schema
+    const actual = await schema
       .validate(
         {
           field: 'test',
@@ -443,20 +446,20 @@ describe('Object types', () => {
   })
 
   describe('lazy evaluation', () => {
-    let types = {
+    const types = {
       string: string(),
       number: number(),
     }
 
     it('should be cast-able', () => {
-      let inst = lazy(() => number())
+      const inst = lazy(() => number())
 
       inst.cast.should.be.a('function')
       expect(inst.cast('4')).toStrictEqual(4)
     })
 
     it('should be validatable', async () => {
-      let inst = lazy(() =>
+      const inst = lazy(() =>
         string()
           .trim('trim me!')
           .strict(),
@@ -472,7 +475,7 @@ describe('Object types', () => {
     })
 
     it('should resolve to schema', () => {
-      let inst = object({
+      const inst = object({
         nested: lazy(() => inst),
         x: object({
           y: lazy(() => inst),
@@ -484,7 +487,7 @@ describe('Object types', () => {
     })
 
     it('should be passed the value', done => {
-      let inst = object({
+      const inst = object({
         nested: lazy(value => {
           expect(value).toStrictEqual('foo')
           done()
@@ -496,8 +499,8 @@ describe('Object types', () => {
     })
 
     it('should be passed the options', done => {
-      let opts = {}
-      let inst = lazy((_, options) => {
+      const opts = {}
+      const inst = lazy((_, options) => {
         expect(options).toStrictEqual(opts)
         done()
         return string()
@@ -507,18 +510,18 @@ describe('Object types', () => {
     })
 
     it('should always return a schema', () => {
-      ;(() => lazy(() => {}).cast()).should.throw(/must return a valid schema/)
+      (() => lazy(() => {}).cast()).should.throw(/must return a valid schema/)
     })
 
     it('should set the correct path', async () => {
-      let inst = object({
+      const inst = object({
         str: string()
           .required()
           .nullable(),
         nested: lazy(() => inst.default(undefined)),
       })
 
-      let value = {
+      const value = {
         nested: { str: null },
         str: 'foo',
       }
@@ -532,14 +535,14 @@ describe('Object types', () => {
     })
 
     it('should resolve array sub types', async () => {
-      let inst = object({
+      const inst = object({
         str: string()
           .required()
           .nullable(),
         nested: array().of(lazy(() => inst.default(undefined))),
       })
 
-      let value = {
+      const value = {
         nested: [{ str: null }],
         str: 'foo',
       }
@@ -553,16 +556,16 @@ describe('Object types', () => {
     })
 
     it('should resolve for each array item', async () => {
-      let inst = array().of(lazy(value => types[typeof value]))
+      const inst = array().of(lazy(value => types[typeof value]))
 
-      let val = await inst.validate(['john', 4], { strict: true })
+      const val = await inst.validate(['john', 4], { strict: true })
 
       val.should.eql(['john', 4])
     })
   })
 
   it('should respect abortEarly', () => {
-    let inst = object({
+    const inst = object({
       nest: object({
         str: string().required(),
       }).test('name', 'oops', () => false),
@@ -592,25 +595,25 @@ describe('Object types', () => {
   })
 
   it('should sort errors by insertion order', async () => {
-    let inst = object({
+    const inst = object({
       // use `when` to make sure it is validated second
       foo: string().when('bar', () => string().min(5)),
       bar: string().required(),
     })
 
-    let err = await inst.validate({ foo: 'foo' }, { abortEarly: false }).should.rejected()
+    const err = await inst.validate({ foo: 'foo' }, { abortEarly: false }).should.rejected()
 
     err.errors.should.eql(['foo must be at least 5 characters', 'bar is a required field'])
   })
 
   it('should respect recursive', () => {
-    let inst = object({
+    const inst = object({
       nest: object({
         str: string().required(),
       }),
     }).test('name', 'oops', () => false)
 
-    let val = { nest: { str: null } }
+    const val = { nest: { str: null } }
 
     return Promise.all([
       inst
@@ -631,7 +634,7 @@ describe('Object types', () => {
   })
 
   it('should alias or move keys', () => {
-    let inst = object()
+    const inst = object()
       .shape({
         myProp: mixed(),
         Other: mixed(),
@@ -643,7 +646,7 @@ describe('Object types', () => {
   })
 
   it('should alias nested keys', () => {
-    let inst = object({
+    const inst = object({
       foo: object({
         bar: string(),
       }),
@@ -653,7 +656,7 @@ describe('Object types', () => {
   })
 
   it('should not move keys when it does not exist', () => {
-    let inst = object()
+    const inst = object()
       .shape({
         myProp: mixed(),
       })
@@ -665,11 +668,13 @@ describe('Object types', () => {
   })
 
   it('should handle conditionals', () => {
-    let inst = object().shape({
+    const inst = object().shape({
       noteDate: number()
         .when('stats.isBig', { is: true, then: number().min(5) })
         .when('other', function(v) {
-          if (v === 4) return this.max(6)
+          if (v === 4) {
+            return this.max(6)
+          }
         }),
       stats: object({ isBig: boolean() }),
       other: number()
@@ -713,24 +718,32 @@ describe('Object types', () => {
   })
 
   it('should allow opt out of topo sort on specific edges', () => {
-    ;(function() {
+    (function() {
       object().shape({
         orgID: number().when('location', function(v) {
-          if (v == null) return this.required()
+          if (v == null) {
+            return this.required()
+          }
         }),
         location: string().when('orgID', function(v) {
-          if (v == null) return this.required()
+          if (v == null) {
+            return this.required()
+          }
         }),
       })
     }.should.throw('Cyclic dependency, node was:"location"'))
-    ;(function() {
+    ; (function() {
       object().shape(
         {
           orgID: number().when('location', function(v) {
-            if (v == null) return this.required()
+            if (v == null) {
+              return this.required()
+            }
           }),
           location: string().when('orgID', function(v) {
-            if (v == null) return this.required()
+            if (v == null) {
+              return this.required()
+            }
           }),
         },
         [['location', 'orgID']],
@@ -739,7 +752,7 @@ describe('Object types', () => {
   })
 
   it('should use correct default when concating', () => {
-    let inst = object({
+    const inst = object({
       other: boolean(),
     }).default(undefined)
 
@@ -749,11 +762,11 @@ describe('Object types', () => {
   })
 
   it('should handle nested conditionals', () => {
-    let countSchema = number().when('isBig', {
+    const countSchema = number().when('isBig', {
       is: true,
       then: number().min(5),
     })
-    let inst = object({
+    const inst = object({
       other: boolean(),
       stats: object({
         isBig: boolean(),
@@ -798,7 +811,7 @@ describe('Object types', () => {
   })
 
   it('should camelCase keys', () => {
-    let inst = object()
+    const inst = object()
       .shape({
         conStat: number(),
         caseStatus: number(),
@@ -823,7 +836,7 @@ describe('Object types', () => {
   // })
 
   it('should CONSTANT_CASE keys', () => {
-    let inst = object()
+    const inst = object()
       .shape({
         CON_STAT: number(),
         CASE_STATUS: number(),
@@ -839,7 +852,7 @@ describe('Object types', () => {
   })
 
   xit('should handle invalid shapes better', async () => {
-    var schema = object().shape({
+    const schema = object().shape({
       permissions: undefined,
     })
 

@@ -1,5 +1,6 @@
 import { locale } from './locale'
 import { MixedSchema } from './MixedSchema'
+import { Ref } from './Ref'
 import { Message } from './types'
 import { isAbsent } from './util/isAbsent'
 
@@ -55,7 +56,7 @@ export class StringSchema extends MixedSchema {
     return next.test({ message, name: 'required', test: hasLength })
   }
 
-  public length(length: number, message = locale.string.length) {
+  public length(length: number | Ref, message = locale.string.length) {
     return this.test({
       exclusive: true,
       message,
@@ -67,7 +68,7 @@ export class StringSchema extends MixedSchema {
     })
   }
 
-  public min(min: number, message = locale.string.min) {
+  public min(min: number | Ref, message = locale.string.min) {
     return this.test({
       exclusive: true,
       message,
@@ -79,7 +80,7 @@ export class StringSchema extends MixedSchema {
     })
   }
 
-  public max(max: number, message = locale.string.max) {
+  public max(max: number | Ref, message = locale.string.max) {
     return this.test({
       exclusive: true,
       message,
