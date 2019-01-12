@@ -364,22 +364,22 @@ export class MixedSchema<T = any> implements Schema<T> {
    * yup.object.default(() => ({ number: 5 })); // this is cheaper
    * yup.date.default(() => new Date()); //also helpful for defaults that change over time
    *
-   * Calling default with no arguments will return the current default value
-   *
    * @param value
    */
-  public default(value?: any): Schema<T> {
-    if (arguments.length === 0) {
-      const defaultValue = has(this, '_default') ? this._default : this._defaultDefault
-
-      return typeof defaultValue === 'function'
-        ? defaultValue.call(this)
-        : cloneDeepWith(defaultValue)
-    }
-
+  public default(value: any): Schema<T> {
     const next = this.clone()
     next._default = value
     return next
+  }
+
+  /**
+   * @returns the currrently set default value
+   */
+  public defaultValue(): T {
+    const defaultValue = has(this, '_default') ? this._default : this._defaultDefault
+    return typeof defaultValue === 'function'
+      ? defaultValue.call(this)
+      : cloneDeepWith(defaultValue)
   }
 
   /**

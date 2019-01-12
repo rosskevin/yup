@@ -138,6 +138,7 @@ export interface Schema<T> extends BaseSchema<T> {
   clone(): this
   concat(schema: Schema<T>): this
   default(value?: any): Schema<T>
+  defaultValue(): T
   isType(value: any): value is T
   isValid(value: any, options?: ValidateOptions): Promise<boolean>
   isValidSync(value: any, options?: ValidateOptions): value is T

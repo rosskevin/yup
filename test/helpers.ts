@@ -2,8 +2,7 @@ import { BaseSchema, MixedSchema } from '../src'
 import printValue from '../src/util/printValue'
 
 export function castAndShouldFail(schema: BaseSchema<any>, value: any) {
-  return (() => schema.cast(value)).should.throw(
-    TypeError,
+  expect(schema.cast(value)).toThrow(
     /The value of (.+) could not be cast to a value that satisfies the schema type/gi,
   )
 }
@@ -44,7 +43,7 @@ export function generateIsValidTests<S extends MixedSchema<any>>(
       let schema = inst
 
       if (Array.isArray(config)) {
-        ;[value, schema, message = ''] = config
+        [value, schema, message = ''] = config
       }
 
       it(`${printValue(value)}${message && `  (${message})`}`, () =>

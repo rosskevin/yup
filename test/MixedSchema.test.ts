@@ -486,7 +486,7 @@ describe('MixedSchema', () => {
       }),
     })
 
-    expect(inst.default()).toEqual({ prop: undefined })
+    expect(inst.defaultValue()).toEqual({ prop: undefined })
   })
 
   it('should use label in error message', async () => {
