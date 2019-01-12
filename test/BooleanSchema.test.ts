@@ -1,5 +1,5 @@
 import { boolean } from 'yup'
-import { castAndShouldFail } from './helpers'
+import { expectCastFailure } from './helpers'
 
 describe('BooleanSchema', () => {
   describe('cast', () => {
@@ -11,8 +11,8 @@ describe('BooleanSchema', () => {
       expect(inst.cast('False')).toStrictEqual(false)
       expect(inst.cast(1)).toStrictEqual(true)
       expect(inst.cast(0)).toStrictEqual(false)
-      castAndShouldFail(inst, 'foo')
-      castAndShouldFail(inst, 'bar1')
+      expectCastFailure(inst, 'foo')
+      expectCastFailure(inst, 'bar1')
     })
   })
 

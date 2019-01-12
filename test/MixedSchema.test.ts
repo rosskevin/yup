@@ -1,7 +1,7 @@
 // tslint:disable:object-literal-sort-keys
 
 import { array, boolean, mixed, MixedSchema, number, object, reach, ref, string } from 'yup'
-import { genIsInvalidTests, genIsValidTests } from './helpers'
+import { genIsInvalid, genIsValid } from './helpers'
 
 const noop = () => true
 
@@ -129,8 +129,8 @@ describe('MixedSchema', () => {
 
   describe('oneOf', () => {
     const inst = mixed().oneOf(['hello'])
-    genIsValidTests(inst, [undefined, 'hello'])
-    genIsInvalidTests(inst, [
+    genIsValid(inst, [undefined, 'hello'])
+    genIsInvalid(inst, [
       'YOLO',
       [undefined, inst.required(), 'required'],
       [null, inst.nullable()],
@@ -140,8 +140,8 @@ describe('MixedSchema', () => {
 
   describe('should exclude values', () => {
     const inst = mixed().notOneOf([5, 'hello'])
-    genIsValidTests(inst, [6, 'hfhfh', [5, inst.oneOf([5]), '`oneOf` called after'], null])
-    genIsValidTests(inst, [6, 'hfhfh', [5, inst.oneOf([5]), '`oneOf` called after'], null])
+    genIsValid(inst, [6, 'hfhfh', [5, inst.oneOf([5]), '`oneOf` called after'], null])
+    genIsValid(inst, [6, 'hfhfh', [5, inst.oneOf([5]), '`oneOf` called after'], null])
 
     it('should throw the correct error', async () => {
       expect.assertions(1)

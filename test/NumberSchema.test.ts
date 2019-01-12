@@ -1,5 +1,5 @@
 import { number, NumberSchema } from 'yup'
-import { generateCastTests, genIsInvalidTests, genIsValidTests } from './helpers'
+import { genCast, genIsInvalid, genIsValid } from './helpers'
 
 describe('NumberSchema', () => {
   it('should print the original value', async () => {
@@ -43,7 +43,7 @@ describe('NumberSchema', () => {
   })
 
   describe('cast', () => {
-    generateCastTests(number(), {
+    genCast(number(), {
       // tslint:disable-next-line:no-construct
       invalid: ['', false, true, new Date(), new Number('foo')],
       valid: [
@@ -123,26 +123,26 @@ describe('NumberSchema', () => {
   })
 
   describe('isValid', () => {
-    genIsValidTests(number(), [0xff, '0xff', [null, number().nullable()]])
-    genIsInvalidTests(number(), [null, ' ', '12abc'])
+    genIsValid(number(), [0xff, '0xff', [null, number().nullable()]])
+    genIsInvalid(number(), [null, ' ', '12abc'])
   })
 
   describe('min', () => {
     const schema = number().min(5)
-    genIsValidTests(schema, [7, 35738787838, [null, schema.nullable()]])
-    genIsInvalidTests(schema, [2, null, [14, schema.min(10).min(15)]])
+    genIsValid(schema, [7, 35738787838, [null, schema.nullable()]])
+    genIsInvalid(schema, [2, null, [14, schema.min(10).min(15)]])
   })
 
   describe('max', () => {
     const schema = number().max(5)
-    genIsValidTests(schema, [4, -5222, [null, schema.nullable()]])
-    genIsInvalidTests(schema, [10, null, [16, schema.max(20).max(15)]])
+    genIsValid(schema, [4, -5222, [null, schema.nullable()]])
+    genIsInvalid(schema, [10, null, [16, schema.max(20).max(15)]])
   })
 
   describe('lessThan', () => {
     const schema = number().lessThan(5)
-    genIsValidTests(schema, [4, -10, [null, schema.nullable()]])
-    genIsInvalidTests(schema, [5, 7, null, [14, schema.lessThan(10).lessThan(14)]])
+    genIsValid(schema, [4, -10, [null, schema.nullable()]])
+    genIsInvalid(schema, [5, 7, null, [14, schema.lessThan(10).lessThan(14)]])
 
     it('should return default message', async () => {
       await expect(schema.validate(6)).rejects.toThrow(/this must be less than 5/)
@@ -151,8 +151,8 @@ describe('NumberSchema', () => {
 
   describe('moreThan', () => {
     const schema = number().moreThan(5)
-    genIsValidTests(schema, [6, 56445435, [null, schema.nullable()]])
-    genIsInvalidTests(schema, [5, -10, null, [64, schema.moreThan(52).moreThan(74)]])
+    genIsValid(schema, [6, 56445435, [null, schema.nullable()]])
+    genIsInvalid(schema, [5, -10, null, [64, schema.moreThan(52).moreThan(74)]])
 
     it('should return default message', () => {
       return schema
@@ -164,19 +164,19 @@ describe('NumberSchema', () => {
 
   describe('integer', () => {
     const schema = number().integer()
-    genIsValidTests(schema, [4, -5222])
-    genIsInvalidTests(schema, [10.53, 0.1 * 0.2, -34512535.626, 3.12312e51, new Date()])
+    genIsValid(schema, [4, -5222])
+    genIsInvalid(schema, [10.53, 0.1 * 0.2, -34512535.626, 3.12312e51, new Date()])
   })
 
   describe('positive', () => {
     const schema = number().positive()
-    genIsValidTests(schema, [7, 0])
-    genIsInvalidTests(schema, [-4]) // 'this must be a positive number'
+    genIsValid(schema, [7, 0])
+    genIsInvalid(schema, [-4]) // 'this must be a positive number'
   })
 
   describe('negative', () => {
     const schema = number().positive()
-    genIsValidTests(schema, [-1, 0])
-    genIsInvalidTests(schema, [1]) // 'this must be a negative number'
+    genIsValid(schema, [-1, 0])
+    genIsInvalid(schema, [1]) // 'this must be a negative number'
   })
 })

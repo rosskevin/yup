@@ -1,5 +1,5 @@
 import { string, number, object, ref } from 'yup'
-import { generateCastTests } from './helpers'
+import { genCast } from './helpers'
 
 describe('StringSchema', () => {
   it('is constructed properly', () => {
@@ -153,7 +153,7 @@ describe('StringSchema', () => {
   describe('casting', () => {
     let schema = string()
 
-    generateCastTests(schema, {
+    genCast(schema, {
       valid: [
         [5, '5'],
         ['3', '3'],
@@ -170,7 +170,7 @@ describe('StringSchema', () => {
     describe('ensure', () => {
       let schema = string().ensure()
 
-      generateCastTests(schema, {
+      genCast(schema, {
         valid: [
           [5, '5'],
           ['3', '3'],
