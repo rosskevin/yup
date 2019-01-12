@@ -115,15 +115,13 @@ export class NumberSchema extends MixedSchema {
     return this.transform(value => (!isAbsent(value) ? value | 0 : value))
   }
 
-  public round(methodArg?: 'ceil' | 'floor' | 'round' | 'trunc') {
-    const method = (methodArg && methodArg.toLowerCase()) || 'round'
-
+  public round(method: 'ceil' | 'floor' | 'round' | 'trunc' = 'round') {
     // this exists for symemtry with the new Math.trunc
     if (method === 'trunc') {
       return this.truncate()
     }
 
-    if (ROUND_METHODS.indexOf(method.toLowerCase()) === -1) {
+    if (!ROUND_METHODS.includes(method)) {
       throw new TypeError('Only valid options for round() are: ' + ROUND_METHODS.join(', '))
     }
 

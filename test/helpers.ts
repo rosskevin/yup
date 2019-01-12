@@ -9,7 +9,7 @@ export function castAndShouldFail(schema: BaseSchema<any>, value: any) {
 
 export function generateCastTests<S extends MixedSchema<any>>(
   inst: S,
-  { invalid = [], valid = [] },
+  { invalid = [], valid = [] }: { invalid: any[]; valid: any[] },
 ) {
   valid.forEach(([value, result, schema = inst]) => {
     it(`should cast ${printValue(value)} to ${printValue(result)}`, () => {
@@ -24,30 +24,35 @@ export function generateCastTests<S extends MixedSchema<any>>(
   })
 }
 
-export function generateIsValidTests<S extends MixedSchema<any>>(
-  inst: S,
-  { valid = [], invalid = [] }: { valid: any[]; invalid: any[] },
+function _generateIsValidTest<S extends MixedSchema<any>>(
+  schema: S,
+  arr: any[],
+  expectation: boolean,
 ) {
-  describe('valid:', () => {
-    runValidations(valid, true)
-  })
+  arr.forEach(config => {
+    let message = ''
+    let value = config
 
-  describe('invalid:', () => {
-    runValidations(invalid, false)
-  })
+    if (Array.isArray(config)) {
+      [value, schema, message = ''] = config
+    }
 
-  function runValidations(arr: any[], expectValid: boolean) {
-    arr.forEach(config => {
-      let message = ''
-      let value = config
-      let schema = inst
-
-      if (Array.isArray(config)) {
-        [value, schema, message = ''] = config
-      }
-
-      it(`${printValue(value)}${message && `  (${message})`}`, () =>
-        schema.isValid(value).should.become(expectValid))
+    const description = `${printValue(value)}${message && `  (${message})`}`
+    it(description, async () => {
+      expect.assertions(1)
+      await expect(schema.isValid(value)).toStrictEqual(expectation)
     })
-  }
+  })
+}
+
+export function genIsInvalidTests<S extends MixedSchema<any>>(schema: S, values: any[]) {
+  describe('should be invalid', () => {
+    _generateIsValidTest(schema, values, false)
+  })
+}
+
+export function genIsValidTests<S extends MixedSchema<any>>(schema: S, values: any[]) {
+  describe('should be valid', () => {
+    _generateIsValidTest(schema, values, true)
+  })
 }

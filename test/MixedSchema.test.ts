@@ -1,7 +1,7 @@
 // tslint:disable:object-literal-sort-keys
 
 import { array, boolean, mixed, MixedSchema, number, object, reach, ref, string } from 'yup'
-import { generateIsValidTests } from './helpers'
+import { genIsInvalidTests, genIsValidTests } from './helpers'
 
 const noop = () => true
 
@@ -129,25 +129,19 @@ describe('MixedSchema', () => {
 
   describe('oneOf', () => {
     const inst = mixed().oneOf(['hello'])
-
-    generateIsValidTests(inst, {
-      invalid: [
-        'YOLO',
-        [undefined, inst.required(), 'required'],
-        [null, inst.nullable()],
-        [null, inst.nullable().required(), 'required'],
-      ],
-      valid: [undefined, 'hello'],
-    })
+    genIsValidTests(inst, [undefined, 'hello'])
+    genIsInvalidTests(inst, [
+      'YOLO',
+      [undefined, inst.required(), 'required'],
+      [null, inst.nullable()],
+      [null, inst.nullable().required(), 'required'],
+    ])
   })
 
   describe('should exclude values', () => {
     const inst = mixed().notOneOf([5, 'hello'])
-
-    generateIsValidTests(inst, {
-      invalid: [5, [null, inst.required(), 'required schema']],
-      valid: [6, 'hfhfh', [5, inst.oneOf([5]), '`oneOf` called after'], null],
-    })
+    genIsValidTests(inst, [6, 'hfhfh', [5, inst.oneOf([5]), '`oneOf` called after'], null])
+    genIsValidTests(inst, [6, 'hfhfh', [5, inst.oneOf([5]), '`oneOf` called after'], null])
 
     it('should throw the correct error', async () => {
       expect.assertions(1)
