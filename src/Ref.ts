@@ -15,7 +15,7 @@ export interface RefOptions {
   contextPrefix?: string
 }
 
-export function ref(key: string | Function, options: RefOptions) {
+export function ref(key: string | Function, options?: RefOptions) {
   return new Ref(key, undefined, options)
 }
 // It is tempting to declare `Ref` very simply, but there are problems with these approaches:

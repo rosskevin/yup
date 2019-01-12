@@ -2,13 +2,9 @@ import { locale } from './locale'
 import { MixedSchema } from './MixedSchema'
 import { Ref } from './Ref'
 import { isAbsent } from './util/isAbsent'
+import { isDate } from './util/isDate'
 
 const invalidDate = new Date('')
-
-function isDate(obj: any) {
-  const result = Object.prototype.toString.call(obj) === '[object Date]'
-  return result
-}
 
 export function date() {
   return new DateSchema()
@@ -32,10 +28,10 @@ export class DateSchema extends MixedSchema {
   }
 
   public _typeCheck(v: any) {
-    return isDate(v) && !isNaN(v.getTime())
+    return isDate(v)
   }
 
-  public min(min: number, message = locale.date.min) {
+  public min(min: Date | Ref, message = locale.date.min) {
     let limit = min
 
     if (!Ref.isRef(limit)) {
@@ -56,7 +52,7 @@ export class DateSchema extends MixedSchema {
     })
   }
 
-  public max(max: number, message = locale.date.max) {
+  public max(max: Date | Ref, message = locale.date.max) {
     let limit = max
 
     if (!Ref.isRef(limit)) {
