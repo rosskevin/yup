@@ -13,6 +13,36 @@ import {
 } from 'yup'
 
 describe('Object types', () => {
+  describe('min', () => {
+    genIsInvalid(
+      object({
+        len: number(),
+        name: string().min(ref('len')),
+      }),
+      [{ len: 10, name: 'john' }],
+    )
+  })
+
+  describe('max', () => {
+    genIsInvalid(
+      object({
+        len: number(),
+        name: string().max(ref('len')),
+      }),
+      [{ len: 3, name: 'john' }],
+    )
+  })
+
+  it('length', () => {
+    genIsInvalid(
+      object({
+        len: number(),
+        name: string().length(ref('len')),
+      }),
+      [{ len: 5, name: 'foo' }],
+    )
+  })
+
   describe('casting', () => {
     let inst
 
@@ -37,7 +67,7 @@ describe('Object types', () => {
     })
 
     it('should return null for failed casts', () => {
-      expect(object().cast('dfhdfh', { assert: false })).toStrictEqual(null)
+      expect(object().cast('dfhdfh', { assert: false })).toBeNull()
     })
 
     it('should recursively cast fields', () => {
@@ -713,7 +743,7 @@ describe('Object types', () => {
       other: boolean(),
     }).default(undefined)
 
-    expect(inst.concat(object()).default()).toStrictEqual(undefined)
+    expect(inst.concat(object()).default()).toBeUndefined()
 
     expect(inst.concat(object().default({})).default()).toStrictEqual({})
   })
@@ -780,7 +810,7 @@ describe('Object types', () => {
       .cast({ CON_STAT: 5, CaseStatus: 6, 'hi john': 4 })
       .should.eql({ conStat: 5, caseStatus: 6, hiJohn: 4 })
 
-    expect(inst.nullable().cast(null)).toStrictEqual(null)
+    expect(inst.nullable().cast(null)).toBeNull()
   })
 
   // it('should camelCase with leading underscore', () => {
@@ -805,7 +835,7 @@ describe('Object types', () => {
       .cast({ conStat: 5, CaseStatus: 6, 'hi john': 4 })
       .should.eql({ CON_STAT: 5, CASE_STATUS: 6, HI_JOHN: 4 })
 
-    expect(inst.nullable().cast(null)).toStrictEqual(null)
+    expect(inst.nullable().cast(null)).toBeNull()
   })
 
   xit('should handle invalid shapes better', async () => {
