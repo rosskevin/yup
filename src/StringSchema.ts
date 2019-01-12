@@ -49,7 +49,7 @@ export class StringSchema extends MixedSchema {
     return typeof value === 'string'
   }
 
-  public required(message = locale.mixed.required) {
+  public required(message: Message = locale.mixed.required) {
     const next = super.required(message)
 
     return next.test({ message, name: 'required', test: hasLength })
@@ -132,7 +132,7 @@ export class StringSchema extends MixedSchema {
     return this.default('').transform(val => (val === null ? '' : val))
   }
 
-  public trim(message = locale.string.trim) {
+  public trim(message = locale.string.trim): this {
     return this.transform(val => (val != null ? val.trim() : val)).test({
       message,
       name: 'trim',

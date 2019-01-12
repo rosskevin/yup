@@ -1,15 +1,7 @@
 import mapValues from 'lodash/mapValues'
 import { SynchronousPromise } from 'synchronous-promise'
 import { Ref } from '../Ref'
-import {
-  CreateErrorArgs,
-  Schema,
-  TestContext,
-  TestOptions,
-  ValidateArgs,
-  ValidateFn,
-  ValidateOptions,
-} from '../types'
+import { CreateErrorArgs, TestContext, TestOptions, ValidateArgs, ValidateFn } from '../types'
 import { AnyObject } from '../types'
 import { ValidationError } from '../ValidationError'
 import formatError from './formatError'

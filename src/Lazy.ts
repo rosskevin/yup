@@ -1,9 +1,10 @@
 // tslint:disable:variable-name
 
+import { MixedSchema } from './MixedSchema'
 import { BaseSchema, Schema, ValidateOptions } from './types'
 import { isSchema } from './util/isSchema'
 
-export type MapToSchemaFn<T> = (...args: any[]) => Schema<T>
+export type MapToSchemaFn<T> = (...args: any[]) => MixedSchema<T>
 
 export function lazy<T>(mapToSchema: MapToSchemaFn<T>) {
   return new Lazy(mapToSchema)
@@ -61,7 +62,7 @@ export class Lazy<T = any> implements BaseSchema<T> {
     return this._resolve(value, options).validate(value, options)
   }
 
-  private _resolve = (...args: any[]): Schema<T> => {
+  private _resolve = (...args: any[]): MixedSchema<T> => {
     const schema = this.mapToSchema(...args)
     if (!isSchema(schema)) {
       throw new TypeError('lazy() functions must return a valid schema')

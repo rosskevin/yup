@@ -1,95 +1,86 @@
-import { string, number, object, ref } from 'yup'
-import { genCast } from './helpers'
+import { MessageFormatterParams, number, object, ref, string } from 'yup'
+import { genCastInvalid, genCastValid, genIsNotType, genIsType } from './helpers'
 
 describe('StringSchema', () => {
-  it('is constructed properly', () => {
-    const schema = string()
-    schema.stripped()
+  describe('default/defaultValue', () => {
+    it('should work', () => {
+      expect(
+        string()
+          .default('hi')
+          .defaultValue(),
+      ).toStrictEqual('hi')
+    })
   })
 
-  it('getDefault should return the default value', function() {
-    let inst = string().default('hi')
-    expect(inst.getDefault({})).toStrictEqual('hi')
-    expect(inst.getDefault()).toStrictEqual('hi')
-  })
-
-  it('should check types', async () => {
-    let inst = string()
+  it('strict should assert types', async () => {
+    const inst = string()
       .strict()
       .typeError('must be a ${type}!')
 
-    let error = await inst.validate(5).should.be.rejected()
+    expect.assertions(2)
 
-    expect(error.type).toStrictEqual('typeError')
-    expect(error.message).toStrictEqual('must be a string!')
-    expect(error.inner.length).toStrictEqual(0)
+    await expect(inst.validate(5)).rejects.toMatchObject({
+      inner: [],
+      message: 'must be a string!',
+      type: 'typeError',
+    })
 
-    error = await inst.validate(5, { abortEarly: false }).should.be.rejected()
-
-    expect(error.type).toStrictEqual(undefined)
-    expect(error.message).toStrictEqual('must be a string!')
-    expect(error.inner.length).toStrictEqual(1)
+    await expect(inst.validate(5, { abortEarly: false })).rejects.toMatchObject({
+      inner: [],
+      message: 'must be a string!',
+      type: undefined,
+    })
   })
 
   it('should allow function messages', async () => {
-    let error = await string()
-      .label('My string')
-      .required(d => `${d.label} is required`)
-      .validate()
-      .should.be.rejected()
-
-    expect(error.message).toMatch(/My string is required/)
+    expect.assertions(1)
+    await expect(
+      string()
+        .label('My string')
+        .required((d: MessageFormatterParams) => `${d.label} is required`)
+        .validate(null),
+    ).rejects.toThrow(/My string is required/)
   })
 
-  it('getDefault should return the default value using context', function() {
-    let inst = string().when('$foo', {
+  it('should return the default value using context', () => {
+    const inst = string().when('$foo', {
       is: 'greet',
       then: string().default('hi'),
     })
-    expect(inst.getDefault({ context: { foo: 'greet' } })).toStrictEqual('hi')
+    expect(inst.resolve({ context: { foo: 'greet' } }).defaultValue()).toStrictEqual('hi')
   })
 
   it('should warn about null types', async () => {
-    let error = await string()
-      .strict()
-      .validate(null)
-      .should.be.rejected()
-
-    expect(error.message).toMatch(/If "null" is intended/)
-  })
-
-  it('should run subset of validations first', () => {
-    let called = false
-    let inst = string()
-      .strict()
-      .test('test', 'boom', () => (called = true))
-
-    return inst
-      .validate(25)
-      .should.be.rejected()
-      .then(() => {
-        expect(called).toStrictEqual(false)
-      })
-  })
-
-  it('should respect strict', () => {
-    let inst = string().equals(['hello', '5'])
-
-    return Promise.all([
-      inst
-        .isValid(5)
-        .should.eventually()
-        .equal(true),
-      inst
+    expect.assertions(1)
+    await expect(
+      string()
         .strict()
-        .isValid(5)
-        .should.eventually()
-        .equal(false),
-    ])
+        .validate(null),
+    ).rejects.toThrow(/If "null" is intended/)
+  })
+
+  it('should run subset of validations first', async () => {
+    let called = false
+    const inst = string()
+      .strict()
+      .test({ name: 'test', message: 'boom', test: () => (called = true) })
+
+    expect.assertions(1)
+    await expect(inst.validate(25)).rejects
+
+    expect(called).toStrictEqual(false)
+  })
+
+  it('should respect strict', async () => {
+    const inst = string().equals(['hello', '5'])
+
+    expect.assertions(2)
+    expect(inst.isValid(5)).resolves.toStrictEqual(true)
+    expect(inst.strict().isValid(5)).resolves.toStrictEqual(false)
   })
 
   it('should respect abortEarly', () => {
-    let inst = string()
+    const inst = string()
       .trim()
       .min(10)
 
@@ -113,7 +104,7 @@ describe('StringSchema', () => {
   })
 
   it('should allow custom validation', async () => {
-    let inst = string().test('name', 'test a', val => val === 'jim')
+    const inst = string().test('name', 'test a', val => val === 'jim')
 
     return inst
       .validate('joe')
@@ -123,22 +114,21 @@ describe('StringSchema', () => {
       })
   })
 
-  it('concat should fail on different types', function() {
-    let inst = string().default('hi')
-
-    ;(function() {
+  it('concat should fail on different types', () => {
+    const inst = string().default('hi')
+    ; (function() {
       inst.concat(object())
     }.should.throw(TypeError))
   })
 
-  it('concat should maintain undefined defaults', function() {
-    let inst = string().default('hi')
+  it('concat should maintain undefined defaults', () => {
+    const inst = string().default('hi')
 
     expect(inst.concat(string().default(undefined)).default()).toStrictEqual(undefined)
   })
 
-  it('defaults should be validated but not transformed', function() {
-    let inst = string()
+  it('defaults should be validated but not transformed', () => {
+    const inst = string()
       .trim()
       .default('  hi  ')
 
@@ -151,13 +141,13 @@ describe('StringSchema', () => {
   })
 
   describe('casting', () => {
-    let schema = string()
+    const schema = string()
 
     genCast(schema, {
       valid: [
         [5, '5'],
         ['3', '3'],
-        //[new String('foo'), 'foo'],
+        // [new String('foo'), 'foo'],
         ['', ''],
         [true, 'true'],
         [false, 'false'],
@@ -168,7 +158,7 @@ describe('StringSchema', () => {
     })
 
     describe('ensure', () => {
-      let schema = string().ensure()
+      const schema = string().ensure()
 
       genCast(schema, {
         valid: [
@@ -209,8 +199,8 @@ describe('StringSchema', () => {
     })
   })
 
-  it('should handle DEFAULT', function() {
-    var inst = string()
+  it('should handle DEFAULT', () => {
+    const inst = string()
 
     inst
       .default('my_value')
@@ -219,19 +209,21 @@ describe('StringSchema', () => {
     expect().toStrictEqual('my_value')
   })
 
-  it('should type check', function() {
-    var inst = string()
-
-    expect(inst.isType('5')).toStrictEqual(true)
-    expect(inst.isType(new String('5'))).toStrictEqual(true)
-    expect(inst.isType(false)).toStrictEqual(false)
-    expect(inst.isType(null)).toStrictEqual(false)
-    inst.nullable(false).isType(null)
-    expect().toStrictEqual(false)
+  describe('isType', () => {
+    genIsNotType(string(), [false, null])
+    // tslint:disable-next-line:no-construct
+    genIsType(string(), ['5', new String('5')])
+    it('nullable should work', () => {
+      expect(
+        string()
+          .nullable(false)
+          .isType(null),
+      ).toStrictEqual(false)
+    })
   })
 
-  it('should VALIDATE correctly', function() {
-    var inst = string()
+  it('should VALIDATE correctly', () => {
+    const inst = string()
       .required()
       .min(4)
       .strict()
@@ -269,8 +261,8 @@ describe('StringSchema', () => {
     ])
   })
 
-  it('should check MATCHES correctly', function() {
-    var v = string().matches(/(hi|bye)/)
+  it('should check MATCHES correctly', () => {
+    const v = string().matches(/(hi|bye)/)
 
     return Promise.all([
       v
@@ -289,7 +281,7 @@ describe('StringSchema', () => {
   })
 
   it('MATCHES should include empty strings', () => {
-    let v = string().matches(/(hi|bye)/)
+    const v = string().matches(/(hi|bye)/)
 
     return v
       .isValid('')
@@ -298,7 +290,7 @@ describe('StringSchema', () => {
   })
 
   it('MATCHES should exclude empty strings', () => {
-    let v = string().matches(/(hi|bye)/, { excludeEmptyString: true })
+    const v = string().matches(/(hi|bye)/, { excludeEmptyString: true })
 
     return v
       .isValid('')
@@ -307,7 +299,7 @@ describe('StringSchema', () => {
   })
 
   it('EMAIL should exclude empty strings', () => {
-    let v = string().email()
+    const v = string().email()
 
     return v
       .isValid('')
@@ -315,9 +307,9 @@ describe('StringSchema', () => {
       .equal(true)
   })
 
-  it('should check MIN correctly', function() {
-    var v = string().min(5)
-    var obj = object({
+  it('should check MIN correctly', () => {
+    const v = string().min(5)
+    const obj = object({
       len: number(),
       name: string().min(ref('len')),
     })
@@ -353,9 +345,9 @@ describe('StringSchema', () => {
     ])
   })
 
-  it('should check MAX correctly', function() {
-    var v = string().max(5)
-    var obj = object({
+  it('should check MAX correctly', () => {
+    const v = string().max(5)
+    const obj = object({
       len: number(),
       name: string().max(ref('len')),
     })
@@ -391,9 +383,9 @@ describe('StringSchema', () => {
     ])
   })
 
-  it('should check LENGTH correctly', function() {
-    var v = string().length(5)
-    var obj = object({
+  it('should check LENGTH correctly', () => {
+    const v = string().length(5)
+    const obj = object({
       len: number(),
       name: string().length(ref('len')),
     })
@@ -429,8 +421,8 @@ describe('StringSchema', () => {
     ])
   })
 
-  it('should check url correctly', function() {
-    var v = string().url()
+  it('should check url correctly', () => {
+    const v = string().url()
 
     return Promise.all([
       v
@@ -448,7 +440,7 @@ describe('StringSchema', () => {
     ])
   })
 
-  it('should validate transforms', function() {
+  it('should validate transforms', () => {
     return Promise.all([
       string()
         .trim()

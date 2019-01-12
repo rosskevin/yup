@@ -85,7 +85,7 @@ export class MixedSchema<T = any> implements Schema<T> {
   /**
    * Overrides the key name which is used in error messages.
    */
-  public label(label: string) {
+  public label(label: string): this {
     const next = this.clone()
     next._label = label
     return next
@@ -95,7 +95,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    *
    * Adds to a metadata object, useful for storing data with a schema, that doesn't belong the cast object itself.
    */
-  public meta(obj?: AnyObject) {
+  public meta(obj?: AnyObject): this {
     if (arguments.length === 0) {
       return this._meta
     }
@@ -170,7 +170,7 @@ export class MixedSchema<T = any> implements Schema<T> {
     return !(this as any)._typeCheck || (this as any)._typeCheck(v)
   }
 
-  public resolve({ context, parent }: ValidateOptions): Schema<T> {
+  public resolve({ context, parent }: ValidateOptions): this {
     if (this._conditions.length) {
       return this._conditions.reduce(
         (schema, match) => match.resolve(schema, match.getValue(parent, context)),
@@ -266,10 +266,11 @@ export class MixedSchema<T = any> implements Schema<T> {
     }).then((v: any) =>
       // run provided validations
       runValidations({
+        // FIXME looks like this should be name runTests
         endEarly,
         path,
         sync,
-        validations: this.tests.map(fn => fn(validateArgs)),
+        validations: this.tests.map(fn => fn(validateArgs)), // FIXME why map? why not just have runValidations interpret?
         value: v,
       }),
     )
@@ -347,11 +348,6 @@ export class MixedSchema<T = any> implements Schema<T> {
     }
   }
 
-  public getDefault(options = {}) {
-    const schema = this.resolve(options)
-    return schema.default()
-  }
-
   /**
    * Sets a default value to use when the value is undefined.
    *
@@ -367,7 +363,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    *
    * @param value
    */
-  public default(value: any): Schema<T> {
+  public default(value: any): this {
     const next = this.clone()
     next._default = value
     return next
@@ -384,9 +380,10 @@ export class MixedSchema<T = any> implements Schema<T> {
   }
 
   /**
-   * Sets the strict option to true. Strict schemas skip coercion and transformation attempts, validating the value "as is".
+   * Sets the strict option to true.
+   * Strict schemas skip coercion and transformation attempts, validating the value as-is.
    */
-  public strict() {
+  public strict(): this {
     const next = this.clone()
     next._options.strict = true
     return next
@@ -396,14 +393,14 @@ export class MixedSchema<T = any> implements Schema<T> {
    * Mark the schema as required. All field values apart from undefined and null meet this requirement.
    * @param message
    */
-  public required(message = locale.mixed.required) {
+  public required(message: Message = locale.mixed.required) {
     return this.test({ message, name: 'required', test: isNotEmpty })
   }
 
   /**
    * Mark the schema as not required. Passing undefined as value will not fail validation.
    */
-  public notRequired() {
+  public notRequired(): this {
     const next = this.clone()
     next.tests = next.tests.filter(test => (test as any).TEST_OPTIONS.name !== 'required')
     return next
@@ -415,7 +412,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    *
    * @param value
    */
-  public nullable(value = true) {
+  public nullable(value = true): this {
     const next = this.clone()
     next._nullable = value === false ? false : true
     return next
@@ -438,8 +435,8 @@ export class MixedSchema<T = any> implements Schema<T> {
    *
    * @param fn
    */
-  public transform(fn: TransformFunction<T>): Schema<T> {
-    const next: Schema<T> = this.clone()
+  public transform(fn: TransformFunction<T>): this {
+    const next = this.clone()
     next.transforms.push(fn)
     return next
   }
@@ -486,7 +483,7 @@ export class MixedSchema<T = any> implements Schema<T> {
     }
 
     const next = this.clone()
-    const validate = createValidation<T>(opts)
+    const validate = createValidation<T>(opts) // FIXME this looks like it should be named createTest
     const isExclusive = opts.exclusive || (opts.name && next._exclusive[opts.name] === true)
     if (opts.exclusive && !opts.name) {
       throw new TypeError('Exclusive tests must provide a unique `name` identifying the test')
@@ -567,7 +564,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    * @param keys
    * @param options
    */
-  public when(keys: string | string[], options: WhenOptions<T>): Schema<T> {
+  public when(keys: string | string[], options: WhenOptions<T>): this {
     const next = this.clone()
     const deps: Ref[] = ([] as string[]).concat(keys).map(key => new Ref(key))
 
@@ -588,7 +585,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    * The ${value} and ${type} interpolation can be used in the message argument.
    * @param message
    */
-  public typeError(message: Message) {
+  public typeError(message: Message): this {
     const next = this.clone()
 
     next._typeError = createValidation({
@@ -617,7 +614,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    * @param values
    * @param message
    */
-  public oneOf(values: any[], message: Message = locale.mixed.oneOf) {
+  public oneOf(values: any[], message: Message = locale.mixed.oneOf): this {
     const next = this.clone()
 
     values.forEach(val => {
@@ -656,7 +653,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    * @param values
    * @param message
    */
-  public notOneOf(values: any[], message = locale.mixed.notOneOf) {
+  public notOneOf(values: any[], message = locale.mixed.notOneOf): this {
     const next = this.clone()
     values.forEach(val => {
       next._blacklist.add(val)
@@ -686,7 +683,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    * Marks a schema to be removed from an output object. Only works as a nested schema.
    * @param strip
    */
-  public strip(strip = true) {
+  public strip(strip = true): this {
     const next = this.clone()
     next._strip = strip // FIXME why not next._options ???
     return next
@@ -743,11 +740,18 @@ export class MixedSchema<T = any> implements Schema<T> {
       path,
     })
   }
-}
 
-for (const alias of ['equals', 'is']) {
-  MixedSchema.prototype[alias] = MixedSchema.prototype.oneOf
-}
-for (const alias of ['not', 'nope']) {
-  MixedSchema.prototype[alias] = MixedSchema.prototype.notOneOf
+  // alias oneOf
+  public is(values: any[], message: Message = locale.mixed.oneOf) {
+    return this.oneOf(values, message)
+  }
+
+  public equals(values: any[], message: Message = locale.mixed.oneOf) {
+    return this.oneOf(values, message)
+  }
+
+  // alias notOneOf
+  public not(values: any[], message = locale.mixed.notOneOf) {
+    return this.notOneOf(values, message)
+  }
 }

@@ -137,20 +137,20 @@ export interface Schema<T> extends BaseSchema<T> {
   _cast(rawValue: any, options?: ValidateOptions): any
   clone(): this
   concat(schema: Schema<T>): this
-  default(value: any): Schema<T>
+  default(value: any): this
   defaultValue(): T
   isType(value: any): value is T
   isValid(value: any, options?: ValidateOptions): Promise<boolean>
   isValidSync(value: any, options?: ValidateOptions): value is T
-  label(label: string): Schema<T>
-  meta(metadata?: AnyObject): Schema<T>
-  notOneOf(values: any[], message?: Message): Schema<T>
-  notRequired(): Schema<T>
-  nullable(isNullable: boolean): Schema<T>
-  oneOf(values: any[], message?: Message): Schema<T>
+  label(label: string): this
+  meta(metadata?: AnyObject): this
+  notOneOf(values: any[], message?: Message): this
+  notRequired(): this
+  nullable(isNullable: boolean): this
+  oneOf(values: any[], message?: Message): this
   required(message?: Message): this
-  strict(): Schema<T>
-  strip(strip?: boolean): Schema<T>
+  strict(): this
+  strip(strip?: boolean): this
   test(options: TestOptions): this
   // test(
   //   name: string,
@@ -161,13 +161,13 @@ export interface Schema<T> extends BaseSchema<T> {
   //   ) => boolean | ValidationError | Promise<boolean | ValidationError>,
   //   callbackStyleAsync?: boolean,
   // ): this
-  transform(fn: TransformFunction<T>): Schema<T>
-  typeError(message?: Message): Schema<T>
+  transform(fn: TransformFunction<T>): this
+  typeError(message?: Message): this
   _validate(value: any, options: ValidateOptions): Promise<T>
   validateAt(path: string, value: T, options?: ValidateOptions): Promise<T>
   validateSync(value: any, options?: ValidateOptions): any
   validateSyncAt(path: string, value: T, options?: ValidateOptions): T
-  when(keys: string | string[], options: WhenOptions<T>): Schema<T>
+  when(keys: string | string[], options: WhenOptions<T>): this
   withMutation(fn: MutationFn<T>): void
 }
 
@@ -204,7 +204,7 @@ export interface LocaleFnArgs {
 export type LocaleFn = (args: LocaleFnArgs) => string
 
 export interface MessageFormatterParams extends Partial<TestMessageParams> {
-  [key: string]: any // open params?
+  [key: string]: any //  FIXME open params? I think this sholud be merged with LocaleFn
 }
 export type MessageFormatter = (params: MessageFormatterParams) => string
 export type Message = string | MessageFormatter | LocaleFn
