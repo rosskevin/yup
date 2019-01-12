@@ -11,7 +11,7 @@ function _generateIsValidTest<S extends MixedSchema<any>>(
     let value = config
 
     if (Array.isArray(config)) {
-      ;[value, schema, message = ''] = config
+      [value, schema, message = ''] = config
     }
 
     const description = `${printValue(value)}${message && `  (${message})`}`

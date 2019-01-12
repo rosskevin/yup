@@ -1,5 +1,6 @@
 import * as sinon from 'sinon'
 import { array, number, object, string, StringSchema } from 'yup'
+import { genIsNotType, genIsType } from './helpers'
 
 describe('ArraySchema', () => {
   describe('cast', () => {
@@ -46,7 +47,7 @@ describe('ArraySchema', () => {
       expect(value[0]).toStrictEqual('5')
       expect(castSpy.calledOnce).toStrictEqual(true)
       // tslint:disable-next-line:align
-      ; (StringSchema.prototype._cast as any).restore()
+      ;(StringSchema.prototype._cast as any).restore()
     })
   })
 
@@ -63,16 +64,15 @@ describe('ArraySchema', () => {
   })
 
   describe('isType', () => {
-    it('should work', () => {
-      const inst = array()
+    genIsNotType(array(), [{}, 'true', NaN, 34545, null])
+    genIsType(array(), [[]])
 
-      expect(inst.isType([])).toStrictEqual(true)
-      expect(inst.isType({})).toStrictEqual(false)
-      expect(inst.isType('true')).toStrictEqual(false)
-      expect(inst.isType(NaN)).toStrictEqual(false)
-      expect(inst.isType(34545)).toStrictEqual(false)
-      expect(inst.isType(null)).toStrictEqual(false)
-      expect(inst.nullable().isType(null)).toStrictEqual(true)
+    it('nullable should work', () => {
+      expect(
+        array()
+          .nullable()
+          .isType(null),
+      ).toStrictEqual(true)
     })
   })
 

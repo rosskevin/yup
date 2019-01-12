@@ -1,6 +1,6 @@
 import { date, ref } from 'yup'
 import { isDate } from '../src/util/isDate'
-import { genCastValid } from './helpers'
+import { genCastValid, genIsNotType, genIsType } from './helpers'
 
 describe('DateSchema', () => {
   describe('cast', () => {
@@ -26,13 +26,14 @@ describe('DateSchema', () => {
   })
 
   describe('isType', () => {
+    genIsNotType(date(), [false, null, NaN])
+    genIsType(date(), [new Date()])
     it('should work', () => {
-      const inst = date()
-      expect(inst.isType(new Date())).toStrictEqual(true)
-      expect(inst.isType(false)).toStrictEqual(false)
-      expect(inst.isType(null)).toStrictEqual(false)
-      expect(inst.isType(NaN)).toStrictEqual(false)
-      expect(inst.nullable().isType(new Date())).toStrictEqual(true)
+      expect(
+        date()
+          .nullable()
+          .isType(null), // FIXME was new Date()
+      ).toStrictEqual(true)
     })
   })
 

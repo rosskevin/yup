@@ -1,5 +1,5 @@
 import { boolean } from 'yup'
-import { expectCastFailure, genCastInvalid, genCastValid } from './helpers'
+import { genCastInvalid, genCastValid, genIsNotType, genIsType } from './helpers'
 
 describe('BooleanSchema', () => {
   genCastValid(boolean(), [
@@ -26,19 +26,17 @@ describe('BooleanSchema', () => {
   })
 
   describe('isType', () => {
-    it('should work', () => {
-      const inst = boolean()
-      expect(inst.isType(1)).toStrictEqual(false)
-      expect(inst.isType(false)).toStrictEqual(true)
-      expect(inst.isType('true')).toStrictEqual(false)
-      expect(inst.isType(NaN)).toStrictEqual(false)
-      // tslint:disable-next-line:no-construct
-      expect(inst.isType(new Number('foooo'))).toStrictEqual(false)
-      expect(inst.isType(34545)).toStrictEqual(false)
-      // tslint:disable-next-line:no-construct
-      expect(inst.isType(new Boolean(false))).toStrictEqual(true)
-      expect(inst.isType(null)).toStrictEqual(false)
-      expect(inst.nullable().isType(null)).toStrictEqual(true)
+    // tslint:disable-next-line:no-construct
+    genIsNotType(boolean(), [1, 'true', NaN, new Number('foooo'), 34545, null])
+    // tslint:disable-next-line:no-construct
+    genIsType(boolean(), [false, true, new Boolean(false)])
+
+    it('nullable should work', () => {
+      expect(
+        boolean()
+          .nullable()
+          .isType(null),
+      ).toStrictEqual(true)
     })
   })
 

@@ -1,5 +1,12 @@
 import { number, NumberSchema } from 'yup'
-import { genCastInvalid, genCastValid, genIsInvalid, genIsValid } from './helpers'
+import {
+  genCastInvalid,
+  genCastValid,
+  genIsInvalid,
+  genIsNotType,
+  genIsType,
+  genIsValid,
+} from './helpers'
 
 describe('NumberSchema', () => {
   it('should print the original value', async () => {
@@ -109,18 +116,17 @@ describe('NumberSchema', () => {
   })
 
   describe('isType', () => {
-    it('should type check', () => {
-      const inst = number()
+    // tslint:disable-next-line:no-construct
+    genIsNotType(number(), [new Number('foo'), false, null, NaN])
+    // tslint:disable-next-line:no-construct
+    genIsType(number(), [5, new Number(5)])
 
-      expect(inst.isType(5)).toStrictEqual(true)
-      // tslint:disable-next-line:no-construct
-      expect(inst.isType(new Number(5))).toStrictEqual(true)
-      // tslint:disable-next-line:no-construct
-      expect(inst.isType(new Number('foo'))).toStrictEqual(false)
-      expect(inst.isType(false)).toStrictEqual(false)
-      expect(inst.isType(null)).toStrictEqual(false)
-      expect(inst.isType(NaN)).toStrictEqual(false)
-      expect(inst.nullable().isType(null)).toStrictEqual(true)
+    it('nullable should work', () => {
+      expect(
+        number()
+          .nullable()
+          .isType(null),
+      ).toStrictEqual(true)
     })
   })
 
