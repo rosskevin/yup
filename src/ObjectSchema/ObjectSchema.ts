@@ -6,6 +6,7 @@ import mapKeys from 'lodash/mapKeys'
 import snakeCase from 'lodash/snakeCase'
 import { locale } from '../locale'
 import { MixedSchema } from '../MixedSchema'
+import { Ref } from '../Ref'
 import { BaseSchema, Schema, SchemaDescription, ValidateOptions } from '../types'
 import { getter } from '../util/expression'
 import { isObject } from '../util/isObject'
@@ -22,7 +23,7 @@ function unknown(ctx: any, value: any) {
 }
 
 export interface SchemaShape {
-  [key: string]: BaseSchema<any>
+  [key: string]: BaseSchema<any> | Ref
 }
 export function object(schemaShape?: SchemaShape) {
   return new ObjectSchema(schemaShape)
@@ -108,7 +109,7 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
 
     // should ignore nulls here
     if (value === undefined) {
-      return this.default()
+      return this.defaultValue()
     }
 
     if (!this._typeCheck(value)) {
@@ -252,7 +253,7 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
    * @param schema
    * @param excludes
    */
-  public shape(schemaShape: SchemaShape, excludes = []) {
+  public shape(schemaShape: SchemaShape, excludes: string[][] = []) {
     const next = this.clone()
     next.fields = Object.assign(next.fields, schemaShape)
 
@@ -313,11 +314,6 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
    * @param message
    */
   public noUnknown(noAllow = true, message = locale.object.noUnknown) {
-    if (typeof noAllow === 'string') {
-      message = noAllow
-      noAllow = true
-    }
-
     const next = this.test({
       exclusive: true,
       message,

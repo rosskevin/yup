@@ -47,7 +47,7 @@ describe('ArraySchema', () => {
       expect(value[0]).toStrictEqual('5')
       expect(castSpy.calledOnce).toStrictEqual(true)
       // tslint:disable-next-line:align
-      ;(StringSchema.prototype._cast as any).restore()
+      ; (StringSchema.prototype._cast as any).restore()
     })
   })
 

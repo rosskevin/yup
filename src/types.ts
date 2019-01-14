@@ -68,7 +68,7 @@ export interface WhenOptionsFns<T> {
 
 export type WhenIsFn = (...values: any[]) => boolean
 
-export type WhenOptionsFn<T> = (values: any, schema: Schema<T>) => Schema<T> // | undefined
+export type WhenOptionsFn<T> = (value: any, schema: Schema<T>) => Schema<T> // | undefined
 
 // export interface WhenOptionsObject<T> {
 //   is: boolean | WhenIsFn

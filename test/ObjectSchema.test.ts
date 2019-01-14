@@ -1,3 +1,4 @@
+import * as sinon from 'sinon'
 import {
   array,
   boolean,
@@ -45,20 +46,20 @@ describe('Object types', () => {
     )
   })
 
-  describe('casting', () => {
-    let inst: ObjectSchema<any>
+  describe('cast', () => {
+    // let inst: ObjectSchema<any>
 
-    beforeEach(() => {
-      inst = object({
-        arr: array().of(number()),
-        arrNested: array().of(object().shape({ num: number() })),
-        dte: date(),
-        nested: object().shape({ str: string() }),
-        num: number(),
-        str: string(),
-        stripped: string().strip(),
-      })
-    })
+    // beforeEach(() => {
+    //   inst = object({
+    //     arr: array().of(number()),
+    //     arrNested: array().of(object().shape({ num: number() })),
+    //     dte: date(),
+    //     nested: object().shape({ str: string() }),
+    //     num: number(),
+    //     str: string(),
+    //     stripped: string().strip(),
+    //   })
+    // })
 
     it('should parse json strings', () => {
       object({ hello: number() })
@@ -82,6 +83,15 @@ describe('Object types', () => {
         str: 'hello',
       }
 
+      const inst = object({
+        arr: array().of(number()),
+        arrNested: array().of(object().shape({ num: number() })),
+        dte: date(),
+        nested: object().shape({ str: string() }),
+        num: number(),
+        str: string(),
+        stripped: string().strip(),
+      })
       const casted = inst.cast(obj)
 
       casted.should.eql({
@@ -105,8 +115,72 @@ describe('Object types', () => {
         num: 5,
         str: 'hello',
       }
-
+      const inst = object({
+        arr: array().of(number()),
+        arrNested: array().of(object().shape({ num: number() })),
+        dte: date(),
+        nested: object().shape({ str: string() }),
+        num: number(),
+        str: string(),
+        stripped: string().strip(),
+      })
       expect(inst.cast(obj)).toStrictEqual(obj)
+    })
+
+    it('with stripUnknown', () => {
+      expect(
+        object({
+          names: object({
+            first: string(),
+          }),
+        }).cast(
+          {
+            extra: true,
+            names: { first: 'john', extra: true },
+          },
+          { stripUnknown: true },
+        ),
+      ).toMatchObject({
+        names: {
+          first: 'john',
+        },
+      })
+    })
+
+    it('should alias or move keys', () => {
+      const inst = object()
+        .shape({
+          Other: mixed(),
+          myProp: mixed(),
+        })
+        .from('prop', 'myProp')
+        .from('other', 'Other', true)
+
+      expect(inst.cast({ prop: 5, other: 6 })).toMatchObject({ myProp: 5, other: 6, Other: 6 })
+    })
+
+    it('should alias nested keys', () => {
+      const inst = object({
+        foo: object({
+          bar: string(),
+        }),
+      }).from('foo.bar', 'foobar', true)
+
+      expect(inst.cast({ foo: { bar: 'quz' } })).toMatchObject({
+        foo: { bar: 'quz' },
+        foobar: 'quz',
+      })
+    })
+
+    it('should not move keys when it does not exist', () => {
+      const inst = object()
+        .shape({
+          myProp: mixed(),
+        })
+        .from('prop', 'myProp')
+
+      expect(inst.cast({ myProp: 5 })).toMatchObject({ myProp: 5 })
+      expect(inst.cast({ myProp: 5, prop: 7 })).toMatchObject({ myProp: 7 })
     })
   })
 
@@ -122,12 +196,40 @@ describe('Object types', () => {
       await expect(inst.validate({ foo: 'foo', bar: 'bar' })).resolves
     })
   })
-  describe('validation', () => {
-    let inst: ObjectSchema
-    let obj: any
 
-    beforeEach(() => {
-      inst = object().shape({
+  describe('strict', () => {
+    it('should respect strict for nested values', async () => {
+      expect.assertions(1)
+      await expect(
+        object({
+          field: string(),
+        })
+          .strict()
+          .validate({ field: 5 }),
+      ).rejects.toThrow(/must be a `string` type/)
+    })
+
+    it('should respect child schema with strict()', async () => {
+      const inst = object({
+        field: number()
+          .strict()
+          .integer(),
+      })
+
+      // assert cast works as expected
+      expect(inst.cast({ field: '5' })).toMatchObject({ field: 5 })
+
+      // strict mode will not cast
+      expect.assertions(3)
+      await expect(inst.validate({ field: 5 })).resolves.toStrictEqual(true)
+      await expect(inst.validate({ field: '5' })).rejects.toThrow(/must be a `number` type/)
+      await expect(inst.validate({ field: 'asdad' })).rejects
+    })
+  })
+
+  describe('validation', () => {
+    it('should run validations recursively', async () => {
+      const inst = object().shape({
         arr: array().of(number().max(6)),
         arrNested: array().of(object().shape({ num: number() })),
         dte: date(),
@@ -137,7 +239,7 @@ describe('Object types', () => {
         num: number().max(4),
         str: string(),
       })
-      obj = {
+      const obj = {
         arr: ['4', 5, 6],
         arrNested: [{ num: 5 }, { num: '2' }],
         dte: '2014-09-23T19:25:25Z',
@@ -145,17 +247,14 @@ describe('Object types', () => {
         num: '4',
         str: 'hello',
       }
-    })
 
-    it('should run validations recursively', async () => {
-      expect.assertions(1)
+      expect.assertions(3)
       await expect(inst.isValid(null)).resolves.toStrictEqual(true)
-
       await expect(inst.validate(obj)).rejects.toMatchObject({
         errors: [{ message: 'nested.str' }],
       })
 
-      obj.nested.str = 'hello'
+      obj.nested.str = 'hello' as any
       obj.arr[1] = 8
 
       await expect(inst.validate(obj)).rejects.toMatchObject({
@@ -165,109 +264,61 @@ describe('Object types', () => {
 
     it('should prevent recursive casting', async () => {
       const castSpy = sinon.spy(StringSchema.prototype, '_cast')
-
-      inst = object({
+      const inst = object({
         field: string(),
       })
 
+      expect.assertions(1)
       const value = await inst.validate({ field: 5 })
 
       expect(value.field).toStrictEqual('5')
-
-      castSpy.should.have.been.calledOnce()
-
-      StringSchema.prototype._cast.restore()
-    })
-
-    it('should respect strict for nested values', async () => {
-      inst = object({
-        field: string(),
-      }).strict()
-
-      const err = await inst.validate({ field: 5 }).should.be.rejected()
-
-      err.message.should.match(/must be a `string` type/)
-    })
-
-    it('should respect child schema with strict()', async () => {
-      inst = object({
-        field: number().strict(),
-      })
-
-      let err = await inst.validate({ field: '5' }).should.be.rejected()
-
-      err.message.should.match(/must be a `number` type/)
-
-      inst.cast({ field: '5' }).should.eql({ field: 5 })
-
-      err = await object({
-        port: number()
-          .strict()
-          .integer(),
-      })
-        .validate({ port: 'asdad' })
-        .should.be.rejected()
+      expect(castSpy.calledOnce).toStrictEqual(true)
+      // tslint:disable-next-line:align
+      ; (StringSchema.prototype._cast as any).restore()
     })
 
     it('should handle custom validation', async () => {
       const inst = object()
         .shape({
-          prop: mixed(),
           other: mixed(),
+          prop: mixed(),
         })
-        .test('test', '${path} oops', () => false)
+        .test({ name: 'test', message: '${path} oops', test: () => false })
 
-      const err = await inst.validate({}).should.be.rejected()
-
-      expect(err.errors[0]).toStrictEqual('this oops')
+      expect.assertions(1)
+      await expect(inst.validate({})).rejects.toThrow(/this oops/)
     })
 
-    it('should not clone during validating', async function() {
-      const base = mixed.prototype.clone
-
-      mixed.prototype.clone = function(...args) {
-        if (!this._mutate) {
-          throw new Error('should not call clone')
+    it('should not clone during validating', async () => {
+      class NoCloneDuringValidate extends ObjectSchema {
+        public clone() {
+          if (!this._mutate) {
+            throw new Error('should not call clone')
+          }
+          return super.clone()
         }
-
-        return base.apply(this, args)
       }
 
-      try {
-        await inst.validate({
-          nested: { str: 'jimmm' },
-          arrNested: [{ num: 5 }, { num: '2' }],
-        })
-        await inst.validate({
-          nested: { str: 5 },
-          arrNested: [{ num: 5 }, { num: '2' }],
-        })
-      } catch (err) {
-        /* ignore */
-      } finally {
-        mixed.prototype.clone = base
-      }
-    })
-  })
-
-  it('should pass options to children', function() {
-    object({
-      names: object({
-        first: string(),
-      }),
-    })
-      .cast(
-        {
-          extra: true,
-          names: { first: 'john', extra: true },
-        },
-        { stripUnknown: true },
-      )
-      .should.eql({
-        names: {
-          first: 'john',
-        },
+      const inst = new NoCloneDuringValidate().shape({
+        arrNested: array().of(object().shape({ num: number() })),
+        nested: object()
+          .shape({ str: string().min(3) })
+          .required(),
       })
+      expect.assertions(2)
+      await expect(
+        inst.validate({
+          arrNested: [{ num: 5 }, { num: '2' }],
+          nested: { str: 'jimmm' },
+        }),
+      ).resolves
+      await expect(
+        inst.validate({
+          arrNested: [{ num: 5 }, { num: '2' }],
+          nested: { str: 5 },
+        }),
+      ).resolves
+    })
   })
 
   it('should call shape with constructed with an arg', () => {
@@ -278,109 +329,99 @@ describe('Object types', () => {
     expect(inst.fields.prop).not.toBeNull()
   })
 
-  describe('object defaults', () => {
-    let objSchema
+  describe('default/defaultValue', () => {
+    it('should use correct default when concating', () => {
+      const inst = object({
+        other: boolean(),
+      }).default(undefined)
 
-    beforeEach(() => {
-      objSchema = object({
-        nest: object({
-          str: string().default('hi'),
-        }),
-      })
+      expect(inst.concat(object()).defaultValue()).toBeUndefined()
+      expect(inst.concat(object().default({})).defaultValue()).toMatchObject({})
     })
 
     it('should expand objects by default', () => {
-      objSchema.default().should.eql({
+      expect(
+        object({
+          nest: object({
+            str: string().default('hi'),
+          }),
+        }).defaultValue(),
+      ).toMatchObject({
         nest: { str: 'hi' },
       })
     })
 
     it('should accept a user provided default', () => {
-      objSchema = objSchema.default({ boom: 'hi' })
-
-      objSchema.default().should.eql({
+      expect(
+        object({
+          nest: object({
+            str: string().default('hi'),
+          }),
+        })
+          .default({ boom: 'hi' })
+          .defaultValue(),
+      ).toMatchObject({
         boom: 'hi',
       })
     })
 
     it('should add empty keys when sub schema has no default', () => {
-      object({
-        str: string(),
-        nest: object({ str: string() }),
+      expect(
+        object({
+          nest: object({ str: string() }),
+          str: string(),
+        }).defaultValue(),
+      ).toMatchObject({
+        nest: { str: undefined },
+        str: undefined,
       })
-        .default()
-        .should.eql({
-          nest: { str: undefined },
-          str: undefined,
-        })
     })
 
     it('should create defaults for missing object fields', () => {
-      object({
-        prop: mixed(),
-        other: object({
-          x: object({ b: string() }),
-        }),
+      expect(
+        object({
+          other: object({
+            x: object({ b: string() }),
+          }),
+          prop: mixed(),
+        }).cast({ prop: 'foo' }),
+      ).toMatchObject({
+        other: { x: { b: undefined } },
+        prop: 'foo',
       })
-        .cast({ prop: 'foo' })
-        .should.eql({
-          prop: 'foo',
-          other: { x: { b: undefined } },
-        })
     })
   })
 
-  it('should handle empty keys', () => {
+  describe('should handle empty keys', () => {
     const inst = object().shape({
       prop: mixed(),
     })
-
-    return Promise.all([
-      inst
-        .isValid({})
-        .should.eventually()
-        .equal(true),
-
-      inst
-        .shape({ prop: mixed().required() })
-        .isValid({})
-        .should.eventually()
-        .equal(false),
-    ])
+    genIsValid(inst, [{}])
+    genIsInvalid(inst.shape({ prop: mixed().required() }), [])
   })
 
-  it('should work with noUnknown', () => {
-    const inst = object().shape({
-      prop: mixed(),
-      other: mixed(),
+  describe('noUnknown', () => {
+    it('should work', async () => {
+      const inst = object().shape({
+        other: mixed(),
+        prop: mixed(),
+      })
+
+      expect.assertions(1)
+      await expect(
+        inst.noUnknown(true, 'hi').validate({ extra: 'field' }, { strict: true }),
+      ).rejects.toMatchObject({ errors: ['hi'] })
     })
-
-    return Promise.all([
-      inst
-        .noUnknown('hi')
-        .validate({ extra: 'field' }, { strict: true })
-        .should.be.rejected()
-        .then(err => {
-          expect(err.errors[0]).toStrictEqual('hi')
-        }),
-
-      inst
-        .noUnknown()
-        .validate({ extra: 'field' }, { strict: true })
-        .should.be.rejected()
-        .then(err => {
-          err.errors[0].should.be.a('string')
-        }),
-    ])
   })
-
   it('should strip specific fields', () => {
-    const inst = object().shape({
-      prop: mixed().strip(false),
-      other: mixed().strip(),
-    })
-
-    inst.cast({ other: 'boo', prop: 'bar' }).should.eql({
+    expect(
+      object()
+        .shape({
+          other: mixed().strip(),
+          prop: mixed().strip(false),
+        })
+        .cast({ other: 'boo', prop: 'bar' }),
+    ).toMatchObject({
       prop: 'bar',
     })
   })
@@ -399,62 +440,61 @@ describe('Object types', () => {
     })
   })
 
-  it('should allow refs', async function() {
-    const schema = object({
-      quz: ref('baz'),
-      baz: ref('foo.bar'),
-      foo: object({
-        bar: string(),
-      }),
-      x: ref('$x'),
-    })
+  describe('refs', () => {
+    it('should allow refs', async () => {
+      const schema = object({
+        baz: ref('foo.bar'),
+        foo: object({
+          bar: string(),
+        }),
+        quz: ref('baz'),
+        x: ref('$x'),
+      })
 
-    const value = await schema.validate(
-      {
-        foo: { bar: 'boom' },
-      },
-      { context: { x: 5 } },
-    )
-
-    // console.log(value)
-    value.should.eql({
-      foo: {
-        bar: 'boom',
-      },
-      baz: 'boom',
-      quz: 'boom',
-      x: 5,
-    })
-  })
-
-  it('should allow refs with abortEarly false', async () => {
-    const schema = object().shape({
-      field: string(),
-      dupField: ref('field'),
-    })
-
-    const actual = await schema
-      .validate(
-        {
-          field: 'test',
+      expect.assertions(1)
+      await expect(
+        schema.validate(
+          {
+            foo: { bar: 'boom' },
+          },
+          { context: { x: 5 } },
+        ),
+      ).resolves.toMatchObject({
+        baz: 'boom',
+        foo: {
+          bar: 'boom',
         },
-        { abortEarly: false },
-      )
-      .should.not.be.rejected()
+        quz: 'boom',
+        x: 5,
+      })
+    })
 
-    actual.should.eql({ field: 'test', dupField: 'test' })
+    it('should allow refs with abortEarly false', async () => {
+      const schema = object().shape({
+        dupField: ref('field'),
+        field: string(),
+      })
+
+      expect.assertions(1)
+      await expect(
+        schema.validate(
+          {
+            field: 'test',
+          },
+          { abortEarly: false },
+        ),
+      ).resolves.toMatchObject({ field: 'test', dupField: 'test' })
+    })
   })
 
   describe('lazy evaluation', () => {
     const types = {
-      string: string(),
       number: number(),
+      string: string(),
     }
 
     it('should be cast-able', () => {
       const inst = lazy(() => number())
-
-      inst.cast.should.be.a('function')
       expect(inst.cast('4')).toStrictEqual(4)
     })
 
@@ -464,14 +504,7 @@ describe('Object types', () => {
           .trim('trim me!')
           .strict(),
       )
-
-      inst.validate.should.be.a('function')
-
-      try {
-        await inst.validate('  john  ')
-      } catch (err) {
-        expect(err.message).toStrictEqual('trim me!')
-      }
+      await expect(inst.validate('  john  ')).rejects.toThrow(/trim me!/)
     })
 
     it('should resolve to schema', () => {
@@ -509,16 +542,17 @@ describe('Object types', () => {
       inst.cast({ nested: 'foo' }, opts)
     })
 
-    it('should always return a schema', () => {
-      (() => lazy(() => {}).cast()).should.throw(/must return a valid schema/)
+    it('should always return a schema', async () => {
+      const inst = lazy(() => ({} as any))
+      await expect(inst.cast('foo')).rejects.toThrow(/must return a valid schema/)
     })
 
     it('should set the correct path', async () => {
       const inst = object({
+        nested: lazy(() => inst.default(undefined)),
         str: string()
           .required()
           .nullable(),
-        nested: lazy(() => inst.default(undefined)),
       })
 
       const value = {
@@ -526,20 +560,19 @@ describe('Object types', () => {
         str: 'foo',
       }
 
-      try {
-        await inst.validate(value, { strict: true })
-      } catch (err) {
-        expect(err.path).toStrictEqual('nested.str')
-        err.message.should.match(/required/)
-      }
+      expect.assertions(1)
+      await expect(inst.validate(value, { strict: true })).rejects.toMatchObject({
+        message: 'required',
+        path: 'nested.str',
+      })
     })
 
     it('should resolve array sub types', async () => {
       const inst = object({
+        nested: array().of(lazy(() => inst.default(undefined))),
         str: string()
           .required()
           .nullable(),
-        nested: array().of(lazy(() => inst.default(undefined))),
       })
 
       const value = {
@@ -547,221 +580,137 @@ describe('Object types', () => {
         str: 'foo',
       }
 
-      try {
-        await inst.validate(value, { strict: true })
-      } catch (err) {
-        expect(err.path).toStrictEqual('nested[0].str')
-        err.message.should.match(/required/)
-      }
+      expect.assertions(1)
+      await expect(inst.validate(value, { strict: true })).toMatchObject({
+        message: 'required',
+        path: 'nested[0].str',
+      })
     })
 
     it('should resolve for each array item', async () => {
       const inst = array().of(lazy(value => types[typeof value]))
-
-      const val = await inst.validate(['john', 4], { strict: true })
-
-      val.should.eql(['john', 4])
+      expect.assertions(1)
+      await expect(inst.validate(['john', 4], { strict: true })).toStrictEqual(['john', 4])
     })
   })
 
-  it('should respect abortEarly', () => {
+  it('should respect abortEarly', async () => {
     const inst = object({
       nest: object({
         str: string().required(),
-      }).test('name', 'oops', () => false),
+      }).test({ name: 'name', message: 'oops', test: () => false }),
     })
 
-    return Promise.all([
-      inst
-        .validate({ nest: { str: '' } })
-        .should.be.rejected()
-        .then(err => {
-          err.value.should.eql({ nest: { str: '' } })
-          expect(err.errors.length).toStrictEqual(1)
-          err.errors.should.eql(['oops'])
+    expect.assertions(2)
+    await expect(inst.validate({ nest: { str: '' } })).rejects.toMatchObject({
+      errors: ['oops'],
+      path: 'nest',
+      value: { nest: { str: '' } },
+    })
 
-          expect(err.path).toStrictEqual('nest')
-        }),
-
-      inst
-        .validate({ nest: { str: '' } }, { abortEarly: false })
-        .should.be.rejected()
-        .then(err => {
-          err.value.should.eql({ nest: { str: '' } })
-          expect(err.errors.length).toStrictEqual(2)
-          err.errors.should.eql(['nest.str is a required field', 'oops'])
-        }),
-    ])
+    await expect(inst.validate({ nest: { str: '' } }, { abortEarly: false })).rejects.toMatchObject(
+      {
+        errors: ['nest.str is a required field', 'oops'],
+        value: { nest: { str: '' } },
+      },
+    )
   })
 
   it('should sort errors by insertion order', async () => {
     const inst = object({
+      bar: string().required(),
       // use `when` to make sure it is validated second
       foo: string().when('bar', () => string().min(5)),
-      bar: string().required(),
     })
 
-    const err = await inst.validate({ foo: 'foo' }, { abortEarly: false }).should.rejected()
-
-    err.errors.should.eql(['foo must be at least 5 characters', 'bar is a required field'])
+    await expect(inst.validate({ foo: 'foo' }, { abortEarly: false })).rejects.toMatchObject({
+      errors: ['foo must be at least 5 characters', 'bar is a required field'],
+    })
   })
 
-  it('should respect recursive', () => {
+  it('should respect recursive', async () => {
     const inst = object({
       nest: object({
         str: string().required(),
       }),
-    }).test('name', 'oops', () => false)
+    }).test({ name: 'name', message: 'oops', test: () => false })
 
     const val = { nest: { str: null } }
+    expect.assertions(2)
+    await expect(inst.validate(val, { abortEarly: false })).rejects.toMatchObject({
+      errors: ['FIXME', 'FIXME'],
+    })
 
-    return Promise.all([
-      inst
-        .validate(val, { abortEarly: false })
-        .should.be.rejected()
-        .then(err => {
-          expect(err.errors.length).toStrictEqual(2)
-        }),
-
-      inst
-        .validate(val, { abortEarly: false, recursive: false })
-        .should.be.rejected()
-        .then(err => {
-          expect(err.errors.length).toStrictEqual(1)
-          err.errors.should.eql(['oops'])
-        }),
-    ])
-  })
-
-  it('should alias or move keys', () => {
-    const inst = object()
-      .shape({
-        myProp: mixed(),
-        Other: mixed(),
-      })
-      .from('prop', 'myProp')
-      .from('other', 'Other', true)
-
-    inst.cast({ prop: 5, other: 6 }).should.eql({ myProp: 5, other: 6, Other: 6 })
-  })
-
-  it('should alias nested keys', () => {
-    const inst = object({
-      foo: object({
-        bar: string(),
-      }),
-    }).from('foo.bar', 'foobar', true)
-
-    inst.cast({ foo: { bar: 'quz' } }).should.eql({ foobar: 'quz', foo: { bar: 'quz' } })
-  })
-
-  it('should not move keys when it does not exist', () => {
-    const inst = object()
-      .shape({
-        myProp: mixed(),
-      })
-      .from('prop', 'myProp')
-
-    inst.cast({ myProp: 5 }).should.eql({ myProp: 5 })
-
-    inst.cast({ myProp: 5, prop: 7 }).should.eql({ myProp: 7 })
+    await expect(inst.validate(val, { abortEarly: false, recursive: false })).rejects.toMatchObject(
+      {
+        errors: ['oops'],
+      },
+    )
   })
 
   it('should handle conditionals', () => {
     const inst = object().shape({
       noteDate: number()
         .when('stats.isBig', { is: true, then: number().min(5) })
-        .when('other', function(v) {
+        .when('other', (v, schema) => {
           if (v === 4) {
-            return this.max(6)
+            return schema.max(6) // FIXME was this.max - when needs to be parameterized for executions like this
           }
         }),
-      stats: object({ isBig: boolean() }),
       other: number()
         .min(1)
         .when('stats', { is: 5, then: number() }),
+      stats: object({ isBig: boolean() }),
     })
 
-    return Promise.all([
-      inst
-        .isValid({ stats: { isBig: true }, rand: 5, noteDate: 7, other: 4 })
-        .should.eventually()
-        .equal(false),
-      inst
-        .isValid({ stats: { isBig: true }, noteDate: 1, other: 4 })
-        .should.eventually()
-        .equal(false),
-
-      inst
-        .isValid({ stats: { isBig: true }, noteDate: 7, other: 6 })
-        .should.eventually()
-        .equal(true),
-      inst
-        .isValid({ stats: { isBig: true }, noteDate: 7, other: 4 })
-        .should.eventually()
-        .equal(false),
-
-      inst
-        .isValid({ stats: { isBig: false }, noteDate: 4, other: 4 })
-        .should.eventually()
-        .equal(true),
-
-      inst
-        .isValid({ stats: { isBig: true }, noteDate: 1, other: 4 })
-        .should.eventually()
-        .equal(false),
-      inst
-        .isValid({ stats: { isBig: true }, noteDate: 6, other: 4 })
-        .should.eventually()
-        .equal(true),
+    genIsValid(inst, [
+      { stats: { isBig: true }, noteDate: 7, other: 6 },
+      { stats: { isBig: false }, noteDate: 4, other: 4 },
+      { stats: { isBig: true }, noteDate: 6, other: 4 },
+    ])
+    genIsInvalid(inst, [
+      { stats: { isBig: true }, rand: 5, noteDate: 7, other: 4 },
+      { stats: { isBig: true }, noteDate: 1, other: 4 },
+      { stats: { isBig: true }, noteDate: 7, other: 4 },
+      { stats: { isBig: true }, noteDate: 1, other: 4 },
     ])
   })
 
-  it('should allow opt out of topo sort on specific edges', () => {
-    (function() {
+  it('should allow opt out of topo sort on specific edges', async () => {
+    await expect(
       object().shape({
-        orgID: number().when('location', function(v) {
+        location: string().when('orgID', (v, schema) => {
           if (v == null) {
-            return this.required()
+            return schema.required() // FIXME types? was this.required
           }
         }),
-        location: string().when('orgID', function(v) {
+        orgID: number().when('location', (v, schema) => {
           if (v == null) {
-            return this.required()
+            return schema.required() // FIXME types? was this.required
           }
         }),
-      })
-    }.should.throw('Cyclic dependency, node was:"location"'))
-    ; (function() {
+      }),
+    ).rejects.toThrow('Cyclic dependency, node was:"location"')
+    await expect(
       object().shape(
         {
-          orgID: number().when('location', function(v) {
+          location: string().when('orgID', (v, schema) => {
             if (v == null) {
-              return this.required()
+              return schema.required() // FIXME types? was this.required
             }
           }),
-          location: string().when('orgID', function(v) {
+          orgID: number().when('location', (v, schema) => {
             if (v == null) {
-              return this.required()
+              return schema.required() // FIXME types? was this.required
             }
           }),
         },
         [['location', 'orgID']],
-      )
-    }.should.not.throw())
+      ),
+    ).resolves
   })
 
-  it('should use correct default when concating', () => {
-    const inst = object({
-      other: boolean(),
-    }).default(undefined)
-
-    expect(inst.concat(object()).default()).toBeUndefined()
-
-    expect(inst.concat(object().default({})).default()).toStrictEqual({})
-  })
-
-  it('should handle nested conditionals', () => {
+  it('should handle nested conditionals', async () => {
     const countSchema = number().when('isBig', {
       is: true,
       then: number().min(5),
@@ -769,52 +718,35 @@ describe('Object types', () => {
     const inst = object({
       other: boolean(),
       stats: object({
-        isBig: boolean(),
         count: countSchema,
+        isBig: boolean(),
       })
         .default(undefined)
         .when('other', { is: true, then: object().required() }),
     })
 
-    return Promise.all([
-      inst
-        .validate({ stats: undefined, other: true })
-        .should.be.rejected()
-        .then(err => {
-          err.errors[0].should.contain('required')
-        }),
+    expect.assertions(4)
+    await expect(inst.validate({ stats: undefined, other: true })).rejects.toThrow(/required/)
 
-      inst
-        .validate({ stats: { isBig: true, count: 3 }, other: true })
-        .should.be.rejected()
-        .then(err => {
-          err.errors[0].should.contain('must be greater than or equal to 5')
-        }),
+    await expect(inst.validate({ stats: { isBig: true, count: 3 }, other: true })).rejects.toThrow(
+      /must be greater than or equal to 5/,
+    )
 
-      inst
-        .validate({ stats: { isBig: true, count: 10 }, other: true })
-        .should.be.fulfilled()
-        .then(value => {
-          value.should.deep.equal({
-            stats: { isBig: true, count: 10 },
-            other: true,
-          })
-        }),
+    await expect(
+      inst.validate({ stats: { isBig: true, count: 10 }, other: true }),
+    ).resolves.toMatchObject({
+      other: true,
+      stats: { isBig: true, count: 10 },
+    })
 
-      countSchema
-        .validate(10, { context: { isBig: true } })
-        .should.be.fulfilled()
-        .then(value => {
-          value.should.deep.equal(10)
-        }),
-    ])
+    await expect(countSchema.validate(10, { context: { isBig: true } })).resolves.toStrictEqual(10)
   })
 
   it('should camelCase keys', () => {
     const inst = object()
       .shape({
-        conStat: number(),
         caseStatus: number(),
+        conStat: number(),
         hiJohn: number(),
       })
       .camelCase()
@@ -838,8 +770,8 @@ describe('Object types', () => {
   it('should CONSTANT_CASE keys', () => {
     const inst = object()
       .shape({
-        CON_STAT: number(),
         CASE_STATUS: number(),
+        CON_STAT: number(),
         HI_JOHN: number(),
       })
       .constantCase()
@@ -849,13 +781,5 @@ describe('Object types', () => {
       .should.eql({ CON_STAT: 5, CASE_STATUS: 6, HI_JOHN: 4 })
 
     expect(inst.nullable().cast(null)).toBeNull()
-  })
-
-  xit('should handle invalid shapes better', async () => {
-    const schema = object().shape({
-      permissions: undefined,
-    })
-
-    expect(await schema.isValid({ permissions: [] }, { abortEarly: false })).toStrictEqual(true)
   })
 })
