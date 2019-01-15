@@ -1,17 +1,17 @@
 import { boolean, lazy, mixed, object, string } from '../../src'
-import { isConcreteSchema } from '../../src/util/isConcreteSchema'
+import { isMixedSchema } from '../../src/util/isMixedSchema'
 
-describe('isConcreteSchema', () => {
+describe('isMixedSchema', () => {
   it('should be true', () => {
-    expect(isConcreteSchema(boolean())).toStrictEqual(true)
-    expect(isConcreteSchema(mixed())).toStrictEqual(true)
-    expect(isConcreteSchema(object())).toStrictEqual(true)
-    expect(isConcreteSchema(string())).toStrictEqual(true)
+    expect(isMixedSchema(boolean())).toStrictEqual(true)
+    expect(isMixedSchema(mixed())).toStrictEqual(true)
+    expect(isMixedSchema(object())).toStrictEqual(true)
+    expect(isMixedSchema(string())).toStrictEqual(true)
   })
 
   it('should be false', () => {
-    expect(isConcreteSchema(lazy((() => {}) as any))).toStrictEqual(false)
-    expect(isConcreteSchema(false)).toStrictEqual(false)
-    expect(isConcreteSchema(undefined)).toStrictEqual(false)
+    expect(isMixedSchema(lazy((() => {}) as any))).toStrictEqual(false)
+    expect(isMixedSchema(false)).toStrictEqual(false)
+    expect(isMixedSchema(undefined)).toStrictEqual(false)
   })
 })

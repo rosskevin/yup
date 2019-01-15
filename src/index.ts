@@ -7,7 +7,7 @@ export * from './ObjectSchema/ObjectSchema'
 export * from './StringSchema'
 
 export * from './addMethod'
-export * from './Lazy'
+export * from './LazySchema'
 export * from './Ref'
 export * from './overrideLocale'
 export * from './ValidationError'

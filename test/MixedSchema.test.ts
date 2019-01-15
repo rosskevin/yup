@@ -1,6 +1,7 @@
 // tslint:disable:object-literal-sort-keys
 
 import { array, boolean, mixed, MixedSchema, number, object, reach, ref, string } from 'yup'
+import { ObjectSchema } from '../src/ObjectSchema/ObjectSchema'
 import { genIsInvalid, genIsValid } from './helpers'
 
 const noop = () => true
@@ -67,9 +68,9 @@ describe('MixedSchema', () => {
   })
 
   it('should validateAt', async () => {
-    const schema = object({
+    const schema = object().shape({
       foo: array().of(
-        object({
+        object().shape({
           bar: string().when('loose', {
             is: true,
             otherwise: s => s.strict(),
@@ -257,7 +258,7 @@ describe('MixedSchema', () => {
 
   it('tests should be called with the correct `this`', async () => {
     let called = false
-    const inst = object({
+    const inst = object().shape({
       other: mixed(),
       test: mixed().test({
         message: 'invalid',
@@ -326,22 +327,22 @@ describe('MixedSchema', () => {
   })
 
   describe('concat', () => {
-    let next: MixedSchema
-    const inst = object({
+    let next: ObjectSchema
+    const inst = object().shape({
       str: string().required(),
-      obj: object({
+      obj: object().shape({
         str: string(),
       }),
     })
 
     beforeEach(() => {
       next = inst.concat(
-        object({
+        object().shape({
           str: string()
             .required()
             .trim(),
           str2: string().required(),
-          obj: object({
+          obj: object().shape({
             str: string().required(),
           }),
         }),
@@ -473,7 +474,7 @@ describe('MixedSchema', () => {
   })
 
   it('should not use context refs in object calculations', () => {
-    const inst = object({
+    const inst = object().shape({
       prop: string().when('$prop', {
         is: 5,
         then: string().required('from context'),
@@ -485,7 +486,7 @@ describe('MixedSchema', () => {
 
   it('should use label in error message', async () => {
     const label = 'Label'
-    const inst = object({
+    const inst = object().shape({
       prop: string()
         .required()
         .label(label),
@@ -510,13 +511,17 @@ describe('MixedSchema', () => {
   })
 
   it('should describe', () => {
-    const desc = object({
-      foos: array(number().integer()).required(),
-      foo: string()
-        .max(2)
-        .meta({ input: 'foo' })
-        .label('str!'),
-    }).describe()
+    const desc = object()
+      .shape({
+        foos: array()
+          .of(number().integer())
+          .required(),
+        foo: string()
+          .max(2)
+          .meta({ input: 'foo' })
+          .label('str!'),
+      })
+      .describe()
 
     expect(desc).toMatchObject({
       type: 'object',

@@ -110,7 +110,7 @@ describe('StringSchema', () => {
   describe('concat', () => {
     it('concat should fail on different types', () => {
       const inst = string().default('hi')
-      expect(inst.concat(object())).toThrow(TypeError)
+      expect(inst.concat(object() as any)).toThrow(TypeError)
     })
   })
   describe('default/defaultValue', () => {

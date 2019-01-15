@@ -1,4 +1,5 @@
-import { Value } from '../types'
+// tslint:disable:ban-types
+export type Value = any // number | string | Function | null | boolean | Date
 
 const toString = Object.prototype.toString
 const errorToString = Error.prototype.toString

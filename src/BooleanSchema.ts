@@ -4,7 +4,7 @@ export function boolean() {
   return new BooleanSchema()
 }
 
-export class BooleanSchema extends MixedSchema {
+export class BooleanSchema extends MixedSchema<boolean> {
   constructor() {
     super({ type: 'boolean' })
 

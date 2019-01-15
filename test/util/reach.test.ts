@@ -72,11 +72,11 @@ describe('reach', () => {
 
   it('should reach through lazy', async () => {
     const types = {
-      1: object({ foo: string() }),
-      2: object({ foo: number() }),
+      1: object().shape({ foo: string() }),
+      2: object().shape({ foo: number() }),
     }
 
-    // const err = await object({
+    // const err = await object().shape({
     //   x: array(lazy(val => types[val.type])),
     // })
     //   .strict()
@@ -89,9 +89,10 @@ describe('reach', () => {
     const lazySchema = lazy((val: any) => types[val.type])
     expect.assertions(1)
     await expect(
-      object({
-        x: array(lazySchema),
-      })
+      object()
+        .shape({
+          x: array().of(lazySchema),
+        })
         .strict()
         .validate({
           x: [{ type: 1, foo: '4' }, { type: 2, foo: '5' }],

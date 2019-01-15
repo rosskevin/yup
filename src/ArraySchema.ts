@@ -2,9 +2,9 @@
 
 import { locale } from './locale'
 import { MixedSchema } from './MixedSchema'
-import { BaseSchema, Message, TransformFunction, ValidateOptions } from './types'
+import { AnySchema, Message, TransformFunction, ValidateOptions } from './types'
 import { isAbsent } from './util/isAbsent'
-import { isSchema } from './util/isSchema'
+import { isMixedSchema } from './util/isMixedSchema'
 import makePath from './util/makePath'
 import printValue from './util/printValue'
 import propagateErrors from './util/propagateErrors'
@@ -15,18 +15,18 @@ function hasLength(value: any) {
   return !isAbsent(value) && value.length > 0
 }
 
-export function array<T = any>(subTypeSchema?: BaseSchema<T>) {
-  return new ArraySchema(subTypeSchema)
+export function array<T = any[]>() {
+  return new ArraySchema<T>()
 }
 
 export class ArraySchema<T = any[]> extends MixedSchema<T> {
-  public _subType?: BaseSchema<T>
+  public itemSchema?: /*LazySchema<T> |*/ MixedSchema<T> | false
 
-  constructor(subTypeSchema?: BaseSchema<T>) {
+  constructor() {
     super({ type: 'array' })
 
     // `undefined` specifically means uninitialized, as opposed to "no subtype"
-    this._subType = undefined // FIXME why doesn't this use type if defined? waits to use of()?
+    this.itemSchema = undefined // FIXME why doesn't this use type if defined? waits to use of()?
 
     this.withMutation(() => {
       this.transform(function(values) {
@@ -41,9 +41,9 @@ export class ArraySchema<T = any[]> extends MixedSchema<T> {
         return this.isType(values) ? values : null
       })
 
-      if (subTypeSchema) {
-        this.of(subTypeSchema)
-      }
+      // if (itemSchema) {
+      //   this.of(itemSchema)
+      // }
     })
   }
 
@@ -55,7 +55,7 @@ export class ArraySchema<T = any[]> extends MixedSchema<T> {
     const value = super._cast(_value, _opts)
 
     // should ignore nulls here
-    if (!this._typeCheck(value) || !this._subType) {
+    if (!this._typeCheck(value) || !this.itemSchema) {
       return value
     }
 
@@ -76,7 +76,7 @@ export class ArraySchema<T = any[]> extends MixedSchema<T> {
     const errors: ValidationError[] = []
     const sync = options.sync
     const path = options.path
-    const subType = this._subType
+    const subType = this.itemSchema
     const endEarly = this._option('abortEarly', options)
     const recursive = this._option('recursive', options)
 
@@ -123,20 +123,23 @@ export class ArraySchema<T = any[]> extends MixedSchema<T> {
       })
   }
 
-  public of(subTypeSchema: BaseSchema<T> | false): this {
+  public of(itemSchema: false | AnySchema): this {
     const next: this = this.clone()
 
-    if (subTypeSchema !== false && !isSchema(subTypeSchema)) {
+    // if (itemSchema === false) {
+    //   return next
+    // }
+
+    if (isMixedSchema(itemSchema)) {
+      next.itemSchema = itemSchema
+      return next
+    } else {
       throw new TypeError(
-        '`array.of()` sub-schema must be a valid yup schema, or `false` to negate a current sub-schema. ' +
+        '`array.of()` sub-schema must be a valid schema, or `false` to negate a current sub-schema. ' +
           'not: ' +
-          printValue(subTypeSchema as any),
+          printValue(itemSchema as any),
       )
     }
-    if (isSchema(subTypeSchema)) {
-      next._subType = subTypeSchema
-    }
-    return next
   }
 
   public required(message = locale.mixed.required): this {
@@ -197,16 +200,16 @@ export class ArraySchema<T = any[]> extends MixedSchema<T> {
 
   public describe() {
     const base = super.describe()
-    if (this._subType) {
-      base.innerType = this._subType.describe() // FIXME - this is explicitly subType - WHY call it innerType here?
+    if (this.itemSchema) {
+      base.innerType = this.itemSchema.describe() // FIXME - this is explicitly subType - WHY call it innerType here?
     }
     return base
   }
 
   protected assertSubtype() {
-    if (!this._subType) {
+    if (!this.itemSchema) {
       throw new Error('Expected subType to be set')
     }
-    return this._subType
+    return this.itemSchema
   }
 }

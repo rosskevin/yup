@@ -1,21 +1,22 @@
 import has from 'lodash/has'
 import { ArraySchema } from '../ArraySchema'
-import { ObjectSchema } from '../ObjectSchema'
-import { BaseSchema, Schema, ValidateOptions } from '../types'
+import { MixedSchema } from '../MixedSchema'
+import { ValidateOptions } from '../types'
 import { forEach } from './expression'
-import { isConcreteSchema } from './isConcreteSchema'
+import { isMixedSchema } from './isMixedSchema'
+import { isObjectSchema } from './isObjectSchema'
 
 function trim(part: string) {
   return part.substr(0, part.length - 1).substr(1)
 }
 
-export default function getIn(
-  schemaArg: BaseSchema<any>,
+export default function getIn<S extends MixedSchema>(
+  schemaArg: S,
   path: string,
   value: any,
   context?: ValidateOptions['context'],
-): { schema: Schema<any>; parent?: any; parentPath?: string } {
-  let schema = schemaArg
+): { schema: S; parent?: any; parentPath?: string } {
+  let candidateSchema: S = schemaArg
   let parent: any
   let lastPart
   let lastPartDebug: any
@@ -27,31 +28,34 @@ export default function getIn(
     return {
       parent,
       parentPath: path,
-      schema: schema.resolve({ context, parent /*, value*/ }),
+      schema: candidateSchema.resolve({ context, parent /*, value*/ }),
     }
   }
 
   forEach(path, (partArg, isBracket, isArray) => {
     const part = isBracket ? trim(partArg) : partArg
 
-    if (isArray || has(schema, '_subType')) {
+    if (isArray || has(candidateSchema, 'itemSchema')) {
       // we skipped an array: foo[].bar
       const idx = isArray ? parseInt(part, 10) : 0
 
-      const resolvedSubType = (schema.resolve({ context, parent /*, value */ }) as ArraySchema)
-        ._subType
-      if (!resolvedSubType) {
+      const arraySchema = candidateSchema.resolve({ context, parent /*, value */ })
+      if (!(arraySchema instanceof ArraySchema)) {
+        throw new Error('Expected schema to be an ArraySchema')
+      }
+      const arrayItemSchema = (arraySchema as ArraySchema).itemSchema
+      if (!arrayItemSchema) {
         throw new Error(
-          `Yup.reach cannot resolve subTye for an array item at index: ${partArg}, in the path: ${path}. `,
+          `Cannot resolve item schema for an array item at index: ${partArg}, in the path: ${path}. `,
         )
       }
 
-      schema = resolvedSubType
+      candidateSchema = arrayItemSchema as any // FIXME
 
       if (value) {
         if (isArray && idx >= value.length) {
           throw new Error(
-            `Yup.reach cannot resolve an array item at index: ${partArg}, in the path: ${path}. ` +
+            `Cannot resolve an array item at index: ${partArg}, in the path: ${path}. ` +
               `because there is no value at that index. `,
           )
         }
@@ -61,35 +65,36 @@ export default function getIn(
     }
 
     if (!isArray) {
-      schema = schema.resolve({ context, parent /*, value*/ })
+      candidateSchema = candidateSchema.resolve({ context, parent /*, value*/ })
 
-      if (!has(schema, 'fields') || !has((schema as any).fields, part)) {
+      // if (!has(candidateSchema, 'fields') || !has((candidateSchema as any).fields, part)) {
+      if (!isObjectSchema(candidateSchema)) {
         throw new Error(
           `The schema does not contain the path: ${path}. ` +
-            `(failed at: ${lastPartDebug} which is a type: "${schema._type}") `,
+            `(failed at: ${lastPartDebug} which is a type: "${candidateSchema._type}") `,
         )
+      } else {
+        candidateSchema = candidateSchema.fields[part] as S // FIXME not possible to be lazy or ref at this point?
+
+        parent = value
+        value = value && value[part]
+        lastPart = partArg
+        lastPartDebug = isBracket ? '[' + partArg + ']' : '.' + partArg
       }
-
-      schema = (schema as ObjectSchema).fields[part]
-
-      parent = value
-      value = value && value[part]
-      lastPart = partArg
-      lastPartDebug = isBracket ? '[' + partArg + ']' : '.' + partArg
     }
   })
 
-  if (schema) {
-    schema = schema.resolve({ context, parent /*, value*/ })
+  if (candidateSchema) {
+    candidateSchema = candidateSchema.resolve({ context, parent /*, value*/ })
   }
 
   // if (!lastPart) {
   //   throw new Error(`Yup.reach cannot resolve parentPath for ${path}`)
   // }
 
-  if (!isConcreteSchema(schema)) {
-    throw new Error('Expect to have resolved a concrete schema')
+  if (!isMixedSchema(candidateSchema)) {
+    throw new Error('Expected to have resolved a concrete schema')
   }
 
-  return { schema, parent, parentPath: lastPart }
+  return { schema: candidateSchema, parent, parentPath: lastPart }
 }

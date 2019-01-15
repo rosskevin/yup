@@ -1,9 +1,9 @@
 // tslint:disable:ban-types
 
-import { Schema } from './types'
+import { MixedSchema } from './MixedSchema'
 import { isSchema } from './util/isSchema'
 
-export function addMethod<T extends Schema<any>>(
+export function addMethod<T extends MixedSchema<any>>(
   schemaType: Function,
   name: string,
   fn: (this: T, ...args: any[]) => T,

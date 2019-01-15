@@ -1,13 +1,13 @@
 // tslint:disable:variable-name
 
 import { MixedSchema } from './MixedSchema'
-import { BaseSchema, Schema, ValidateOptions } from './types'
+import { ValidateOptions } from './types'
 import { isSchema } from './util/isSchema'
 
 export type MapToSchemaFn<T> = (...args: any[]) => MixedSchema<T>
 
 export function lazy<T>(mapToSchema: MapToSchemaFn<T>) {
-  return new Lazy(mapToSchema)
+  return new LazySchema(mapToSchema)
 }
 
 /**
@@ -18,7 +18,7 @@ export function lazy<T>(mapToSchema: MapToSchemaFn<T>) {
  * default() to undefined on the child otherwise the object will infinitely nest itself
  * when you cast it!.
  *
- * const node = object({
+ * const node = object().shape({
  *   id: number(),
  *   child: yup.lazy(() => node.default(undefined)),
  * })
@@ -37,7 +37,7 @@ export function lazy<T>(mapToSchema: MapToSchemaFn<T>) {
  * const renderables = array().of(renderable)
  *
  */
-export class Lazy<T = any> implements BaseSchema<T> {
+export class LazySchema<T = any> {
   public __isYupSchema__: boolean = true
   public _type: string = 'lazy'
   private mapToSchema: MapToSchemaFn<T>

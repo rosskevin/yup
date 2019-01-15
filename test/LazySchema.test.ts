@@ -1,8 +1,8 @@
 import * as sinon from 'sinon'
 import { lazy, mixed } from 'yup'
-import { MapToSchemaFn } from '../src/Lazy'
+import { MapToSchemaFn } from '../src/LazySchema'
 
-describe('lazy', () => {
+describe('LazySchema', () => {
   it('should throw on a non-schema value', () => {
     const mapToSchema = () => undefined
     expect(() => lazy(mapToSchema as any).validate('foo')).toThrow()

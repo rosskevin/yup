@@ -3,18 +3,11 @@
 import cloneDeepWith from 'lodash/cloneDeepWith'
 import has from 'lodash/has'
 import Condition from './Condition'
+import { WhenOptions } from './Condition'
 import { locale } from './locale'
 import { Ref } from './Ref'
-import {
-  MutationFn,
-  Schema,
-  TestOptions,
-  ValidateArgs,
-  ValidateFn,
-  ValidateOptions,
-  WhenOptions,
-} from './types'
-import { AnyObject, BaseSchema, Message, SchemaDescription, TransformFunction } from './types'
+import { AnyObject, Message, SchemaDescription, TransformFunction } from './types'
+import { MutationFn, TestOptions, ValidateArgs, ValidateFn, ValidateOptions } from './types'
 import createValidation from './util/createValidation'
 import getIn from './util/getIn'
 import { isNotEmpty } from './util/isNotEmpty'
@@ -29,27 +22,30 @@ export function mixed(options = {}) {
   return new MixedSchema(options)
 }
 
-export class MixedSchema<T = any> implements Schema<T> {
+export class MixedSchema<T = any> /* implements Schema<T> */ {
   public __isYupSchema__ = true
   public _deps: Ref[] = []
-  public _conditions: Array<Condition<T>> = []
   public _options: Partial<ValidateOptions> = { abortEarly: true, recursive: true } // FIXME appears sparingly used - at least in Mixed
   public _exclusive = Object.create(null)
   public _whitelist: RefSet = new RefSet()
   public _blacklist: RefSet = new RefSet()
-  public tests: Array<ValidateFn<T>> = []
-  public transforms: Array<TransformFunction<T>> = []
   public _defaultDefault: any
+  public _default: any
   public _type: string
   public _mutate: any
   public _meta: any
+  public _strip: boolean = false
   public _nullable: boolean = false
   public _label: string | undefined = undefined
+  public tests: Array<ValidateFn<T>> = []
   public _typeError?: ValidateFn<T> = undefined
   public _whitelistError?: ValidateFn<T> = undefined
   public _blacklistError?: ValidateFn<T> = undefined
-  public _default: any
-  public _strip: boolean = false
+
+  public transforms: Array<TransformFunction<T>> = []
+  public _conditions: Array<Condition<T, this>> = []
+  // public transforms: any[] = [] // Array<TransformFunction<T>> = []
+  // public _conditions: any[] = [] // Array<Condition<T, this>> = []
 
   constructor(options: { default?: any; type?: string } = {}) {
     this.withMutation(() => {
@@ -125,7 +121,7 @@ export class MixedSchema<T = any> implements Schema<T> {
   /**
    * Creates a new instance of the schema by combining two schemas. Only schemas of the same type can be concatenated.
    */
-  public concat(schema: Schema<T>): this {
+  public concat<S extends MixedSchema<T>>(schema: S): this {
     if (!schema) {
       return this
     }
@@ -171,14 +167,12 @@ export class MixedSchema<T = any> implements Schema<T> {
   }
 
   public resolve({ context, parent }: ValidateOptions): this {
-    if (this._conditions.length) {
-      return this._conditions.reduce(
-        (schema, match) => match.resolve(schema, match.getValue(parent, context)),
-        this as Schema<T>, // initial value
-      )
-    }
+    let result = this
 
-    return this
+    for (const condition of this._conditions) {
+      result = condition.resolve(result, condition.getValue(parent, context))
+    }
+    return result
   }
 
   /**
@@ -517,7 +511,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    * in by validate() or isValid. when conditions are additive.
    *
    *
-   * const inst = yup.object({
+   * const inst = yup.object().shape({
    *   isBig: yup.boolean(),
    *   count: yup
    *     .number()
@@ -533,7 +527,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    *
    * You can also specify more than one dependent key, in which case each value will be spread as an argument.
    *
-   * const inst = yup.object({
+   * const inst = yup.object().shape({
    *       isSpecial: yup.boolean(),
    *       isBig: yup.boolean(),
    *       count: yup.number()
@@ -552,7 +546,7 @@ export class MixedSchema<T = any> implements Schema<T> {
    *
    * Alternatively you can provide a function that returns a schema (called with the value of the key and the current schema).
    *
-   * const inst = yup.object({
+   * const inst = yup.object().shape({
    *   isBig: yup.boolean(),
    *   count: yup.number().when('isBig', (isBig, schema) => {
    *     return isBig ? schema.min(5) : schema.min(0);
@@ -575,7 +569,7 @@ export class MixedSchema<T = any> implements Schema<T> {
       }
     })
 
-    next._conditions.push(new Condition<T>(deps, options))
+    next._conditions.push(new Condition<T, this>(deps, options))
 
     return next
   }

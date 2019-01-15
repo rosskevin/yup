@@ -17,7 +17,7 @@ export function number() {
   return new NumberSchema()
 }
 
-export class NumberSchema extends MixedSchema {
+export class NumberSchema extends MixedSchema<number> {
   constructor() {
     super({ type: 'number' })
 

@@ -18,7 +18,7 @@ import { genIsInvalid, genIsValid } from './helpers'
 describe('Object types', () => {
   describe('min', () => {
     genIsInvalid(
-      object({
+      object().shape({
         len: number(),
         name: string().min(ref('len')),
       }),
@@ -28,7 +28,7 @@ describe('Object types', () => {
 
   describe('max', () => {
     genIsInvalid(
-      object({
+      object().shape({
         len: number(),
         name: string().max(ref('len')),
       }),
@@ -38,7 +38,7 @@ describe('Object types', () => {
 
   it('length', () => {
     genIsInvalid(
-      object({
+      object().shape({
         len: number(),
         name: string().length(ref('len')),
       }),
@@ -50,7 +50,7 @@ describe('Object types', () => {
     // let inst: ObjectSchema<any>
 
     // beforeEach(() => {
-    //   inst = object({
+    //   inst = object().shape({
     //     arr: array().of(number()),
     //     arrNested: array().of(object().shape({ num: number() })),
     //     dte: date(),
@@ -62,7 +62,7 @@ describe('Object types', () => {
     // })
 
     it('should parse json strings', () => {
-      object({ hello: number() })
+      object().shape({ hello: number() })
         .cast('{ "hello": "5" }')
         .should.eql({
           hello: 5,
@@ -83,7 +83,7 @@ describe('Object types', () => {
         str: 'hello',
       }
 
-      const inst = object({
+      const inst = object().shape({
         arr: array().of(number()),
         arrNested: array().of(object().shape({ num: number() })),
         dte: date(),
@@ -92,9 +92,9 @@ describe('Object types', () => {
         str: string(),
         stripped: string().strip(),
       })
-      const casted = inst.cast(obj)
+      const casted = inst.cast(obj) as any
 
-      casted.should.eql({
+      expect(casted).toMatchObject({
         arr: [4, 5],
         arrNested: [{ num: 5 }, { num: 5 }],
         dte: new Date(1411500325000),
@@ -115,7 +115,7 @@ describe('Object types', () => {
         num: 5,
         str: 'hello',
       }
-      const inst = object({
+      const inst = object().shape({
         arr: array().of(number()),
         arrNested: array().of(object().shape({ num: number() })),
         dte: date(),
@@ -129,8 +129,8 @@ describe('Object types', () => {
 
     it('with stripUnknown', () => {
       expect(
-        object({
-          names: object({
+        object().shape({
+          names: object().shape({
             first: string(),
           }),
         }).cast(
@@ -160,8 +160,8 @@ describe('Object types', () => {
     })
 
     it('should alias nested keys', () => {
-      const inst = object({
-        foo: object({
+      const inst = object().shape({
+        foo: object().shape({
           bar: string(),
         }),
       }).from('foo.bar', 'foobar', true)
@@ -186,7 +186,7 @@ describe('Object types', () => {
 
   describe('oneOf', () => {
     it('should work with refs', async () => {
-      const inst = object({
+      const inst = object().shape({
         bar: string().oneOf([ref('foo'), 'b']),
         foo: string(),
       })
@@ -201,7 +201,7 @@ describe('Object types', () => {
     it('should respect strict for nested values', async () => {
       expect.assertions(1)
       await expect(
-        object({
+        object().shape({
           field: string(),
         })
           .strict()
@@ -210,7 +210,7 @@ describe('Object types', () => {
     })
 
     it('should respect child schema with strict()', async () => {
-      const inst = object({
+      const inst = object().shape({
         field: number()
           .strict()
           .integer(),
@@ -264,7 +264,7 @@ describe('Object types', () => {
 
     it('should prevent recursive casting', async () => {
       const castSpy = sinon.spy(StringSchema.prototype, '_cast')
-      const inst = object({
+      const inst = object().shape({
         field: string(),
       })
 
@@ -322,7 +322,7 @@ describe('Object types', () => {
   })
 
   it('should call shape with constructed with an arg', () => {
-    const inst = object({
+    const inst = object().shape({
       prop: mixed(),
     })
 
@@ -331,7 +331,7 @@ describe('Object types', () => {
 
   describe('default/defaultValue', () => {
     it('should use correct default when concating', () => {
-      const inst = object({
+      const inst = object().shape({
         other: boolean(),
       }).default(undefined)
 
@@ -341,8 +341,8 @@ describe('Object types', () => {
 
     it('should expand objects by default', () => {
       expect(
-        object({
-          nest: object({
+        object().shape({
+          nest: object().shape({
             str: string().default('hi'),
           }),
         }).defaultValue(),
@@ -353,8 +353,8 @@ describe('Object types', () => {
 
     it('should accept a user provided default', () => {
       expect(
-        object({
-          nest: object({
+        object().shape({
+          nest: object().shape({
             str: string().default('hi'),
           }),
         })
@@ -367,8 +367,8 @@ describe('Object types', () => {
 
     it('should add empty keys when sub schema has no default', () => {
       expect(
-        object({
-          nest: object({ str: string() }),
+        object().shape({
+          nest: object().shape({ str: string() }),
           str: string(),
         }).defaultValue(),
       ).toMatchObject({
@@ -379,9 +379,9 @@ describe('Object types', () => {
 
     it('should create defaults for missing object fields', () => {
       expect(
-        object({
-          other: object({
-            x: object({ b: string() }),
+        object().shape({
+          other: object().shape({
+            x: object().shape({ b: string() }),
           }),
           prop: mixed(),
         }).cast({ prop: 'foo' }),
@@ -442,9 +442,9 @@ describe('Object types', () => {
 
   describe('refs', () => {
     it('should allow refs', async () => {
-      const schema = object({
+      const schema = object().shape({
         baz: ref('foo.bar'),
-        foo: object({
+        foo: object().shape({
           bar: string(),
         }),
         quz: ref('baz'),
@@ -508,9 +508,9 @@ describe('Object types', () => {
     })
 
     it('should resolve to schema', () => {
-      const inst = object({
+      const inst = object().shape({
         nested: lazy(() => inst),
-        x: object({
+        x: object().shape.({
           y: lazy(() => inst),
         }),
       })
@@ -520,7 +520,7 @@ describe('Object types', () => {
     })
 
     it('should be passed the value', done => {
-      const inst = object({
+      const inst = object().shape({
         nested: lazy(value => {
           expect(value).toStrictEqual('foo')
           done()
@@ -548,7 +548,7 @@ describe('Object types', () => {
     })
 
     it('should set the correct path', async () => {
-      const inst = object({
+      const inst = object().shape({
         nested: lazy(() => inst.default(undefined)),
         str: string()
           .required()
@@ -568,7 +568,7 @@ describe('Object types', () => {
     })
 
     it('should resolve array sub types', async () => {
-      const inst = object({
+      const inst = object().shape({
         nested: array().of(lazy(() => inst.default(undefined))),
         str: string()
           .required()
@@ -595,8 +595,8 @@ describe('Object types', () => {
   })
 
   it('should respect abortEarly', async () => {
-    const inst = object({
-      nest: object({
+    const inst = object().shape({
+      nest: object().shape({
         str: string().required(),
       }).test({ name: 'name', message: 'oops', test: () => false }),
     })
@@ -617,7 +617,7 @@ describe('Object types', () => {
   })
 
   it('should sort errors by insertion order', async () => {
-    const inst = object({
+    const inst = object().shape({
       bar: string().required(),
       // use `when` to make sure it is validated second
       foo: string().when('bar', () => string().min(5)),
@@ -629,8 +629,8 @@ describe('Object types', () => {
   })
 
   it('should respect recursive', async () => {
-    const inst = object({
-      nest: object({
+    const inst = object().shape({
+      nest: object().shape({
         str: string().required(),
       }),
     }).test({ name: 'name', message: 'oops', test: () => false })
@@ -660,7 +660,7 @@ describe('Object types', () => {
       other: number()
         .min(1)
         .when('stats', { is: 5, then: number() }),
-      stats: object({ isBig: boolean() }),
+      stats: object().shape({ isBig: boolean() }),
     })
 
     genIsValid(inst, [
@@ -715,9 +715,9 @@ describe('Object types', () => {
       is: true,
       then: number().min(5),
     })
-    const inst = object({
+    const inst = object().shape({
       other: boolean(),
-      stats: object({
+      stats: object().shape({
         count: countSchema,
         isBig: boolean(),
       })

@@ -255,9 +255,9 @@ at _validation/cast time_ and supported where specified. Ref's are evaluated in 
 the ref value is resolved before the field using the ref (be careful of circular dependencies!).
 
 ```js
-var schema = object({
+var schema = object().shape({
   baz: ref('foo.bar'),
-  foo: object({
+  foo: object().shape({
     bar: string()
   })
   x: ref('$x')
@@ -276,7 +276,7 @@ recursive schema like Trees, for polymophic fields and arrays.
 to `undefined` on the child otherwise the object will infinitely nest itself when you cast it!.
 
 ```js
-var node = object({
+var node = object().shape({
   id: number(),
   child: yup.lazy(() => node.default(undefined)),
 })
@@ -416,9 +416,9 @@ but uses the resulting schema as the subject for validation.
 > Note! The `value` here is the _root_ value relative to the starting schema, not the value at the nested path.
 
 ```js
-const schema = object({
+const schema = object().shape({
   foo: array().of(
-    object({
+    object().shape({
       loose: bool(),
       bar: string().when('loose', {
         is: true,
@@ -476,7 +476,7 @@ validating the value "as is".
 Marks a schema to be removed from an output object. Only works as a nested schema.
 
 ```js
-let schema = object({
+let schema = object().shape({
   useThis: number(),
   notThis: string().strip(),
 })
@@ -584,7 +584,7 @@ Like joi you can also prefix properties with `$` to specify a property that is d
 on `context` passed in by `validate()` or `isValid`. `when` conditions are additive.
 
 ```javascript
-var inst = yup.object({
+var inst = yup.object().shape({
   isBig: yup.boolean(),
   count: yup
     .number()
@@ -602,7 +602,7 @@ inst.validate(value, { context: { other: 4 } })
 You can also specify more than one dependent key, in which case each value will be spread as an argument.
 
 ```javascript
-var inst = yup.object({
+var inst = yup.object().shape({
   isSpecial: yup.bool(),
   isBig: yup.bool(),
   count: yup.number().when(['isBig', 'isSpecial'], {
@@ -623,7 +623,7 @@ Alternatively you can provide a function that returns a schema
 (called with the value of the key and the current schema).
 
 ```js
-var inst = yup.object({
+var inst = yup.object().shape({
   isBig: yup.boolean(),
   count: yup.number().when('isBig', (isBig, schema) => {
     return isBig ? schema.min(5) : schema.min(0)
@@ -1018,7 +1018,7 @@ object().shape({
   num: number(),
 })
 //or
-object({
+object().shape({
   num: number(),
 })
 ```
@@ -1034,19 +1034,21 @@ Define the keys of the object and the schemas for said keys.
 Note that you can chain `shape` method, which acts like object extends, for example:
 
 ```javascript
-object({
-  a: string(),
-  b: number(),
-}).shape({
-  b: string(),
-  c: number(),
-})
+object()
+  .shape({
+    a: string(),
+    b: number(),
+  })
+  .shape({
+    b: string(),
+    c: number(),
+  })
 ```
 
 would be exactly the same as:
 
 ```javascript
-object({
+object().shape({
   a: string(),
   b: string(),
   c: number(),
@@ -1058,10 +1060,11 @@ object({
 Transforms the specified key to a new key. If `alias` is `true` then the old key will be left.
 
 ```javascript
-var schema = object({
-  myProp: mixed(),
-  Other: mixed(),
-})
+var schema = object()
+  .shape({
+    myProp: mixed(),
+    Other: mixed(),
+  })
   .from('prop', 'myProp')
   .from('other', 'Other', true)
 

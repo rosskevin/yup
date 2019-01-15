@@ -1,6 +1,5 @@
 // tslint:disable:ban-types
 
-import { Value } from './types'
 import { getter } from './util/expression'
 
 const validateName = (d: any) => {
@@ -83,7 +82,7 @@ export class Ref {
     return this
   }
 
-  public cast(value: Value, { parent, context }: any) {
+  public cast(value: any, { parent, context }: any) {
     return this.getValue(parent, context)
   }
 

@@ -1,5 +1,5 @@
 import * as sinon from 'sinon'
-import { array, number, object, string, StringSchema } from 'yup'
+import { array, lazy, mixed, number, object, string, StringSchema } from 'yup'
 import { genIsNotType, genIsType } from './helpers'
 
 describe('ArraySchema', () => {
@@ -37,17 +37,21 @@ describe('ArraySchema', () => {
 
     it('should pass options to children', () => {
       expect(
-        array(object({ name: string() })).cast([{ id: 1, name: 'john' }], { stripUnknown: true }),
+        array()
+          .of(object().shape({ name: string() }))
+          .cast([{ id: 1, name: 'john' }], { stripUnknown: true }),
       ).toStrictEqual([{ name: 'john' }])
     })
 
     it('should prevent recursive casting', async () => {
       const castSpy = sinon.spy(StringSchema.prototype, '_cast')
-      const value = await array(string()).validate([5])
+      const value = await array()
+        .of(string())
+        .validate([5])
       expect(value[0]).toStrictEqual('5')
       expect(castSpy.calledOnce).toStrictEqual(true)
-      // tslint:disable-next-line:align
-      ; (StringSchema.prototype._cast as any).restore()
+      // tslint:disable-next-line
+      ;(StringSchema.prototype._cast as any).restore()
     })
   })
 
@@ -81,13 +85,13 @@ describe('ArraySchema', () => {
       expect(
         array()
           .of(number())
-          .concat(array())._subType,
+          .concat(array()).itemSchema,
       ).not.toBeNull()
 
       expect(
         array()
           .of(number())
-          .concat(array().of(false))._subType,
+          .concat(array().of(false)).itemSchema,
       ).toStrictEqual(false)
     })
   })
@@ -124,7 +128,7 @@ describe('ArraySchema', () => {
 
   it('should respect abortEarly', async () => {
     const inst = array()
-      .of(object({ str: string().required() }))
+      .of(object().shape({ str: string().required() }))
       .test({ name: 'name', message: 'oops', test: () => false })
 
     expect.assertions(2)
@@ -170,5 +174,20 @@ describe('ArraySchema', () => {
           .cast(null),
       ).toStrictEqual([])
     })
+  })
+
+  it('lazy', () => {
+    const renderable = lazy((...value: any[]) => {
+      switch (typeof value) {
+        case 'number':
+          return number()
+        case 'string':
+          return string()
+        default:
+          return mixed()
+      }
+    })
+
+    const renderables = array().of(renderable)
   })
 })

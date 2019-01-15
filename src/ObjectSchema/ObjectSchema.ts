@@ -4,11 +4,18 @@ import camelCase from 'lodash/camelCase'
 import has from 'lodash/has'
 import mapKeys from 'lodash/mapKeys'
 import snakeCase from 'lodash/snakeCase'
+import { ArraySchema } from '../ArraySchema'
+import { BooleanSchema } from '../BooleanSchema'
+import { DateSchema } from '../DateSchema'
+import { LazySchema } from '../LazySchema'
 import { locale } from '../locale'
 import { MixedSchema } from '../MixedSchema'
+import { NumberSchema } from '../NumberSchema'
 import { Ref } from '../Ref'
-import { BaseSchema, Schema, SchemaDescription, ValidateOptions } from '../types'
+import { StringSchema } from '../StringSchema'
+import { AnySchema, SchemaDescription, ValidateOptions } from '../types'
 import { getter } from '../util/expression'
+import { isMixedSchema } from '../util/isMixedSchema'
 import { isObject } from '../util/isObject'
 import makePath from '../util/makePath'
 import propagateErrors from '../util/propagateErrors'
@@ -23,10 +30,10 @@ function unknown(ctx: any, value: any) {
 }
 
 export interface SchemaShape {
-  [key: string]: BaseSchema<any> | Ref
+  [key: string]: Ref | AnySchema
 }
-export function object(schemaShape?: SchemaShape) {
-  return new ObjectSchema(schemaShape)
+export function object() {
+  return new ObjectSchema()
 }
 
 /**
@@ -48,19 +55,19 @@ export function object(schemaShape?: SchemaShape) {
  *   num: number(),
  * });
  * //or
- * object({
+ * object().shape({
  *   num: number(),
  * });
  * The default cast behavior for object is: JSON.parse
  *
  * Failed casts return: null;
  */
-export class ObjectSchema<T = any> extends MixedSchema<T> {
+export class ObjectSchema<T = object> extends MixedSchema<T> {
   public fields: SchemaShape = {}
   private _nodes: any[] = []
   private _excludedEdges: any[] = []
 
-  constructor(schemaShape?: any) {
+  constructor(/*schemaShape?: any*/) {
     super({
       default: () => {
         // FIXME a really ugly way to override/augment the default() implementation in super
@@ -94,9 +101,9 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
         return null
       })
 
-      if (schemaShape) {
-        this.shape(schemaShape)
-      }
+      // if (schemaShape) {
+      //   this.shape(schemaShape)
+      // }
     })
   }
 
@@ -104,8 +111,8 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
     return isObject(value) || typeof value === 'function'
   }
 
-  public _cast(_value: any, options: ValidateOptions = {}) {
-    const value = super._cast(_value, options)
+  public _cast(_value: any, options: ValidateOptions = {}): T {
+    const value: T = super._cast(_value, options)
 
     // should ignore nulls here
     if (value === undefined) {
@@ -116,10 +123,9 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
       return value
     }
 
-    const fields = this.fields
     const strip = this._option('stripUnknown', options) === true
     const props = this._nodes.concat(Object.keys(value).filter(v => this._nodes.indexOf(v) === -1))
-    const intermediateValue = {} // is filled during the transform below
+    const intermediateValue: T = {} as any // is filled during the transform below
     const innerOptions: ValidateOptions = {
       ...options,
       __validating: false,
@@ -128,26 +134,28 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
 
     let isChanged = false
     props.forEach(prop => {
-      let field = fields[prop]
+      let fieldSchema = this.fields[prop]
       const exists = has(value, prop)
 
-      if (field) {
+      if (fieldSchema && isMixedSchema(fieldSchema)) {
         let fieldValue
-        const strict = (field as any)._options && (field as MixedSchema)._options.strict
+        const strict = fieldSchema._options && fieldSchema._options.strict
 
         // safe to mutate since this is fired in sequence
         innerOptions.path = makePath([`${options.path}.${prop}`])
         // innerOptions.value = value[prop] // FIXME not conforming to signature
 
-        field = field.resolve(innerOptions)
+        fieldSchema = fieldSchema.resolve(innerOptions)
 
-        if ((field as any)._strip === true) {
+        if (fieldSchema._strip === true) {
           isChanged = isChanged || prop in value
           return
         }
 
         fieldValue =
-          !options.__validating || !strict ? field.cast(value[prop], innerOptions) : value[prop]
+          !options.__validating || !strict
+            ? fieldSchema.cast(value[prop], innerOptions)
+            : value[prop]
 
         if (fieldValue !== undefined) {
           intermediateValue[prop] = fieldValue
@@ -172,8 +180,8 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
 
     opts = { ...opts, __validating: true, originalValue }
 
-    return MixedSchema.prototype._validate
-      .call(this, _value, opts)
+    return super
+      ._validate(_value, opts)
       .catch(propagateErrors(endEarly, errors))
       .then(value => {
         if (!recursive || !isObject(value)) {
@@ -188,7 +196,7 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
 
         const validations = this._nodes.map(key => {
           const path = makePath([`${opts.path}.${key}`])
-          const field = this.fields[key]
+          const fieldSchema = this.fields[key]
 
           const innerOptions = {
             ...opts,
@@ -197,14 +205,14 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
             path,
           }
 
-          if (field) {
+          if (fieldSchema) {
             // inner fields are always strict:
             // 1. this isn't strict so the casting will also have cast inner values
             // 2. this is strict in which case the nested values weren't cast either
             innerOptions.strict = true
 
-            if (field.validate) {
-              return field.validate(value[key], innerOptions)
+            if ((fieldSchema as any).validate) {
+              return (fieldSchema as MixedSchema<any>).validate(value[key], innerOptions)
             }
             return Promise.resolve(true)
           }
@@ -224,7 +232,7 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
       })
   }
 
-  public concat(schema: Schema<T>): this {
+  public concat<S extends MixedSchema<T>>(schema: S): this {
     const next = super.concat(schema)
     next._nodes = sortFields(next.fields, next._excludedEdges)
     return next
@@ -235,7 +243,7 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
    *
    * Note that you can chain shape method, which acts like object extends, for example:
    *
-   * object({
+   * object().shape({
    *   a: string(),
    *   b: number(),
    * }).shape({
@@ -244,7 +252,7 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
    * });
    * would be exactly the same as:
    *
-   * object({
+   * object().shape({
    *   a: string(),
    *   b: string(),
    *   c: number(),
@@ -272,7 +280,7 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
   /**
    * Transforms the specified key to a new key. If alias is true then the old key will be left.
    *
-   * const schema = object({
+   * const schema = object().shape({
    *   myProp: mixed(),
    *   Other: mixed(),
    * })
@@ -358,8 +366,10 @@ export class ObjectSchema<T = any> extends MixedSchema<T> {
   public describe(): ObjectSchemaDescription {
     const desc: ObjectSchemaDescription = { ...super.describe(), fields: {} }
     for (const name of Object.keys(this.fields)) {
-      const value = this.fields[name]
-      desc.fields[name] = value.describe()
+      const fieldSchema = this.fields[name]
+      if (isMixedSchema(fieldSchema)) {
+        desc.fields[name] = fieldSchema.describe()
+      }
     }
     return desc
   }

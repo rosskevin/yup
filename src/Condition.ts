@@ -1,25 +1,51 @@
 import has from 'lodash/has'
+import { MixedSchema } from './MixedSchema'
 import { Ref } from './Ref'
-import { Schema, WhenIsFn, WhenOptions, WhenOptionsFn } from './types'
+// import { Schema } from './types'
 import { isSchema } from './util/isSchema'
 
-function callOrConcat<T>(thenOrOtherwise: Schema<T> | WhenOptionsFn<T> | undefined) {
+export type WhenIsFn = (...values: any[]) => boolean
+
+export type WhenOptionsFn<T, S> = (value: any, schema: S) => S // | undefined
+
+export type WhenIs = boolean | number | string | WhenIsFn
+
+export interface WhenIsThenOptions<T, S> {
+  is: WhenIs
+  then: S | WhenOptionsFn<T, S>
+  otherwise?: S | WhenOptionsFn<T, S>
+}
+
+export interface WhenIsOtherwiseOptions<T, S> {
+  is: WhenIs
+  then?: S | WhenOptionsFn<T, S>
+  otherwise: S | WhenOptionsFn<T, S>
+}
+
+export type WhenOptions<T, S extends MixedSchema<T> = MixedSchema<T>> =
+  | WhenOptionsFn<T, S>
+  | WhenIsThenOptions<T, S>
+  | WhenIsOtherwiseOptions<T, S>
+
+function callOrConcat<T, S extends MixedSchema<T> = MixedSchema<T>>(
+  thenOrOtherwise: S | WhenOptionsFn<T, S> | undefined,
+) {
   if (typeof thenOrOtherwise === 'function') {
     return thenOrOtherwise
   }
 
-  return (base: Schema<T>) => (thenOrOtherwise !== undefined ? base.concat(thenOrOtherwise) : base)
+  return (base: S) => (thenOrOtherwise !== undefined ? base.concat(thenOrOtherwise) : base)
 }
 
-export default class Condition<T> {
+export default class Condition<T, S extends MixedSchema<T>> {
   public refs: Ref[]
-  public fn: WhenOptionsFn<T>
+  public fn: WhenOptionsFn<T, S>
 
   constructor(refs: Ref[], options: WhenOptions<T>) {
     this.refs = ([] as Ref[]).concat(refs)
 
     if (typeof options === 'function') {
-      this.fn = options
+      this.fn = (options as any) as WhenOptionsFn<T, S> // FIXME why need to untype first?
     } else {
       /*
        * {
@@ -65,7 +91,7 @@ export default class Condition<T> {
     return values
   }
 
-  public resolve(ctx: any, values: any[]): Schema<T> {
+  public resolve(ctx: any, values: any[]) {
     const schema = this.fn.apply(ctx, values.concat(ctx) as any) // FIXME wow so confusing
 
     if (schema !== undefined && !isSchema(schema)) {

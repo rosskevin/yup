@@ -26,7 +26,7 @@ export interface MatchesOptions {
   excludeEmptyString?: boolean
 }
 
-export class StringSchema extends MixedSchema {
+export class StringSchema extends MixedSchema<string> {
   constructor() {
     super({ type: 'string' })
 

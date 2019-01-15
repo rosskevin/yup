@@ -10,7 +10,7 @@ export function date() {
   return new DateSchema()
 }
 
-export class DateSchema extends MixedSchema {
+export class DateSchema extends MixedSchema<Date> {
   constructor() {
     super({ type: 'date' })
 
@@ -32,7 +32,7 @@ export class DateSchema extends MixedSchema {
   }
 
   public min(min: Date | Ref, message = locale.date.min) {
-    let limit = min
+    let limit: Date | Ref = min
 
     if (!Ref.isRef(limit)) {
       limit = this.cast(min)
@@ -47,7 +47,7 @@ export class DateSchema extends MixedSchema {
       name: 'min',
       params: { min },
       test(value) {
-        return isAbsent(value) || value >= this.resolve(limit)
+        return isAbsent(value) || value >= this.resolve(limit) // is this the schema.resolve? if so it has different params
       },
     })
   }
