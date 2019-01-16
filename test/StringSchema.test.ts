@@ -146,6 +146,10 @@ describe('StringSchema', () => {
       [null, null, string().nullable()],
     ])
 
+    it('cast should not assert on undefined', () => {
+      expect(string().cast(undefined)).not.toThrow()
+    })
+
     describe('ensure', () => {
       const schema = string().ensure()
       genCastValid(schema, [
@@ -191,6 +195,19 @@ describe('StringSchema', () => {
           .uppercase()
           .cast(null),
       ).toBeNull()
+    })
+
+    it('cast should assert on undefined cast results', () => {
+      expect(
+        string()
+          .transform(() => undefined)
+          .cast('foo'),
+      ).toThrow()
+    })
+
+    it('cast should respect assert option', () => {
+      expect(string().cast(null)).toThrow()
+      expect(string().cast(null, { assert: false })).not.toThrow()
     })
   })
 
