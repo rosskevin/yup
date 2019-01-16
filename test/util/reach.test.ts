@@ -32,12 +32,9 @@ describe('reach', () => {
             : array().of(
                 object().shape({
                   foo: number(),
-                  num: number().when('foo', foo => {
-                    if (foo === 5) {
-                      return num
-                    }
-                    return undefined
-                  }),
+                  num: number().when('foo', (values, schema) =>
+                    values[0] === 5 ? num : undefined,
+                  ),
                 }),
               )
         }),

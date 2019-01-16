@@ -41,11 +41,8 @@ export class MixedSchema<T = any> /* implements Schema<T> */ {
   public _typeError?: ValidateFn<T> = undefined
   public _whitelistError?: ValidateFn<T> = undefined
   public _blacklistError?: ValidateFn<T> = undefined
-
   public transforms: Array<TransformFunction<T>> = []
   public _conditions: Array<Condition<T, this>> = []
-  // public transforms: any[] = [] // Array<TransformFunction<T>> = []
-  // public _conditions: any[] = [] // Array<Condition<T, this>> = []
 
   constructor(options: { default?: any; type?: string } = {}) {
     this.withMutation(() => {
@@ -166,11 +163,11 @@ export class MixedSchema<T = any> /* implements Schema<T> */ {
     return !(this as any)._typeCheck || (this as any)._typeCheck(v)
   }
 
-  public resolve({ context, parent }: ValidateOptions): this {
+  public resolve(options: ValidateOptions): this {
     let result = this
 
     for (const condition of this._conditions) {
-      result = condition.resolve(result, condition.getValue(parent, context))
+      result = condition.resolve(options, result)
     }
     return result
   }

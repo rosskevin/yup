@@ -73,7 +73,7 @@ describe('MixedSchema', () => {
         object().shape({
           bar: string().when('loose', {
             is: true,
-            otherwise: s => s.strict(),
+            otherwise: (values, s) => s.strict(),
           }),
           loose: boolean(),
         }),
@@ -420,15 +420,13 @@ describe('MixedSchema', () => {
 
     it('should handle multiple when args with fn', () => {
       let called = false
-      const inst = mixed().when(
-        ['prop', 'other'],
-        (prop, other): boolean => {
-          expect(other).toStrictEqual(true)
-          expect(prop).toStrictEqual(1)
-          called = true
-          return true
-        },
-      )
+      const inst = mixed().when(['prop', 'other'], (values: any[], schemaCaller) => {
+        const [prop, other] = values
+        expect(other).toStrictEqual(true)
+        expect(prop).toStrictEqual(1)
+        called = true
+        return schemaCaller
+      })
 
       inst.cast({}, { context: { prop: 1, other: true } })
       expect(called).toStrictEqual(true)

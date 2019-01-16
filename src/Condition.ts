@@ -1,40 +1,33 @@
 import has from 'lodash/has'
 import { MixedSchema } from './MixedSchema'
 import { Ref } from './Ref'
+import { ValidateOptions } from './types'
 import { isSchema } from './util/isSchema'
 
 export type WhenIsFn = (...values: any[]) => boolean
 
-export type WhenOptionsFn<T, S> = (value: any, schema: S) => S // | undefined
+export type WhenOptionsFn<T, S> = (values: any[], schema: S) => S | undefined
 
 export type WhenIs = boolean | number | string | WhenIsFn
 
+export type SorFn<T, S> = S | WhenOptionsFn<T, S>
+
 export interface WhenIsThenOptions<T, S> {
   is: WhenIs
-  then: S | WhenOptionsFn<T, S>
-  otherwise?: S | WhenOptionsFn<T, S>
+  then: SorFn<T, S>
+  otherwise?: SorFn<T, S>
 }
 
 export interface WhenIsOtherwiseOptions<T, S> {
   is: WhenIs
-  then?: S | WhenOptionsFn<T, S>
-  otherwise: S | WhenOptionsFn<T, S>
+  then?: SorFn<T, S>
+  otherwise: SorFn<T, S>
 }
 
 export type WhenOptions<T, S extends MixedSchema<T>> =
   | WhenOptionsFn<T, S>
   | WhenIsThenOptions<T, S>
   | WhenIsOtherwiseOptions<T, S>
-
-function callOrConcat<T, S extends MixedSchema<T> = MixedSchema<T>>(
-  thenOrOtherwise: S | WhenOptionsFn<T, S> | undefined,
-) {
-  if (typeof thenOrOtherwise === 'function') {
-    return thenOrOtherwise
-  }
-
-  return (base: S) => (thenOrOtherwise !== undefined ? base.concat(thenOrOtherwise) : base)
-}
 
 export default class Condition<T, S extends MixedSchema<T>> {
   public refs: Ref[]
@@ -44,7 +37,7 @@ export default class Condition<T, S extends MixedSchema<T>> {
     this.refs = ([] as Ref[]).concat(refs)
 
     if (typeof options === 'function') {
-      this.fn = (options as any) as WhenOptionsFn<T, S> // FIXME why need to untype first?
+      this.fn = options
     } else {
       /*
        * {
@@ -53,9 +46,7 @@ export default class Condition<T, S extends MixedSchema<T>> {
        *   otherwise: yup.number().min(0)
        * }
        */
-      const { is: isOpt, then: thenOpt, otherwise: otherwiseOpt } = options
-      const then = callOrConcat(thenOpt)
-      const otherwise = callOrConcat(otherwiseOpt)
+      const { is: isOpt, then, otherwise } = options
       if (!has(options, 'is')) {
         throw new TypeError('`is` is required for `when()` conditions')
       }
@@ -73,30 +64,41 @@ export default class Condition<T, S extends MixedSchema<T>> {
         is = (...values: any[]) => values.every(value => value === (is as any))
       }
 
-      this.fn = (...values: any[]) => {
-        const currentSchema = values.pop() // WTF as result of call? FIXME this is too confusing
+      this.fn = (values: any[], schema: S) => {
+        // const currentSchema = values.pop() // WTF as result of call? FIXME this is too confusing
         if (is(values)) {
-          return (then as any)(currentSchema) // FIXME: type needs resolved
+          return this.resolveSchema(values, schema, then)
         } else {
-          return (otherwise as any)(currentSchema) // FIXME: type needs resolved
+          return this.resolveSchema(values, schema, otherwise)
         }
       }
     }
   }
 
-  public getValue(parent: any, context: any) {
+  public resolve({ context, parent }: ValidateOptions, schemaCaller: S): S {
     const values = this.refs.map(r => r.getValue(parent, context))
-
-    return values
+    return this.resolveSchema(values, schemaCaller, this.fn)
   }
 
-  public resolve(ctx: any, values: any[]) {
-    const schema = this.fn.apply(ctx, values.concat(ctx) as any) // FIXME wow so confusing
+  // tslint:disable-next-line:member-ordering
+  private resolveSchema(values: any[], schemaCaller: S, sOrFn?: SorFn<T, S>): S {
+    if (!sOrFn) {
+      return schemaCaller
+    }
+    if (isSchema(sOrFn)) {
+      return sOrFn as S
+    }
+    if (typeof sOrFn !== 'function') {
+      throw new Error('Expected schema or function')
+    }
 
-    if (schema !== undefined && !isSchema(schema)) {
+    const fn: WhenOptionsFn<T, S> = sOrFn
+    // const schema = this.fn.apply(schemaCaller, values.concat(schemaCaller)) // FIXME wow so confusing
+    const schemaResult = fn(values, schemaCaller)
+    if (schemaResult !== undefined && !isSchema(schemaResult)) {
       throw new TypeError('conditions must return a schema object')
     }
 
-    return schema || ctx
+    return schemaResult || schemaCaller
   }
 }

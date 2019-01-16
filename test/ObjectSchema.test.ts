@@ -62,7 +62,8 @@ describe('Object types', () => {
     // })
 
     it('should parse json strings', () => {
-      object().shape({ hello: number() })
+      object()
+        .shape({ hello: number() })
         .cast('{ "hello": "5" }')
         .should.eql({
           hello: 5,
@@ -129,17 +130,19 @@ describe('Object types', () => {
 
     it('with stripUnknown', () => {
       expect(
-        object().shape({
-          names: object().shape({
-            first: string(),
-          }),
-        }).cast(
-          {
-            extra: true,
-            names: { first: 'john', extra: true },
-          },
-          { stripUnknown: true },
-        ),
+        object()
+          .shape({
+            names: object().shape({
+              first: string(),
+            }),
+          })
+          .cast(
+            {
+              extra: true,
+              names: { first: 'john', extra: true },
+            },
+            { stripUnknown: true },
+          ),
       ).toMatchObject({
         names: {
           first: 'john',
@@ -160,11 +163,13 @@ describe('Object types', () => {
     })
 
     it('should alias nested keys', () => {
-      const inst = object().shape({
-        foo: object().shape({
-          bar: string(),
-        }),
-      }).from('foo.bar', 'foobar', true)
+      const inst = object()
+        .shape({
+          foo: object().shape({
+            bar: string(),
+          }),
+        })
+        .from('foo.bar', 'foobar', true)
 
       expect(inst.cast({ foo: { bar: 'quz' } })).toMatchObject({
         foo: { bar: 'quz' },
@@ -201,9 +206,10 @@ describe('Object types', () => {
     it('should respect strict for nested values', async () => {
       expect.assertions(1)
       await expect(
-        object().shape({
-          field: string(),
-        })
+        object()
+          .shape({
+            field: string(),
+          })
           .strict()
           .validate({ field: 5 }),
       ).rejects.toThrow(/must be a `string` type/)
@@ -271,10 +277,10 @@ describe('Object types', () => {
       expect.assertions(1)
       const value = await inst.validate({ field: 5 })
 
-      expect(value.field).toStrictEqual('5')
+      expect((value as { field: string }).field).toStrictEqual('5')
       expect(castSpy.calledOnce).toStrictEqual(true)
-      // tslint:disable-next-line:align
-      ; (StringSchema.prototype._cast as any).restore()
+      // tslint:disable-next-line
+      ;(StringSchema.prototype._cast as any).restore()
     })
 
     it('should handle custom validation', async () => {
@@ -331,9 +337,11 @@ describe('Object types', () => {
 
   describe('default/defaultValue', () => {
     it('should use correct default when concating', () => {
-      const inst = object().shape({
-        other: boolean(),
-      }).default(undefined)
+      const inst = object()
+        .shape({
+          other: boolean(),
+        })
+        .default(undefined)
 
       expect(inst.concat(object()).defaultValue()).toBeUndefined()
       expect(inst.concat(object().default({})).defaultValue()).toMatchObject({})
@@ -341,11 +349,13 @@ describe('Object types', () => {
 
     it('should expand objects by default', () => {
       expect(
-        object().shape({
-          nest: object().shape({
-            str: string().default('hi'),
-          }),
-        }).defaultValue(),
+        object()
+          .shape({
+            nest: object().shape({
+              str: string().default('hi'),
+            }),
+          })
+          .defaultValue(),
       ).toMatchObject({
         nest: { str: 'hi' },
       })
@@ -353,11 +363,12 @@ describe('Object types', () => {
 
     it('should accept a user provided default', () => {
       expect(
-        object().shape({
-          nest: object().shape({
-            str: string().default('hi'),
-          }),
-        })
+        object()
+          .shape({
+            nest: object().shape({
+              str: string().default('hi'),
+            }),
+          })
           .default({ boom: 'hi' })
           .defaultValue(),
       ).toMatchObject({
@@ -367,10 +378,12 @@ describe('Object types', () => {
 
     it('should add empty keys when sub schema has no default', () => {
       expect(
-        object().shape({
-          nest: object().shape({ str: string() }),
-          str: string(),
-        }).defaultValue(),
+        object()
+          .shape({
+            nest: object().shape({ str: string() }),
+            str: string(),
+          })
+          .defaultValue(),
       ).toMatchObject({
         nest: { str: undefined },
         str: undefined,
@@ -379,12 +392,14 @@ describe('Object types', () => {
 
     it('should create defaults for missing object fields', () => {
       expect(
-        object().shape({
-          other: object().shape({
-            x: object().shape({ b: string() }),
-          }),
-          prop: mixed(),
-        }).cast({ prop: 'foo' }),
+        object()
+          .shape({
+            other: object().shape({
+              x: object().shape({ b: string() }),
+            }),
+            prop: mixed(),
+          })
+          .cast({ prop: 'foo' }),
       ).toMatchObject({
         other: { x: { b: undefined } },
         prop: 'foo',
@@ -431,7 +446,7 @@ describe('Object types', () => {
       other: boolean(),
       prop: mixed().when('other', {
         is: true,
-        then: s => s.strip(),
+        then: (values, s) => s.strip(),
       }),
     })
 
@@ -510,7 +525,7 @@ describe('Object types', () => {
     it('should resolve to schema', () => {
       const inst = object().shape({
         nested: lazy(() => inst),
-        x: object().shape.({
+        x: object().shape({
           y: lazy(() => inst),
         }),
       })
@@ -596,9 +611,11 @@ describe('Object types', () => {
 
   it('should respect abortEarly', async () => {
     const inst = object().shape({
-      nest: object().shape({
-        str: string().required(),
-      }).test({ name: 'name', message: 'oops', test: () => false }),
+      nest: object()
+        .shape({
+          str: string().required(),
+        })
+        .test({ name: 'name', message: 'oops', test: () => false }),
     })
 
     expect.assertions(2)
@@ -629,11 +646,13 @@ describe('Object types', () => {
   })
 
   it('should respect recursive', async () => {
-    const inst = object().shape({
-      nest: object().shape({
-        str: string().required(),
-      }),
-    }).test({ name: 'name', message: 'oops', test: () => false })
+    const inst = object()
+      .shape({
+        nest: object().shape({
+          str: string().required(),
+        }),
+      })
+      .test({ name: 'name', message: 'oops', test: () => false })
 
     const val = { nest: { str: null } }
     expect.assertions(2)
@@ -652,11 +671,7 @@ describe('Object types', () => {
     const inst = object().shape({
       noteDate: number()
         .when('stats.isBig', { is: true, then: number().min(5) })
-        .when('other', (v, schema) => {
-          if (v === 4) {
-            return schema.max(6) // FIXME was this.max - when needs to be parameterized for executions like this
-          }
-        }),
+        .when('other', (values, schema) => (values[0] === 4 ? schema.max(6) : undefined)),
       other: number()
         .min(1)
         .when('stats', { is: 5, then: number() }),
@@ -679,31 +694,23 @@ describe('Object types', () => {
   it('should allow opt out of topo sort on specific edges', async () => {
     await expect(
       object().shape({
-        location: string().when('orgID', (v, schema) => {
-          if (v == null) {
-            return schema.required() // FIXME types? was this.required
-          }
-        }),
-        orgID: number().when('location', (v, schema) => {
-          if (v == null) {
-            return schema.required() // FIXME types? was this.required
-          }
-        }),
+        location: string().when('orgID', (v, schema) =>
+          v == null ? schema.required() : undefined,
+        ),
+        orgID: number().when('location', (v, schema) =>
+          v == null ? schema.required() : undefined,
+        ),
       }),
     ).rejects.toThrow('Cyclic dependency, node was:"location"')
     await expect(
       object().shape(
         {
-          location: string().when('orgID', (v, schema) => {
-            if (v == null) {
-              return schema.required() // FIXME types? was this.required
-            }
-          }),
-          orgID: number().when('location', (v, schema) => {
-            if (v == null) {
-              return schema.required() // FIXME types? was this.required
-            }
-          }),
+          location: string().when('orgID', (v, schema) =>
+            v == null ? schema.required() : undefined,
+          ),
+          orgID: number().when('location', (v, schema) =>
+            v == null ? schema.required() : undefined,
+          ),
         },
         [['location', 'orgID']],
       ),
@@ -717,10 +724,11 @@ describe('Object types', () => {
     })
     const inst = object().shape({
       other: boolean(),
-      stats: object().shape({
-        count: countSchema,
-        isBig: boolean(),
-      })
+      stats: object()
+        .shape({
+          count: countSchema,
+          isBig: boolean(),
+        })
         .default(undefined)
         .when('other', { is: true, then: object().required() }),
     })

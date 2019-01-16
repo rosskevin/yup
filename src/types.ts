@@ -13,8 +13,7 @@ import { StringSchema } from './StringSchema'
 import RefSet from './util/RefSet'
 import { ValidationError } from './ValidationError'
 
-export type AnySchema =
-  | LazySchema
+export type AnyConcreteSchema =
   | MixedSchema
   | ArraySchema
   | DateSchema
@@ -22,6 +21,8 @@ export type AnySchema =
   | StringSchema
   | BooleanSchema
   | ObjectSchema
+
+export type AnySchema = LazySchema | AnyConcreteSchema
 
 export interface AnyObject {
   [key: string]: any

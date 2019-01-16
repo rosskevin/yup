@@ -1,12 +1,11 @@
 // tslint:disable:variable-name
 
-import { MixedSchema } from './MixedSchema'
-import { ValidateOptions } from './types'
+import { AnyConcreteSchema, ValidateOptions } from './types'
 import { isSchema } from './util/isSchema'
 
-export type MapToSchemaFn<T> = (...args: any[]) => MixedSchema<T>
+export type MapToSchemaFn = (...args: any[]) => AnyConcreteSchema
 
-export function lazy<T>(mapToSchema: MapToSchemaFn<T>) {
+export function lazy(mapToSchema: MapToSchemaFn) {
   return new LazySchema(mapToSchema)
 }
 
@@ -37,12 +36,12 @@ export function lazy<T>(mapToSchema: MapToSchemaFn<T>) {
  * const renderables = array().of(renderable)
  *
  */
-export class LazySchema<T = any> {
+export class LazySchema {
   public __isYupSchema__: boolean = true
   public _type: string = 'lazy'
-  private mapToSchema: MapToSchemaFn<T>
+  private mapToSchema: MapToSchemaFn
 
-  constructor(mapToSchema: MapToSchemaFn<T>) {
+  constructor(mapToSchema: MapToSchemaFn) {
     this.mapToSchema = mapToSchema
   }
 
@@ -62,7 +61,7 @@ export class LazySchema<T = any> {
     return this._resolve(value, options).validate(value, options)
   }
 
-  private _resolve = (...args: any[]): MixedSchema<T> => {
+  private _resolve = (...args: any[]): AnyConcreteSchema => {
     const schema = this.mapToSchema(...args)
     if (!isSchema(schema)) {
       throw new TypeError('lazy() functions must return a valid schema')
