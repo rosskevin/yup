@@ -1,7 +1,6 @@
 import has from 'lodash/has'
 import { MixedSchema } from './MixedSchema'
 import { Ref } from './Ref'
-// import { Schema } from './types'
 import { isSchema } from './util/isSchema'
 
 export type WhenIsFn = (...values: any[]) => boolean
@@ -22,7 +21,7 @@ export interface WhenIsOtherwiseOptions<T, S> {
   otherwise: S | WhenOptionsFn<T, S>
 }
 
-export type WhenOptions<T, S extends MixedSchema<T> = MixedSchema<T>> =
+export type WhenOptions<T, S extends MixedSchema<T>> =
   | WhenOptionsFn<T, S>
   | WhenIsThenOptions<T, S>
   | WhenIsOtherwiseOptions<T, S>
@@ -41,7 +40,7 @@ export default class Condition<T, S extends MixedSchema<T>> {
   public refs: Ref[]
   public fn: WhenOptionsFn<T, S>
 
-  constructor(refs: Ref[], options: WhenOptions<T>) {
+  constructor(refs: Ref[], options: WhenOptions<T, S>) {
     this.refs = ([] as Ref[]).concat(refs)
 
     if (typeof options === 'function') {

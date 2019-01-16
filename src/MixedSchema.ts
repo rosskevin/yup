@@ -558,7 +558,7 @@ export class MixedSchema<T = any> /* implements Schema<T> */ {
    * @param keys
    * @param options
    */
-  public when(keys: string | string[], options: WhenOptions<T>): this {
+  public when(keys: string | string[], options: WhenOptions<T, this>): this {
     const next = this.clone()
     const deps: Ref[] = ([] as string[]).concat(keys).map(key => new Ref(key))
 
