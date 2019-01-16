@@ -12,7 +12,6 @@ describe('reach', () => {
     })
 
     expect(reach(inst, '')).toStrictEqual(inst)
-
     expect(reach(inst, 'nested.arr.num')).toStrictEqual(num)
     expect(reach(inst, 'nested.arr[].num')).toStrictEqual(num)
     expect(reach(inst, 'nested.arr[1].num')).toStrictEqual(num)

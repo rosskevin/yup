@@ -10,7 +10,7 @@ describe('LazySchema', () => {
 
   describe('mapToSchema', () => {
     const value = 1
-    let mapToSchema: MapToSchemaFn<any>
+    let mapToSchema: MapToSchemaFn
 
     beforeEach(() => {
       mapToSchema = sinon.stub().returns(mixed())
