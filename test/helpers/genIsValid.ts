@@ -11,6 +11,7 @@ function _generateIsValidTest<S extends MixedSchema<any>>(
     let value = config
 
     if (Array.isArray(config)) {
+      // tslint:disable-next-line
       ;[value, schema, message = ''] = config
     }
 
