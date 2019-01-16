@@ -62,12 +62,13 @@ describe('Object types', () => {
     // })
 
     it('should parse json strings', () => {
-      object()
-        .shape({ hello: number() })
-        .cast('{ "hello": "5" }')
-        .should.eql({
-          hello: 5,
-        })
+      expect(
+        object()
+          .shape({ hello: number() })
+          .cast('{ "hello": "5" }'),
+      ).toMatchObject({
+        hello: 5,
+      })
     })
 
     it('should return null for failed casts', () => {
@@ -450,7 +451,7 @@ describe('Object types', () => {
       }),
     })
 
-    inst.cast({ other: true, prop: 'bar' }).should.eql({
+    expect(inst.cast({ other: true, prop: 'bar' })).toMatchObject({
       other: true,
     })
   })
@@ -759,9 +760,11 @@ describe('Object types', () => {
       })
       .camelCase()
 
-    inst
-      .cast({ CON_STAT: 5, CaseStatus: 6, 'hi john': 4 })
-      .should.eql({ conStat: 5, caseStatus: 6, hiJohn: 4 })
+    expect(inst.cast({ CON_STAT: 5, CaseStatus: 6, 'hi john': 4 })).toMatchObject({
+      caseStatus: 6,
+      conStat: 5,
+      hiJohn: 4,
+    })
 
     expect(inst.nullable().cast(null)).toBeNull()
   })
@@ -784,9 +787,11 @@ describe('Object types', () => {
       })
       .constantCase()
 
-    inst
-      .cast({ conStat: 5, CaseStatus: 6, 'hi john': 4 })
-      .should.eql({ CON_STAT: 5, CASE_STATUS: 6, HI_JOHN: 4 })
+    expect(inst.cast({ conStat: 5, CaseStatus: 6, 'hi john': 4 })).toMatchObject({
+      CASE_STATUS: 6,
+      CON_STAT: 5,
+      HI_JOHN: 4,
+    })
 
     expect(inst.nullable().cast(null)).toBeNull()
   })

@@ -107,22 +107,23 @@ describe('ArraySchema', () => {
     })
 
     it('should not allow null when not nullable', async () => {
-      await array()
-        .isValid(null)
-        .should.become(false)
+      expect.assertions(2)
+      await expect(array().isValid(null)).resolves.toStrictEqual(false)
 
-      await array()
-        .nullable()
-        .isValid(null)
-        .should.become(true)
+      await expect(
+        array()
+          .nullable()
+          .isValid(null),
+      ).resolves.toStrictEqual(true)
     })
 
     it('should respect subtype validations', async () => {
       const inst = array().of(number().max(5))
-      await inst.isValid(['gg', 3]).should.become(false)
-      await inst.isValid([7, 3]).should.become(false)
-      const value = await inst.validate(['4', 3])
-      value.should.eql([4, 3])
+
+      expect.assertions(3)
+      await expect(inst.isValid(['gg', 3])).resolves.toStrictEqual(false)
+      await expect(inst.isValid([7, 3])).resolves.toStrictEqual(false)
+      await expect(inst.validate(['4', 3])).resolves.toStrictEqual([4, 3])
     })
   })
 

@@ -2,22 +2,6 @@ import { MixedSchema } from '../../MixedSchema'
 
 const g = global as any
 
-g.chai = require('chai')
-// g.sinon = require('sinon')
-
-g.chai.use(require('sinon-chai'))
-g.chai.use(require('chai-as-promised'))
-g.chai.use(require('dirty-chai'))
-
-g.chai.should()
-
-// WTF???
-// Object.defineProperty(
-//   Promise.prototype,
-//   'should',
-//   (Object as any).getOwnPropertyDescriptor(Object.prototype, 'should'),
-// )
-
 if (g.YUP_USE_SYNC) {
   const { validate } = MixedSchema.prototype
 

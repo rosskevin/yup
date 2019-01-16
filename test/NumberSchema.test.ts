@@ -162,11 +162,9 @@ describe('NumberSchema', () => {
     genIsValid(schema, [6, 56445435, [null, schema.nullable()]])
     genIsInvalid(schema, [5, -10, null, [64, schema.moreThan(52).moreThan(74)]])
 
-    it('should return default message', () => {
-      return schema
-        .validate(4)
-        .should.be.rejected.and.eventually.have.property('errors')
-        .that.contain('this must be greater than 5')
+    it('should return default message', async () => {
+      expect.assertions(1)
+      expect(schema.validate(4)).rejects.toThrow(/this must be greater than 5/)
     })
   })
 

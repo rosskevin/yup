@@ -20,7 +20,7 @@ export function array<T = any[]>() {
 }
 
 export class ArraySchema<T = any[]> extends MixedSchema<T> {
-  public itemSchema?: /*LazySchema<T> |*/ MixedSchema<T> | false
+  public itemSchema?: MixedSchema<T> | false
 
   constructor() {
     super({ type: 'array' })
