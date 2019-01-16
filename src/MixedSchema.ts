@@ -22,7 +22,7 @@ export function mixed(options = {}) {
   return new MixedSchema(options)
 }
 
-export class MixedSchema<T = any> /* implements Schema<T> */ {
+export class MixedSchema<T = any> {
   public __isYupSchema__ = true
   public _deps: Ref[] = []
   public _options: Partial<ValidateOptions> = { abortEarly: true, recursive: true } // FIXME appears sparingly used - at least in Mixed
