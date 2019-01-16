@@ -12,4 +12,8 @@ module.exports = {
   },
 
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'], // mjs causes transform issues
+
+  moduleNameMapper: {
+    'yup(.*)': '<rootDir>/src/$1',
+  },
 }
