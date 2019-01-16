@@ -1,7 +1,16 @@
 // tslint:disable:object-literal-sort-keys
 
-import { array, boolean, mixed, MixedSchema, number, object, reach, ref, string } from 'yup'
-import { ObjectSchema } from '../src/ObjectSchema/ObjectSchema'
+import {
+  array,
+  boolean,
+  mixed,
+  MixedSchema,
+  number,
+  object,
+  ObjectSchema,
+  reach,
+  string,
+} from 'yup'
 import { genIsInvalid, genIsValid } from './helpers'
 
 const noop = () => true
@@ -30,11 +39,13 @@ function ensureSync(fn: any) {
 describe('MixedSchema', () => {
   if ((global as any).YUP_USE_SYNC) {
     it('[internal] normal methods should be running in sync Mode', async () => {
+      expect.assertions(3)
       const schema = number()
-      await ensureSync(() => Promise.resolve()).should.be.rejected()
-      await ensureSync(() => schema.isValid('john')).should.be.become(false)
-      const err = await ensureSync(() => schema.validate('john')).should.be.rejected()
-      expect(err.message).toMatch(/the final value was: `NaN`.+cast from the value `"john"`/)
+      await expect(ensureSync(() => Promise.resolve())).rejects
+      await expect(ensureSync(() => schema.isValid('john'))).resolves.toStrictEqual(false)
+      await expect(ensureSync(() => schema.validate('john'))).rejects.toThrow(
+        /the final value was: `NaN`.+cast from the value `"john"`/,
+      )
     })
   } else {
     // tslint:disable-next-line:no-console
