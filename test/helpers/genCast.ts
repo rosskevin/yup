@@ -2,7 +2,7 @@ import { MixedSchema } from 'yup'
 import printValue from '../../src/util/printValue'
 
 export function expectCastFailure(schema: MixedSchema, value: any) {
-  expect(schema.cast(value)).toThrow(
+  expect(() => schema.cast(value)).toThrow(
     /The value of (.+) could not be cast to a value that satisfies the schema type/gi,
   )
 }

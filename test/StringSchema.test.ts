@@ -19,17 +19,6 @@ describe('StringSchema', () => {
     })
   })
 
-  it('strict should assert types', async () => {
-    const inst = string()
-      .strict()
-      .typeError('must be a ${type}!')
-
-    expect.assertions(2)
-
-    await expect(inst.validate(5)).rejects.toThrow(/must be a string!/)
-    await expect(inst.validate(5, { abortEarly: false })).rejects.toThrow(/must be a string!/)
-  })
-
   it('should allow function messages', async () => {
     expect.assertions(1)
     await expect(
@@ -50,6 +39,16 @@ describe('StringSchema', () => {
   })
 
   describe('strict', () => {
+    it('should assert types', async () => {
+      const inst = string()
+        .strict()
+        .typeError('must be a ${type}!')
+
+      expect.assertions(2)
+
+      await expect(inst.validate(5)).rejects.toThrow(/must be a string!/)
+      await expect(inst.validate(5, { abortEarly: false })).rejects.toThrow(/must be a string!/)
+    })
     it('should warn about null types', async () => {
       expect.assertions(1)
       await expect(
@@ -84,25 +83,22 @@ describe('StringSchema', () => {
         .trim()
         .min(10)
       expect.assertions(2)
-      await expect(inst.strict().validate(' hi ')).rejects.toMatchObject({
-        errors: [{ message: 'FIXME 1' }],
-      })
-
+      await expect(inst.strict().validate(' hi ')).rejects.toThrow(/this must be a trimmed string/)
       await expect(inst.strict().validate(' hi ', { abortEarly: false })).rejects.toMatchObject({
-        errors: [{ message: 'FIXME 1' }, { message: 'FIXME 2' }],
+        errors: ['this must be a trimmed string', 'this must be at least 10 characters'],
       })
     })
   })
 
   it('should allow custom validation', async () => {
     const inst = string().test({ name: 'name', message: 'test a', test: val => val === 'jim' })
-    await expect(inst.validate('joe')).rejects.toMatchObject({ errors: [{ message: 'test a' }] })
+    await expect(inst.validate('joe')).rejects.toThrow(/test a/)
   })
 
   describe('concat', () => {
     it('concat should fail on different types', () => {
       const inst = string().default('hi')
-      expect(inst.concat(object() as any)).toThrow(TypeError)
+      expect(() => inst.concat(object() as any)).toThrow(TypeError)
     })
   })
   describe('default/defaultValue', () => {
@@ -138,8 +134,8 @@ describe('StringSchema', () => {
       [null, null, string().nullable()],
     ])
 
-    it('cast should not assert on undefined', () => {
-      expect(string().cast(undefined)).not.toThrow()
+    it('cast undefined should be undefined', () => {
+      expect(string().cast(undefined)).toBeUndefined()
     })
 
     describe('ensure', () => {
@@ -190,7 +186,7 @@ describe('StringSchema', () => {
     })
 
     it('cast should assert on undefined cast results', () => {
-      expect(
+      expect(() =>
         string()
           .transform(() => undefined)
           .cast('foo'),
@@ -198,8 +194,8 @@ describe('StringSchema', () => {
     })
 
     it('cast should respect assert option', () => {
-      expect(string().cast(null)).toThrow()
-      expect(string().cast(null, { assert: false })).not.toThrow()
+      expect(() => string().cast(null)).toThrow(TypeError)
+      expect(string().cast(null, { assert: false })).toBeNull()
     })
   })
 
@@ -234,7 +230,7 @@ describe('StringSchema', () => {
         .min(4)
         .strict()
         .validate(''),
-    ).rejects.toMatchObject({ errors: [{ message: 'FIXME' }] })
+    ).rejects.toThrow(/this is a required field/)
   })
 
   describe('matches', () => {
@@ -272,7 +268,7 @@ describe('StringSchema', () => {
     )
   })
 
-  it('length', () => {
+  describe('length', () => {
     genIsValid(string().length(5), ['exact'])
     genIsInvalid(string().length(5), ['sml', 'biiiig', null])
     genIsValid(
@@ -304,23 +300,25 @@ describe('StringSchema', () => {
     genIsValid(string().uppercase(), ['HellO JohN'])
   })
 
-  it('isValid strict', async () => {
-    await expect(
-      string()
-        .trim()
-        .isValid(' 3  ', { strict: true }),
-    ).resolves.toStrictEqual(true)
+  describe('isValid strict', () => {
+    it('should trim', async () => {
+      const schema = string().trim()
 
-    await expect(
-      string()
-        .lowercase()
-        .isValid('HellO JohN', { strict: true }),
-    ).resolves.toStrictEqual(false)
+      expect.assertions(2)
+      await expect(schema.isValid(' 3  ')).resolves.toStrictEqual(true)
+      await expect(schema.isValid(' 3  ', { strict: true })).resolves.toStrictEqual(false)
+    })
 
-    await expect(
-      string()
-        .uppercase()
-        .isValid('HellO JohN', { strict: true }),
-    ).resolves.toStrictEqual(false)
+    it('should lowercase', async () => {
+      const schema = string().lowercase()
+      expect.assertions(1)
+      await expect(schema.isValid('HellO JohN', { strict: true })).resolves.toStrictEqual(false)
+    })
+
+    it('should uppercase', async () => {
+      const schema = string().uppercase()
+      expect.assertions(1)
+      await expect(schema.isValid('HellO JohN', { strict: true })).resolves.toStrictEqual(false)
+    })
   })
 })
