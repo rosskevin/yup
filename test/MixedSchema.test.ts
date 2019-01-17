@@ -373,7 +373,7 @@ describe('MixedSchema', () => {
       await expect(inst.validate('hello', { parent: { prop: 5 } })).resolves
     })
 
-    it('should handle is (fn)/then (schema)/otherwise (schema)', async () => {
+    it('should handle is-fn then-schema otherwis-schema', async () => {
       const inst = string().when('prop', {
         is(val) {
           return val === 5
@@ -383,9 +383,9 @@ describe('MixedSchema', () => {
       })
 
       expect.assertions(3)
-      await expect(inst.validate(undefined, { parent: { prop: 5 } })).rejects
-      await expect(inst.validate('hello', { parent: { prop: 1 } })).resolves
-      await expect(inst.validate('hel', { parent: { prop: 1 } })).rejects
+      await expect(inst.validate(undefined, { parent: { prop: 5 } })).rejects.toThrow()
+      await expect(inst.validate('hello', { parent: { prop: 1 } })).resolves.toStrictEqual('hello')
+      await expect(inst.validate('hel', { parent: { prop: 1 } })).rejects.toThrow()
     })
 
     it('should handle multiple when args with fn', () => {
@@ -420,9 +420,9 @@ describe('MixedSchema', () => {
       })
 
       expect.assertions(3)
-      await expect(inst.validate(undefined, { context: { prop: 5 } })).rejects
-      await expect(inst.validate(undefined, { context: { prop: 1 } })).resolves
-      await expect(inst.validate('hello', { context: { prop: 5 } })).resolves
+      await expect(inst.validate(undefined, { context: { prop: 5 } })).rejects.toThrow()
+      await expect(inst.validate(undefined, { context: { prop: 1 } })).resolves.toBeUndefined()
+      await expect(inst.validate('hello', { context: { prop: 5 } })).resolves.toStrictEqual('hello')
     })
 
     it('should require context is-fn then-schema otherwise-schema', async () => {
@@ -435,9 +435,9 @@ describe('MixedSchema', () => {
       })
 
       expect.assertions(3)
-      await expect(inst.validate(undefined, { context: { prop: 5 } })).rejects.toThrow()
+      await expect(inst.validate(null, { context: { prop: 5 } })).rejects.toThrow()
       await expect(inst.validate('hel', { context: { prop: 1 } })).rejects.toThrow()
-      await expect(inst.validate('hello', { context: { prop: 1 } })).resolves
+      await expect(inst.validate('hello', { context: { prop: 1 } })).resolves.toStrictEqual('hello')
     })
   })
 

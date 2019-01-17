@@ -61,14 +61,14 @@ export default class Condition<T, S extends MixedSchema<T>> {
         is = isOpt
       } else {
         // generate fn to check every value against `is`
-        is = (values: any[]) => {
+        is = (...values: any[]) => {
           return values.every(v => v === (isOpt as any))
         }
       }
 
       this.fn = (values: any[], schema: S) => {
         // const currentSchema = values.pop() // WTF as result of call? FIXME this is too confusing
-        if (is(values)) {
+        if (is(...values)) {
           return this.resolveSchema(values, schema, then)
         } else {
           return this.resolveSchema(values, schema, otherwise)
