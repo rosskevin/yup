@@ -1,8 +1,9 @@
 import has from 'lodash/has'
-import { ArraySchema } from '../ArraySchema'
+// import { ArraySchema } from '../ArraySchema'
 import { MixedSchema } from '../MixedSchema'
 import { ValidateOptions } from '../types'
 import { forEach } from './expression'
+import { isArraySchema } from './isArraySchema'
 import { isMixedSchema } from './isMixedSchema'
 import { isObjectSchema } from './isObjectSchema'
 
@@ -40,10 +41,10 @@ export default function getIn<S extends MixedSchema>(
       const idx = isArray ? parseInt(part, 10) : 0
 
       const arraySchema = candidateSchema.resolve({ context, parent /*, value */ })
-      if (!(arraySchema instanceof ArraySchema)) {
+      if (!isArraySchema(arraySchema)) {
         throw new Error('Expected schema to be an ArraySchema')
       }
-      const arrayItemSchema = (arraySchema as ArraySchema).itemSchema
+      const arrayItemSchema = arraySchema.itemSchema
       if (!arrayItemSchema) {
         throw new Error(
           `Cannot resolve item schema for an array item at index: ${partArg}, in the path: ${path}. `,
