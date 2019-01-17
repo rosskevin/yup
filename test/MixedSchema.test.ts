@@ -1,37 +1,16 @@
 // tslint:disable:object-literal-sort-keys
 
 import { array, mixed, MixedSchema, number, object, ObjectSchema, reach, string } from 'yup'
-import { genIsInvalid, genIsValid } from './helpers'
+import { ensureSync, genIsInvalid, genIsValid } from './helpers'
 
 const noop = () => true
-
-function ensureSync(fn: any) {
-  let run = false
-  const resolve = (t: any) => {
-    if (!run) {
-      return t
-    }
-    throw new Error('Did not execute synchonously')
-  }
-  const err = (t: any) => {
-    if (!run) {
-      throw t
-    }
-    throw new Error('Did not execute synchonously')
-  }
-
-  const result = fn().then(resolve, err)
-
-  run = true
-  return result
-}
 
 describe('MixedSchema', () => {
   if ((global as any).YUP_USE_SYNC) {
     it('normal methods should be running in sync Mode', async () => {
       const schema = number()
       expect.assertions(3)
-      await expect(ensureSync(() => Promise.resolve())).rejects
+      await expect(ensureSync(() => Promise.resolve())).rejects.toThrow()
       await expect(ensureSync(() => schema.isValid('john'))).resolves.toStrictEqual(false)
       await expect(ensureSync(() => schema.validate('john'))).rejects.toThrow(
         /the final value was: `NaN`.+cast from the value `"john"`/,
@@ -100,7 +79,6 @@ describe('MixedSchema', () => {
 
   describe('oneOf', () => {
     const inst = mixed().oneOf(['hello'])
-    // genIsValid(inst, ['hello'])
     genIsValid(inst, [undefined, 'hello'])
     genIsInvalid(inst, [
       'YOLO',
@@ -110,10 +88,11 @@ describe('MixedSchema', () => {
     ])
   })
 
-  describe('should exclude values', () => {
+  describe('notOneOf', () => {
     const inst = mixed().notOneOf([5, 'hello'])
-    genIsValid(inst, [6, 'hfhfh', [5, inst.oneOf([5]), '`oneOf` called after'], null])
-    genIsValid(inst, [6, 'hfhfh', [5, inst.oneOf([5]), '`oneOf` called after'], null])
+    genIsValid(inst, [[5, inst.oneOf([5]), '`oneOf` called after']])
+    genIsValid(inst, [6, 'hfhfh', null])
+    genIsInvalid(inst, [5, 'hello'])
 
     it('should throw the correct error', async () => {
       expect.assertions(1)
@@ -361,16 +340,16 @@ describe('MixedSchema', () => {
   })
 
   describe('conditionals', () => {
-    it('should is (literal)/then (schema)', async () => {
+    it('should is-literal then-schema', async () => {
       const inst = mixed().when('prop', {
         is: 5,
         then: mixed().required('from parent'),
       })
 
       expect.assertions(3)
-      await expect(inst.validate(undefined, { parent: { prop: 5 } })).rejects
-      await expect(inst.validate(undefined, { parent: { prop: 1 } })).resolves
-      await expect(inst.validate('hello', { parent: { prop: 5 } })).resolves
+      await expect(inst.validate(undefined, { parent: { prop: 5 } })).rejects.toThrow()
+      await expect(inst.validate(undefined, { parent: { prop: 1 } })).resolves.toBeUndefined()
+      await expect(inst.validate('hello', { parent: { prop: 5 } })).resolves.toStrictEqual('hello')
     })
 
     it('should handle is-fn then-schema otherwis-schema', async () => {
