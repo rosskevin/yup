@@ -195,7 +195,7 @@ export class ObjectSchema<T = object> extends MixedSchema<T> {
         originalValue = originalValue || value
 
         const validations = this._nodes.map(key => {
-          const path = makePath([`${opts.path}.${key}`])
+          const path = makePath([`${opts.path || ''}.${key}`])
           const fieldSchema = this.fields[key]
 
           const innerOptions = {
