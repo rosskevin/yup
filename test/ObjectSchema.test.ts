@@ -16,6 +16,29 @@ import {
 import { genIsInvalid, genIsValid } from './helpers'
 
 describe('Object types', () => {
+  it('should validateAt', async () => {
+    const schema = object().shape({
+      foo: array().of(
+        object().shape({
+          bar: string().when('loose', {
+            is: true,
+            otherwise: (values, s) => s.strict(),
+          }),
+          loose: boolean(),
+        }),
+      ),
+    })
+    const value = {
+      foo: [{ bar: 1 }, { bar: 1, loose: true }],
+    }
+
+    expect.assertions(2)
+    await expect(schema.validateAt('foo[1].bar', value)).resolves.toBeUndefined()
+    await expect(schema.validateAt('foo[0].bar', value)).rejects.toMatch(
+      /bar must be a `string` type/,
+    )
+  })
+
   describe('min', () => {
     genIsInvalid(
       object().shape({

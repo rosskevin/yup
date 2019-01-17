@@ -38,9 +38,9 @@ function ensureSync(fn: any) {
 
 describe('MixedSchema', () => {
   if ((global as any).YUP_USE_SYNC) {
-    it('[internal] normal methods should be running in sync Mode', async () => {
-      expect.assertions(3)
+    it('normal methods should be running in sync Mode', async () => {
       const schema = number()
+      expect.assertions(3)
       await expect(ensureSync(() => Promise.resolve())).rejects
       await expect(ensureSync(() => schema.isValid('john'))).resolves.toStrictEqual(false)
       await expect(ensureSync(() => schema.validate('john'))).rejects.toThrow(
@@ -64,42 +64,11 @@ describe('MixedSchema', () => {
 
     expect(inst).toBeInstanceOf(MixedSchema)
     expect(next).toBeInstanceOf(MixedSchema)
-    // return Promise.all([
-    //   inst
-    //     .isValid()
-    //     .should.eventually()
-    //     .equal(true),
-    //   next.isValid(null),
-    // ])
   })
 
   it('cast should return a default when undefined', () => {
     const inst = mixed().default('hello')
     expect(inst.cast(undefined)).toStrictEqual('hello')
-  })
-
-  it('should validateAt', async () => {
-    const schema = object().shape({
-      foo: array().of(
-        object().shape({
-          bar: string().when('loose', {
-            is: true,
-            otherwise: (values, s) => s.strict(),
-          }),
-          loose: boolean(),
-        }),
-      ),
-    })
-
-    const value = {
-      foo: [{ bar: 1 }, { bar: 1, loose: true }],
-    }
-
-    expect.assertions(2)
-    await expect(schema.validateAt('foo[1].bar', value)).resolves.toBeUndefined()
-    await expect(schema.validateAt('foo[0].bar', value)).rejects.toMatch(
-      /bar must be a `string` type/,
-    )
   })
 
   it('should limit values', async () => {
@@ -108,21 +77,19 @@ describe('MixedSchema', () => {
     expect.assertions(3)
     await expect(inst.isValid(5)).resolves.toStrictEqual(true)
     await expect(inst.isValid('hello')).resolves.toStrictEqual(true)
-    await expect(inst.validate(6)).rejects.toEqual({
+    await expect(inst.validate(6)).rejects.toMatchObject({
       errors: ['this must be one of the following values: 5, hello'],
     })
-    // expect(err.errors[0]).toStrictEqual('this must be one of the following values: 5, hello')
   })
 
-  it('should not require field when notRequired was set', async () => {
+  it('should not require field when undefinable was set', async () => {
     const inst = mixed().required()
     // FIXME test creep - split it
     expect.assertions(4)
     await expect(inst.isValid('test')).resolves.toStrictEqual(true)
     await expect(inst.isValid(1)).resolves.toStrictEqual(true)
-    await expect((inst as any).validate()).rejects.toEqual({ errors: ['this is a required field'] })
-    // expect(err.errors[0]).toStrictEqual('this is a required field')
-    await expect((inst.notRequired() as any).isValid()).resolves.toStrictEqual(true)
+    await expect(inst.validate(null)).rejects.toThrow(/this is a required field/)
+    await expect(inst.undefinable().isValid(undefined)).resolves.toStrictEqual(true)
   })
 
   if ((global as any).YUP_USE_SYNC) {
@@ -133,14 +100,17 @@ describe('MixedSchema', () => {
           name: 'test',
           test: () => Promise.resolve() as any,
         })
-        const err = await ensureSync(() => schema.validate('john')).should.be.rejected()
-        expect(err.message).toMatch(/Validation test of type: "test"/)
+        expect.assertions(1)
+        await expect(ensureSync(() => schema.validate('john'))).rejects.toThrow(
+          /Validation test of type: "test"/,
+        )
       })
     })
   }
 
   describe('oneOf', () => {
     const inst = mixed().oneOf(['hello'])
+    // genIsValid(inst, ['hello'])
     genIsValid(inst, [undefined, 'hello'])
     genIsInvalid(inst, [
       'YOLO',
@@ -157,10 +127,9 @@ describe('MixedSchema', () => {
 
     it('should throw the correct error', async () => {
       expect.assertions(1)
-      await expect(inst.validate(5)).rejects.toEqual({
-        errors: ['this must not be one of the following values: 5, hello'],
-      })
-      // expect(err.errors[0]).toStrictEqual('this must not be one of the following values: 5, hello')
+      await expect(inst.validate(5)).rejects.toThrow(
+        /this must not be one of the following values: 5, hello/,
+      )
     })
   })
 
@@ -454,7 +423,7 @@ describe('MixedSchema', () => {
       ).resolves.toStrictEqual(false)
     })
 
-    it('should require context is (literal)/then (schema)', async () => {
+    it('should require context is-literal then-schema', async () => {
       const inst = mixed().when('$prop', {
         is: 5,
         then: mixed().required('from context'),
@@ -466,7 +435,7 @@ describe('MixedSchema', () => {
       await expect(inst.validate('hello', { context: { prop: 5 } })).resolves
     })
 
-    it('should require context is (fn)/then (schema)/otherwise (schema)', async () => {
+    it('should require context is-fn then-schema otherwise-schema', async () => {
       const inst = string().when('$prop', {
         is(val) {
           return val === 5
@@ -476,9 +445,9 @@ describe('MixedSchema', () => {
       })
 
       expect.assertions(3)
-      await expect(inst.validate(undefined, { context: { prop: 5 } })).rejects
+      await expect(inst.validate(undefined, { context: { prop: 5 } })).rejects.toThrow()
+      await expect(inst.validate('hel', { context: { prop: 1 } })).rejects.toThrow()
       await expect(inst.validate('hello', { context: { prop: 1 } })).resolves
-      await expect(inst.validate('hel', { context: { prop: 1 } })).rejects
     })
   })
 

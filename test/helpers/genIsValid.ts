@@ -18,7 +18,7 @@ function _generateIsValidTest<S extends MixedSchema<any>>(
     const description = `${printValue(value)}${message && `  (${message})`}`
     it(description, async () => {
       expect.assertions(1)
-      await expect(schema.isValid(value)).toStrictEqual(expectation)
+      await expect(schema.isValid(value)).resolves.toStrictEqual(expectation)
     })
   })
 }

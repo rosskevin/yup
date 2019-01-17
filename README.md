@@ -46,7 +46,7 @@ json separate from validating it, via the `cast` method.
     - [`mixed.default(): Any`](#mixeddefault-any)
     - [`mixed.nullable(isNullable: boolean = false): Schema`](#mixednullableisnullable-boolean--false-schema)
     - [`mixed.required(message?: string | function): Schema`](#mixedrequiredmessage-string-schema)
-    - [`mixed.notRequired(): Schema`](#mixednotrequired-schema)
+    - [`mixed.undefinable(): Schema`](#mixednotrequired-schema)
     - [`mixed.typeError(message: string): Schema`](#mixedtypeerrormessage-string-schema)
     - [`mixed.oneOf(arrayOfValues: Array<any>, message?: string | function): Schema` Alias: `equals`](#mixedoneofarrayofvalues-arrayany-string-message-schema-alias-equals)
     - [`mixed.notOneOf(arrayOfValues: Array<any>, message?: string | function)`](#mixednotoneofarrayofvalues-arrayany-string-message)
@@ -539,7 +539,7 @@ Indicates that `null` is a valid value for the schema. Without `nullable()`
 
 Mark the schema as required. All field values apart from `undefined` and `null` meet this requirement.
 
-#### `mixed.notRequired(): Schema`
+#### `mixed.undefinable(): Schema`
 
 Mark the schema as not required. Passing `undefined` as value will not fail validation.
 

@@ -391,7 +391,7 @@ export class MixedSchema<T = any> {
   /**
    * Mark the schema as not required. Passing undefined as value will not fail validation.
    */
-  public notRequired(): this {
+  public undefinable(): this {
     const next = this.clone()
     next.tests = next.tests.filter(test => (test as any).TEST_OPTIONS.name !== 'required')
     return next
