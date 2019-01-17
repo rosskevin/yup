@@ -26,17 +26,8 @@ describe('StringSchema', () => {
 
     expect.assertions(2)
 
-    await expect(inst.validate(5)).rejects.toMatchObject({
-      inner: [],
-      message: 'must be a string!',
-      type: 'typeError',
-    })
-
-    await expect(inst.validate(5, { abortEarly: false })).rejects.toMatchObject({
-      inner: [],
-      message: 'must be a string!',
-      type: undefined,
-    })
+    await expect(inst.validate(5)).rejects.toThrow(/must be a string!/)
+    await expect(inst.validate(5, { abortEarly: false })).rejects.toThrow(/must be a string!/)
   })
 
   it('should allow function messages', async () => {
@@ -46,15 +37,16 @@ describe('StringSchema', () => {
         .label('My string')
         .required((d: MessageFormatterParams) => `${d.label} is required`)
         .validate(null),
-    ).rejects.toThrow(/My string is required/)
+    ).rejects.toThrow(/My string must be a `string` type, but the final value was: `null`/)
   })
 
-  it('should return the default value using context', () => {
+  it('should return the defaultValue from conditional evaluating context', () => {
     const inst = string().when('$foo', {
       is: 'greet',
       then: string().default('hi'),
     })
-    expect(inst.resolve({ context: { foo: 'greet' } }).defaultValue()).toStrictEqual('hi')
+    const resolvedSchema = inst.resolve({ context: { foo: 'greet' } })
+    expect(resolvedSchema.defaultValue()).toStrictEqual('hi')
   })
 
   describe('strict', () => {

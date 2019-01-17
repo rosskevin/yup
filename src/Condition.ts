@@ -61,7 +61,9 @@ export default class Condition<T, S extends MixedSchema<T>> {
         is = isOpt
       } else {
         // generate fn to check every value against `is`
-        is = (...values: any[]) => values.every(value => value === (is as any))
+        is = (values: any[]) => {
+          return values.every(v => v === (isOpt as any))
+        }
       }
 
       this.fn = (values: any[], schema: S) => {

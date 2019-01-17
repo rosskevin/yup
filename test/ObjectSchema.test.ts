@@ -16,6 +16,16 @@ import {
 import { genIsInvalid, genIsValid } from './helpers'
 
 describe('Object types', () => {
+  it('should not use context refs in object calculations', () => {
+    const inst = object().shape({
+      prop: string().when('$prop', {
+        is: 5,
+        then: string().required('from context'),
+      }),
+    })
+
+    expect(inst.defaultValue()).toEqual({ prop: undefined })
+  })
   it('should validateAt', async () => {
     const schema = object().shape({
       foo: array().of(

@@ -1,16 +1,6 @@
 // tslint:disable:object-literal-sort-keys
 
-import {
-  array,
-  boolean,
-  mixed,
-  MixedSchema,
-  number,
-  object,
-  ObjectSchema,
-  reach,
-  string,
-} from 'yup'
+import { array, mixed, MixedSchema, number, object, ObjectSchema, reach, string } from 'yup'
 import { genIsInvalid, genIsValid } from './helpers'
 
 const noop = () => true
@@ -211,7 +201,9 @@ describe('MixedSchema', () => {
   })
 
   it('exclusive tests should throw without a name', () => {
-    expect(mixed().test({ message: 'invalid', exclusive: true, test: noop } as any)).toThrow()
+    expect(() => mixed().test({ message: 'invalid', exclusive: true, test: noop } as any)).toThrow(
+      /Exclusive tests must provide a unique `name` identifying the test/,
+    )
   })
 
   it('exclusive tests should replace previous ones', async () => {
@@ -241,8 +233,8 @@ describe('MixedSchema', () => {
     const inst = object().shape({
       other: mixed(),
       test: mixed().test({
-        message: 'invalid',
         exclusive: true,
+        message: 'invalid',
         name: 'max',
         test() {
           expect(this.path).toStrictEqual('test')
@@ -348,6 +340,13 @@ describe('MixedSchema', () => {
         obj: { str: 'hi' },
       })
     })
+    it('concat should allow mixed and other type', () => {
+      expect(
+        mixed()
+          .default('hi')
+          .concat(string())._type,
+      ).toStrictEqual('string')
+    })
 
     it('should throw the correct validation errors', async () => {
       expect.assertions(2)
@@ -359,15 +358,6 @@ describe('MixedSchema', () => {
         mesage: 'str is a required field',
       })
     })
-  })
-
-  it('concat should allow mixed and other type', async () => {
-    expect.assertions(1)
-    await expect(
-      mixed()
-        .default('hi')
-        .concat(string())._type,
-    ).resolves.toStrictEqual('string')
   })
 
   describe('conditionals', () => {
@@ -449,17 +439,6 @@ describe('MixedSchema', () => {
       await expect(inst.validate('hel', { context: { prop: 1 } })).rejects.toThrow()
       await expect(inst.validate('hello', { context: { prop: 1 } })).resolves
     })
-  })
-
-  it('should not use context refs in object calculations', () => {
-    const inst = object().shape({
-      prop: string().when('$prop', {
-        is: 5,
-        then: string().required('from context'),
-      }),
-    })
-
-    expect(inst.defaultValue()).toEqual({ prop: undefined })
   })
 
   it('should use label in error message', async () => {
