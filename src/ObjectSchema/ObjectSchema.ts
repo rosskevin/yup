@@ -69,20 +69,6 @@ export class ObjectSchema<T = object> extends MixedSchema<T> {
 
   constructor(/*schemaShape?: any*/) {
     super({
-      default: () => {
-        // FIXME a really ugly way to override/augment the default() implementation in super
-        if (!this._nodes.length) {
-          return undefined
-        }
-
-        const dft = {}
-        this._nodes.forEach(key => {
-          dft[key] = (this.fields[key] as any).default
-            ? (this.fields[key] as MixedSchema).defaultValue()
-            : undefined
-        })
-        return dft
-      },
       type: 'object',
     })
 
@@ -105,6 +91,20 @@ export class ObjectSchema<T = object> extends MixedSchema<T> {
       //   this.shape(schemaShape)
       // }
     })
+  }
+
+  public defaultValue(): T {
+    if (!this._nodes.length) {
+      return undefined as any
+    }
+
+    const dft = {}
+    this._nodes.forEach(key => {
+      dft[key] = (this.fields[key] as any).default
+        ? (this.fields[key] as MixedSchema).defaultValue()
+        : undefined
+    })
+    return dft as T
   }
 
   public _typeCheck(value: any) {
@@ -143,7 +143,9 @@ export class ObjectSchema<T = object> extends MixedSchema<T> {
 
         // safe to mutate since this is fired in sequence
         innerOptions.path = makePath([`${options.path}.${prop}`])
-        // innerOptions.value = value[prop] // FIXME not conforming to signature
+        //
+        // tslint:disable-next-line
+        //;(innerOptions as any).value = value[prop] // FIXME not conforming to signature
 
         fieldSchema = fieldSchema.resolve(innerOptions)
 

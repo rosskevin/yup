@@ -53,7 +53,6 @@ describe('MixedSchema', () => {
 
   it('should not require field when undefinable was set', async () => {
     const inst = mixed().required()
-    // FIXME test creep - split it
     expect.assertions(4)
     await expect(inst.isValid('test')).resolves.toStrictEqual(true)
     await expect(inst.isValid(1)).resolves.toStrictEqual(true)

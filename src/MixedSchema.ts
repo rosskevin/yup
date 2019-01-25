@@ -163,15 +163,24 @@ export class MixedSchema<T = any> {
     return !(this as any)._typeCheck || (this as any)._typeCheck(v)
   }
 
+  // public resolve(options: ValidateOptions): this {
+  //   let result = this
+  //   for (const condition of this._conditions) {
+  //     result = condition.resolve(options, result)
+  //   }
+  //   return result
+  // }
+
   public resolve(options: ValidateOptions): this {
-    let result = this
-
-    for (const condition of this._conditions) {
-      result = condition.resolve(options, result)
+    if (this._conditions.length) {
+      return this._conditions.reduce(
+        (schema, condition) => condition.resolve(options, schema),
+        this,
+      )
     }
-    return result
-  }
 
+    return this
+  }
   /**
    * Attempts to coerce the passed in value to a value that matches the schema.
    * e.g. '5' -> 5 when using the number() type.

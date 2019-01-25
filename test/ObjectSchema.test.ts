@@ -69,7 +69,7 @@ describe('Object types', () => {
     )
   })
 
-  it('length', () => {
+  it('length from ref', () => {
     genIsInvalid(
       object().shape({
         len: number(),
@@ -701,30 +701,6 @@ describe('Object types', () => {
     )
   })
 
-  it('should handle conditionals', () => {
-    const inst = object().shape({
-      noteDate: number()
-        .when('stats.isBig', { is: true, then: number().min(5) })
-        .when('other', (values, schema) => (values[0] === 4 ? schema.max(6) : undefined)),
-      other: number()
-        .min(1)
-        .when('stats', { is: 5, then: number() }),
-      stats: object().shape({ isBig: boolean() }),
-    })
-
-    genIsValid(inst, [
-      { stats: { isBig: true }, noteDate: 7, other: 6 },
-      { stats: { isBig: false }, noteDate: 4, other: 4 },
-      { stats: { isBig: true }, noteDate: 6, other: 4 },
-    ])
-    genIsInvalid(inst, [
-      { stats: { isBig: true }, rand: 5, noteDate: 7, other: 4 },
-      { stats: { isBig: true }, noteDate: 1, other: 4 },
-      { stats: { isBig: true }, noteDate: 7, other: 4 },
-      { stats: { isBig: true }, noteDate: 1, other: 4 },
-    ])
-  })
-
   it('should allow opt out of topo sort on specific edges', async () => {
     await expect(
       object().shape({
@@ -751,37 +727,92 @@ describe('Object types', () => {
     ).resolves
   })
 
-  it('should handle nested conditionals', async () => {
-    const countSchema = number().when('isBig', {
-      is: true,
-      then: number().min(5),
-    })
+  describe('non-nested conditionals', () => {
     const inst = object().shape({
-      other: boolean(),
-      stats: object()
+      noteDate: number()
+        .when('stats.isBig', { is: true, then: number().min(5) })
+        .when('other', (values, schema) => (values[0] === 4 ? schema.max(6) : undefined)),
+      other: number()
+        .min(1)
+        .when('stats', { is: 5, then: number() }),
+      stats: object().shape({ isBig: boolean() }),
+    })
+
+    genIsValid(inst, [
+      { stats: { isBig: true }, noteDate: 7, other: 6 },
+      { stats: { isBig: false }, noteDate: 4, other: 4 },
+      { stats: { isBig: true }, noteDate: 6, other: 4 },
+    ])
+    genIsInvalid(inst, [
+      { stats: { isBig: true }, rand: 5, noteDate: 7, other: 4 },
+      { stats: { isBig: true }, noteDate: 1, other: 4 },
+      { stats: { isBig: true }, noteDate: 7, other: 4 },
+      { stats: { isBig: true }, noteDate: 1, other: 4 },
+    ])
+  })
+  describe('nested conditionals', () => {
+    it('manual debugging', async () => {
+      const statsSchema = object()
         .shape({
-          count: countSchema,
+          count: number().when('isBig', {
+            is: true,
+            then: number().min(5),
+          }),
           isBig: boolean(),
         })
         .default(undefined)
-        .when('other', { is: true, then: object().required() }),
+        .when('other', { is: true, then: object().required() })
+
+      // expect.assertions(1)
+      const stats = { count: 3, isBig: true } // invalid stats
+      await expect(statsSchema.validate(stats)).rejects.toThrow(
+        /must be greater than or equal to 5/,
+      )
+
+      // now nest it and should still be the same problem
+      const inst = object().shape({
+        other: boolean(),
+        stats: statsSchema,
+      })
+
+      await expect(inst.validate({ other: true, stats })).rejects.toThrow(
+        /must be greater than or equal to 5/,
+      )
     })
 
-    expect.assertions(4)
-    await expect(inst.validate({ stats: undefined, other: true })).rejects.toThrow(/required/)
+    it('complex should work', async () => {
+      const countSchema = number().when('isBig', {
+        is: true,
+        then: number().min(5),
+      })
+      const inst = object().shape({
+        other: boolean(),
+        stats: object()
+          .shape({
+            count: countSchema,
+            isBig: boolean(),
+          })
+          .default(undefined)
+          .when('other', { is: true, then: object().required() }),
+      })
 
-    await expect(inst.validate({ stats: { isBig: true, count: 3 }, other: true })).rejects.toThrow(
-      /must be greater than or equal to 5/,
-    )
+      expect.assertions(4)
+      await expect(inst.validate({ stats: undefined, other: true })).rejects.toThrow(/required/)
+      await expect(
+        inst.validate({ stats: { isBig: true, count: 3 }, other: true }),
+      ).rejects.toThrow(/must be greater than or equal to 5/)
 
-    await expect(
-      inst.validate({ stats: { isBig: true, count: 10 }, other: true }),
-    ).resolves.toMatchObject({
-      other: true,
-      stats: { isBig: true, count: 10 },
+      await expect(
+        inst.validate({ stats: { isBig: true, count: 10 }, other: true }),
+      ).resolves.toMatchObject({
+        other: true,
+        stats: { isBig: true, count: 10 },
+      })
+
+      await expect(countSchema.validate(10, { context: { isBig: true } })).resolves.toStrictEqual(
+        10,
+      )
     })
-
-    await expect(countSchema.validate(10, { context: { isBig: true } })).resolves.toStrictEqual(10)
   })
 
   it('should camelCase keys', () => {

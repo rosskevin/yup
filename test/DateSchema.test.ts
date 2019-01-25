@@ -32,7 +32,7 @@ describe('DateSchema', () => {
       expect(
         date()
           .nullable()
-          .isType(null), // FIXME was new Date()
+          .isType(null),
       ).toStrictEqual(true)
     })
   })

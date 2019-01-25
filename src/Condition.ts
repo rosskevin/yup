@@ -67,11 +67,11 @@ export default class Condition<T, S extends MixedSchema<T>> {
       }
 
       this.fn = (values: any[], schema: S) => {
-        // const currentSchema = values.pop() // WTF as result of call? FIXME this is too confusing
+        // const schema = values.pop() // WTF as result of call? FIXME this is too confusing
         if (is(...values)) {
-          return this.resolveSchema(values, schema, then)
+          return resolveSchema<T, S>(values, schema, then)
         } else {
-          return this.resolveSchema(values, schema, otherwise)
+          return resolveSchema<T, S>(values, schema, otherwise)
         }
       }
     }
@@ -79,28 +79,29 @@ export default class Condition<T, S extends MixedSchema<T>> {
 
   public resolve({ context, parent }: ValidateOptions, schemaCaller: S): S {
     const values = this.refs.map(r => r.getValue(parent, context))
-    return this.resolveSchema(values, schemaCaller, this.fn)
+    return resolveSchema<T, S>(values, schemaCaller, this.fn)
+  }
+}
+
+// tslint:disable-next-line:member-ordering
+function resolveSchema<T, S>(values: any[], schemaCaller: S, sOrFn?: SorFn<T, S>): S {
+  if (!sOrFn) {
+    return schemaCaller
+  }
+  if (isSchema(sOrFn)) {
+    return sOrFn as S
+  }
+  if (typeof sOrFn !== 'function') {
+    throw new Error('Expected schema or function')
   }
 
-  // tslint:disable-next-line:member-ordering
-  private resolveSchema(values: any[], schemaCaller: S, sOrFn?: SorFn<T, S>): S {
-    if (!sOrFn) {
-      return schemaCaller
-    }
-    if (isSchema(sOrFn)) {
-      return sOrFn as S
-    }
-    if (typeof sOrFn !== 'function') {
-      throw new Error('Expected schema or function')
-    }
-
-    const fn: WhenOptionsFn<T, S> = sOrFn
-    // const schema = this.fn.apply(schemaCaller, values.concat(schemaCaller)) // FIXME wow so confusing
-    const schemaResult = fn(values, schemaCaller)
-    if (schemaResult !== undefined && !isSchema(schemaResult)) {
-      throw new TypeError('conditions must return a schema object')
-    }
-
-    return schemaResult || schemaCaller
+  const fn: WhenOptionsFn<T, S> = sOrFn as any // FIXME
+  // const schema = this.fn.apply(schemaCaller, values.concat(schemaCaller)) // FIXME wow so confusing
+  // const schemaResult = fn.apply(schemaCaller, [values, schemaCaller])
+  const schemaResult = fn(values, schemaCaller)
+  if (schemaResult !== undefined && !isSchema(schemaResult)) {
+    throw new TypeError('conditions must return a schema object')
   }
+
+  return schemaResult || schemaCaller
 }
