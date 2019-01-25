@@ -261,7 +261,7 @@ describe('Object types', () => {
 
       // strict mode will not cast
       expect.assertions(3)
-      await expect(inst.validate({ field: 5 })).resolves.toStrictEqual(true)
+      await expect(inst.validate({ field: 5 })).resolves.toStrictEqual({ field: 5 })
       await expect(inst.validate({ field: '5' })).rejects.toThrow(/must be a `number` type/)
       await expect(inst.validate({ field: 'asdad' })).rejects
     })
@@ -591,9 +591,9 @@ describe('Object types', () => {
       inst.cast({ nested: 'foo' }, opts)
     })
 
-    it('should always return a schema', async () => {
+    it('should always return a schema', () => {
       const inst = lazy(() => ({} as any))
-      await expect(inst.cast('foo')).rejects.toThrow(/must return a valid schema/)
+      expect(() => inst.cast('foo')).toThrow(/must return a valid schema/)
     })
 
     it('should set the correct path', async () => {
@@ -611,7 +611,7 @@ describe('Object types', () => {
 
       expect.assertions(1)
       await expect(inst.validate(value, { strict: true })).rejects.toMatchObject({
-        message: 'required',
+        message: 'nested.str is a required field',
         path: 'nested.str',
       })
     })
@@ -675,7 +675,7 @@ describe('Object types', () => {
     })
 
     await expect(inst.validate({ foo: 'foo' }, { abortEarly: false })).rejects.toMatchObject({
-      errors: ['foo must be at least 5 characters', 'bar is a required field'],
+      errors: ['bar is a required field', 'foo must be at least 5 characters'],
     })
   })
 
@@ -690,10 +690,8 @@ describe('Object types', () => {
 
     const val = { nest: { str: null } }
     expect.assertions(2)
-    await expect(inst.validate(val, { abortEarly: false })).rejects.toMatchObject({
-      errors: ['FIXME', 'FIXME'],
-    })
-
+    await expect(inst.validate(val, { abortEarly: false })).rejects.toThrow(/2 errors occurred/)
+    // /nest\.str must be a `string` type, but the final value was\: `null`/,
     await expect(inst.validate(val, { abortEarly: false, recursive: false })).rejects.toMatchObject(
       {
         errors: ['oops'],
@@ -701,30 +699,31 @@ describe('Object types', () => {
     )
   })
 
-  it('should allow opt out of topo sort on specific edges', async () => {
-    await expect(
+  it('should allow opt out of topo sort on specific edges', () => {
+    expect(() =>
       object().shape({
+        orgID: number().when('location', (v, schema) =>
+          v == null ? schema.required() : undefined,
+        ),
+        // test is order specific
+        // tslint:disable-next-line:object-literal-sort-keys
+        location: string().when('orgID', (v, schema) =>
+          v == null ? schema.required() : undefined,
+        ),
+      }),
+    ).toThrow('Cyclic dependency, node was:"location"')
+
+    object().shape(
+      {
         location: string().when('orgID', (v, schema) =>
           v == null ? schema.required() : undefined,
         ),
         orgID: number().when('location', (v, schema) =>
           v == null ? schema.required() : undefined,
         ),
-      }),
-    ).rejects.toThrow('Cyclic dependency, node was:"location"')
-    await expect(
-      object().shape(
-        {
-          location: string().when('orgID', (v, schema) =>
-            v == null ? schema.required() : undefined,
-          ),
-          orgID: number().when('location', (v, schema) =>
-            v == null ? schema.required() : undefined,
-          ),
-        },
-        [['location', 'orgID']],
-      ),
-    ).resolves
+      },
+      [['location', 'orgID']],
+    )
   })
 
   describe('non-nested conditionals', () => {
