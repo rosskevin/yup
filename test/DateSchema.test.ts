@@ -45,7 +45,7 @@ describe('DateSchema', () => {
         date()
           .nullable()
           .isValid(null),
-      ).rejects.toStrictEqual(true)
+      ).resolves.toStrictEqual(true)
     })
 
     it('required should work', async () => {
@@ -77,9 +77,9 @@ describe('DateSchema', () => {
     const invalid = new Date(2014, 1, 15)
     const valid = new Date(2014, 5, 15)
 
-    it('should assert value type', () => {
-      expect(date().min('hello' as any)).toThrow(TypeError)
-      expect(date().min(ref('$foo'))).not.toThrow()
+    it('min should assert value type', () => {
+      expect(() => date().min('hello' as any)).toThrow(TypeError)
+      expect(date().min(ref('$foo'))).toMatchObject({})
     })
 
     it('isValid should work', async () => {
@@ -120,40 +120,42 @@ describe('DateSchema', () => {
     const max = new Date(2014, 7, 15)
     const invalid = new Date(2014, 9, 15)
     const valid = new Date(2014, 5, 15)
-    it('should assert value type', () => {
-      expect(date().max('hello' as any)).toThrow(TypeError)
-      expect(date().max(ref('$foo'))).not.toThrow()
+    it('max should assert value type', () => {
+      expect(() => date().max('hello' as any)).toThrow(TypeError)
+      expect(date().max(ref('$foo'))).toMatchObject({})
     })
     it('isValid should work', async () => {
+      expect.assertions(3)
       expect(
         date()
           .max(max)
           .isValid(valid),
-      ).toStrictEqual(true)
+      ).resolves.toStrictEqual(true)
       expect(
         date()
           .max(max)
           .isValid(invalid),
-      ).toStrictEqual(false)
+      ).resolves.toStrictEqual(false)
       expect(
         date()
           .max(max)
           .nullable(true)
           .isValid(null),
-      ).toStrictEqual(true)
+      ).resolves.toStrictEqual(true)
     })
 
     it('isValid ref should work', async () => {
+      expect.assertions(2)
       expect(
         date()
           .max(ref('$foo'))
           .isValid(valid, { context: { foo: max } }),
-      ).toStrictEqual(true)
+      ).resolves.toStrictEqual(true)
       expect(
         date()
           .max(ref('$foo'))
           .isValid(invalid, { context: { foo: max } }),
-      ).toStrictEqual(false)
+      ).resolves.toStrictEqual(false)
     })
   })
 })
