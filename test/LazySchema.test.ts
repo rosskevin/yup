@@ -25,8 +25,9 @@ describe('LazySchema', () => {
       const context = {
         a: 1,
       }
-      lazy(mapToSchema).validate(value, { context })
-      expect(mapToSchema.calledWithExactly(value, context)).toBeTruthy()
+      const options = { context }
+      lazy(mapToSchema).validate(value, options)
+      expect(mapToSchema.calledWithExactly(value, options)).toBeTruthy()
       // mapToSchema.should.have.been.calledWithExactly(value, context)
     })
   })

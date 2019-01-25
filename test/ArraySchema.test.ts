@@ -178,18 +178,28 @@ describe('ArraySchema', () => {
   })
 
   // from old docs
-  // it('lazy', () => {
-  //   const renderable = lazy((...value: any[]) => {
-  //     switch (typeof value) {
-  //       case 'number':
-  //         return number()
-  //       case 'string':
-  //         return string()
-  //       default:
-  //         return mixed()
-  //     }
-  //   })
+  describe('lazy', () => {
+    it('docs', () => {
+      const renderable = lazy((...value: any[]) => {
+        switch (typeof value) {
+          case 'number':
+            return number()
+          case 'string':
+            return string()
+          default:
+            return mixed()
+        }
+      })
 
-  //   const renderables = array().of(renderable)
-  // })
+      const renderables = array().of(renderable)
+    })
+
+    // it('yep', async () => {
+    //   const inst = array().of(lazy(() => number()))
+
+    //   // expect.assertions(1)
+    //   // FIXME I made this up based on another but not sure it is right
+    //   await expect(inst.validate(['1'], { strict: true })).rejects.toThrow()
+    // })
+  })
 })

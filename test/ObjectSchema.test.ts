@@ -629,8 +629,8 @@ describe('Object types', () => {
         str: 'foo',
       }
 
-      expect.assertions(1)
-      await expect(inst.validate(value, { strict: true })).toMatchObject({
+      // expect.assertions(1)
+      await expect(inst.validate(value, { strict: true })).rejects.toMatchObject({
         message: 'required',
         path: 'nested[0].str',
       })

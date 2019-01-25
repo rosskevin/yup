@@ -5,6 +5,7 @@ import { MixedSchema } from './MixedSchema'
 import { AnySchema, Message, TransformFunction, ValidateOptions } from './types'
 import { isAbsent } from './util/isAbsent'
 import { isMixedSchema } from './util/isMixedSchema'
+import { isSchema } from './util/isSchema'
 import makePath from './util/makePath'
 import printValue from './util/printValue'
 import propagateErrors from './util/propagateErrors'
@@ -123,23 +124,39 @@ export class ArraySchema<T = any[]> extends MixedSchema<T> {
       })
   }
 
-  public of(itemSchema: false | AnySchema): this {
-    const next: this = this.clone()
+  // public of(itemSchema: false | AnySchema): this {
+  //   const next: this = this.clone()
 
-    // if (itemSchema === false) {
-    //   return next
-    // }
+  //   // if (itemSchema === false) {
+  //   //   return next
+  //   // }
 
-    if (isMixedSchema(itemSchema)) {
-      next.itemSchema = itemSchema
-      return next
-    } else {
+  //   if (isMixedSchema(itemSchema)) {
+  //     next.itemSchema = itemSchema
+  //     return next
+  //   } else {
+  //     throw new TypeError(
+  //       '`array.of()` sub-schema must be a valid schema, or `false` to negate a current sub-schema. ' +
+  //         'not: ' +
+  //         printValue(itemSchema as any),
+  //     )
+  //   }
+  // }
+  public of(schema: false | AnySchema): this {
+    const next = this.clone()
+
+    if (schema !== false && !isSchema(schema)) {
       throw new TypeError(
-        '`array.of()` sub-schema must be a valid schema, or `false` to negate a current sub-schema. ' +
+        '`array.of()` sub-schema must be a valid yup schema, or `false` to negate a current sub-schema. ' +
           'not: ' +
-          printValue(itemSchema as any),
+          printValue(schema),
       )
     }
+
+    // tslint:disable-next-line
+    ;(next as any)._subType = schema // FIXME if this is lazy is this going to be propagated?
+
+    return next
   }
 
   public required(message = locale.mixed.required): this {
