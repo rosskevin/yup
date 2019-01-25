@@ -24,7 +24,7 @@ export function mixed(options = {}) {
 
 export class MixedSchema<T = any> {
   public __isYupSchema__ = true
-  public _deps: Ref[] = []
+  public _deps: string[] = [] // Ref[] = []
   public _options: Partial<ValidateOptions> = { abortEarly: true, recursive: true } // FIXME appears sparingly used - at least in Mixed
   public _exclusive = Object.create(null)
   public _whitelist: RefSet = new RefSet()
@@ -561,8 +561,8 @@ export class MixedSchema<T = any> {
 
     deps.forEach(dep => {
       if (!dep.isContext) {
-        // next._deps.push(dep.key) FIXME changed
-        next._deps.push(dep)
+        next._deps.push(dep.key)
+        // next._deps.push(dep) // FIXME curious...why not just use the Ref instead of the key
       }
     })
 
