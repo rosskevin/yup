@@ -19,7 +19,7 @@ describe('NumberSchema', () => {
     describe('synchronous', () => {
       describe('validateSync', () => {
         it('should throw', () => {
-          expect(number().validateSync('john')).toThrow(
+          expect(() => number().validateSync('john')).toThrow(
             /the final value was: `NaN`.+cast from the value `"john"`/,
           )
         })
@@ -87,7 +87,7 @@ describe('NumberSchema', () => {
           .cast(null),
       ).toBeNull()
 
-      expect(number().round('fasf' as any)).toThrow(TypeError)
+      expect(() => number().round('fasf' as any)).toThrow(TypeError)
     })
 
     it('should truncate', () => {
@@ -144,15 +144,18 @@ describe('NumberSchema', () => {
   describe('max', () => {
     const schema = number().max(5)
     genIsValid(schema, [4, -5222, [null, schema.nullable()]])
-    genIsInvalid(schema, [10, null, [16, schema.max(20).max(15)]])
+    genIsInvalid(schema, [10, null])
+    genIsInvalid(schema, [[16, schema.max(20).max(15)]])
   })
 
   describe('lessThan', () => {
     const schema = number().lessThan(5)
     genIsValid(schema, [4, -10, [null, schema.nullable()]])
-    genIsInvalid(schema, [5, 7, null, [14, schema.lessThan(10).lessThan(14)]])
+    genIsInvalid(schema, [5, 7, null])
+    genIsInvalid(schema, [[14, schema.lessThan(10).lessThan(14)]])
 
-    it('should return default message', async () => {
+    it('lessThan should return default message', async () => {
+      expect.assertions(1)
       await expect(schema.validate(6)).rejects.toThrow(/this must be less than 5/)
     })
   })
@@ -181,7 +184,7 @@ describe('NumberSchema', () => {
   })
 
   describe('negative', () => {
-    const schema = number().positive()
+    const schema = number().negative()
     genIsValid(schema, [-1, 0])
     genIsInvalid(schema, [1]) // 'this must be a negative number'
   })
