@@ -225,10 +225,9 @@ describe('MixedSchema', () => {
       }),
     })
 
-    expect.assertions(1)
-    await expect(
-      inst.validate({ other: 5, test: 'hi' }, { context: { user: 'jason' } }),
-    ).resolves.toStrictEqual(true)
+    await inst.validate({ other: 5, test: 'hi' }, { context: { user: 'jason' } })
+    expect.assertions(4)
+    await expect(called).toStrictEqual(true)
   })
 
   it('tests can return an error', async () => {
@@ -333,9 +332,9 @@ describe('MixedSchema', () => {
         message: 'obj.str is a required field',
       })
 
-      await expect(next.validate({ str2: 'hi', obj: { str: 'hi' } })).rejects.toMatchObject({
-        mesage: 'str is a required field',
-      })
+      await expect(next.validate({ str2: 'hi', obj: { str: 'hi' } })).rejects.toThrow(
+        /str is a required field/,
+      )
     })
   })
 

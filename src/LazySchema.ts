@@ -1,5 +1,8 @@
 // tslint:disable:variable-name
 
+// FIXME: sync changes in lazy
+// https://github.com/jquense/yup/blob/master/src/Lazy.js
+
 import { AnyConcreteSchema, ValidateOptions } from './types'
 import { isSchema } from './util/isSchema'
 
