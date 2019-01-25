@@ -43,17 +43,17 @@ describe('BooleanSchema', () => {
   describe('isValid', () => {
     it('should work', async () => {
       expect.assertions(3)
-      await expect(boolean().isValid('1')).toStrictEqual(true)
+      await expect(boolean().isValid('1')).resolves.toStrictEqual(true)
       await expect(
         boolean()
           .strict()
           .isValid(null),
-      ).toStrictEqual(false)
+      ).resolves.toStrictEqual(false)
       await expect(
         boolean()
           .nullable()
           .isValid(null),
-      ).toStrictEqual(true)
+      ).resolves.toStrictEqual(true)
     })
   })
 
@@ -63,7 +63,7 @@ describe('BooleanSchema', () => {
       await expect(
         boolean()
           .required()
-          .validate(null),
+          .validate(undefined),
       ).rejects.toThrow(/required/)
     })
   })
