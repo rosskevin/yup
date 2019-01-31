@@ -154,7 +154,7 @@ export class ArraySchema<T = any[]> extends MixedSchema<T> {
     }
 
     // tslint:disable-next-line
-    ;(next as any)._subType = schema // FIXME if this is lazy is this going to be propagated?
+    ;(next as any).itemSchema = schema // FIXME if this is lazy is this going to be propagated?
 
     return next
   }
