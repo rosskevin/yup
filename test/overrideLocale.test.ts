@@ -1,13 +1,11 @@
-import { overrideLocale } from 'yup'
+import { locale, overrideLocale } from 'yup'
 
-describe('Custom locale', () => {
+describe('overrideLocale', () => {
   it('should get default locale', () => {
-    const locale = require('../src/locale').default
     expect(locale.string.email).toStrictEqual('${path} must be a valid email')
   })
 
   it('should set a new locale', () => {
-    const locale = require('../src/locale').default
     const email = 'Invalid email'
 
     overrideLocale({
@@ -20,7 +18,6 @@ describe('Custom locale', () => {
   })
 
   it('should update the main locale', () => {
-    const locale = require('../src/locale').default
     expect(locale.string.email).toStrictEqual('Invalid email')
   })
 })

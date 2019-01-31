@@ -1,6 +1,7 @@
 export * from './ArraySchema'
 export * from './BooleanSchema'
 export * from './DateSchema'
+export * from './locale'
 export * from './MixedSchema'
 export * from './NumberSchema'
 export * from './ObjectSchema/ObjectSchema'
