@@ -1,5 +1,5 @@
 import { array, number, object } from 'yup'
-import getIn from '../../src/util/getIn'
+import { getIn } from '../../src/util/getIn'
 
 describe('getIn', () => {
   it('should getIn correctly', () => {
