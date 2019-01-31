@@ -10,7 +10,7 @@ function trim(part: string) {
   return part.substr(0, part.length - 1).substr(1)
 }
 
-export default function getIn<S extends MixedSchema>(
+export function getIn<S extends MixedSchema>(
   schemaArg: S,
   path: string,
   value: any,
