@@ -1,5 +1,4 @@
 import has from 'lodash/has'
-// import { ArraySchema } from '../ArraySchema'
 import { MixedSchema } from '../MixedSchema'
 import { ValidateOptions } from '../types'
 import { forEach } from './expression'

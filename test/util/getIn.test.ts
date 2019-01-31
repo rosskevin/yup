@@ -1,4 +1,4 @@
-import { array, lazy, number, object, string } from '../../src'
+import { array, number, object } from 'yup'
 import getIn from '../../src/util/getIn'
 
 describe('getIn', () => {
