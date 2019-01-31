@@ -1,7 +1,7 @@
 import { SynchronousPromise } from 'synchronous-promise'
 import { ValidationError } from '../ValidationError'
 
-function promise<T>(sync: boolean): Promise<T> {
+function promise<T>(sync: boolean): SynchronousPromise<T> {
   return sync ? (SynchronousPromise as any) : Promise
 }
 
@@ -34,10 +34,22 @@ function scopeToValue<T>(promises: Array<T | PromiseLike<T>>, value: any, sync: 
 }
 
 export function settled<T>(promises: Array<T | PromiseLike<T>>, sync: boolean) {
-  const settle = (promiseInner: Promise<T>) =>
-    promiseInner.then(value => ({ fulfilled: true, value }), value => ({ fulfilled: false, value }))
-
-  return (promise(sync) as any).all(promises.map(settle as any)) // FIXME
+  // const settle = (promiseInner: Promise<T>) =>
+  //   promiseInner.then(value => ({ fulfilled: true, value }), value => ({ fulfilled: false, value }))
+  //
+  // return (promise(sync) as any).all(promises.map(settle as any)) // FIXME
+  // https://github.com/jquense/yup/commit/22d7375fb5f6cb2eb14d60249cdb6f4478caeedc
+  const resolvedPromise: any = promise<T>(sync)
+  return resolvedPromise.all(
+    promises.map(p =>
+      resolvedPromise
+        .resolve(p)
+        .then(
+          (value: T) => ({ fulfilled: true, value }),
+          (value: T) => ({ fulfilled: false, value }),
+        ),
+    ),
+  )
 }
 
 function collectErrors({ validations, value, path, sync, errors, sort }: any) {

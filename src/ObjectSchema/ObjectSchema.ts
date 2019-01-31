@@ -173,7 +173,7 @@ export class ObjectSchema<T = object> extends MixedSchema<T> {
     return isChanged ? intermediateValue : value
   }
 
-  public _validate(_value: any, opts: ValidateOptions = {}) {
+  public _validate(_value: any, opts: ValidateOptions = {}): Promise<T> {
     const endEarly = this._option('abortEarly', opts)
     const recursive = this._option('recursive', opts)
     const sync = opts.sync
@@ -207,19 +207,16 @@ export class ObjectSchema<T = object> extends MixedSchema<T> {
             path,
           }
 
-          if (fieldSchema) {
+          if (fieldSchema && (fieldSchema as any).validate) {
             // inner fields are always strict:
             // 1. this isn't strict so the casting will also have cast inner values
             // 2. this is strict in which case the nested values weren't cast either
             innerOptions.strict = true
 
-            if ((fieldSchema as any).validate) {
-              return (fieldSchema as MixedSchema<any>).validate(value[key], innerOptions)
-            }
-            return Promise.resolve(true)
+            return (fieldSchema as MixedSchema<any>).validate(value[key], innerOptions)
           }
 
-          return true
+          return Promise.resolve(true)
         })
 
         return runValidations({
